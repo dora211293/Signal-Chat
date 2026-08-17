@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIGNAL — リアルタイムチャット</title>
+
+<meta name="theme-color" content="#0C1116">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SIGNAL">
+<meta name="description" content="周波数を合わせて話す、リアルタイム・グループチャット">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #0C1116;
+    --bg-grad: radial-gradient(1200px 600px at 15% -10%, #10202080 0%, transparent 60%),
+                radial-gradient(900px 500px at 110% 10%, #2a1d0d80 0%, transparent 55%),
+                #0C1116;
+    --surface: #12191F;
+    --surface-2: #1A232B;
+    --surface-3: #212C35;
+    --border: #253039;
+    --text: #E7EBEF;
+    --text-muted: #7C8A97;
+    --text-faint: #4E5A64;
+    --amber: #E8A33D;
+    --amber-dim: #E8A33D33;
+    --teal: #37D6B0;
+    --teal-dim: #37D6B033;
+    --danger: #E0654F;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  [data-theme="light"]{
+    --bg: #F3F0E8;
+    --bg-grad: radial-gradient(1000px 500px at 10% -10%, #ffffffb0 0%, transparent 60%), #F3F0E8;
+    --surface: #FFFFFF;
+    --surface-2: #F1ECE1;
+    --surface-3: #E7DFCE;
+    --border: #DED5C0;
+    --text: #211F1A;
+    --text-muted: #6E6656;
+    --text-faint: #A79F8B;
+    --amber: #B9701C;
+    --amber-dim: #B9701C26;
+    --teal: #0F8A73;
+    --teal-dim: #0F8A7326;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ height: 100%; }
+  body{
+    margin:0;
+    background: var(--bg-grad);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    transition: background .2s, color .2s;
+  }
+  ::selection{ background: var(--amber-dim); color: var(--text); }
+  ::-webkit-scrollbar{ width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb{ background: var(--surface-3); border-radius: 8px; }
+  ::-webkit-scrollbar-track{ background: transparent; }
+
+  button{ font-family: inherit; }
+  input{ font-family: inherit; }
+  code{ font-family: var(--font-mono); }
+
+  /* ===================== App shell ===================== */
+  #app{
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+  }
+  @media (max-width: 760px){
+    #app{ grid-template-columns: 1fr; }
+    #sidebar{
+      position: fixed; inset: 0 20% 0 0; z-index: 40;
+      transform: translateX(-105%);
+      transition: transform .28s cubic-bezier(.2,.8,.2,1);
+      box-shadow: 30px 0 60px #00000080;
+    }
+    #sidebar.open{ transform: translateX(0); }
+    #sidebar-scrim{
+      position: fixed; inset:0; background:#000a; z-index: 39;
+      opacity:0; pointer-events:none; transition: opacity .25s;
+    }
+    #sidebar-scrim.show{ opacity:1; pointer-events:auto; }
+  }
+
+  /* ===================== Sidebar ===================== */
+  #sidebar{
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display:flex; flex-direction:column;
+    min-width: 0; min-height: 0; height: 100%;
+  }
+  .brand{ display:flex; align-items:center; padding: 20px 18px 14px; flex-shrink: 0; }
+  .brand-text{ display:flex; flex-direction:column; line-height:1.15; }
+  .brand-text b{ font-family: var(--font-display); font-size: 17px; letter-spacing: .04em; }
+  .brand-text span{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: .06em; }
+
+  .self-card{
+    margin: 4px 14px 10px; padding: 10px 12px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md);
+    display:flex; align-items:center; gap:10px; flex-shrink: 0;
+  }
+  .self-avatar, .msg-avatar, .preview-avatar, .online-chip-avatar, .read-chip{ overflow: hidden; }
+  .self-avatar img, .msg-avatar img, .preview-avatar img, .online-chip-avatar img, .read-chip img{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .self-avatar{
+    width: 30px; height: 30px; border-radius: 50%; background: var(--surface-3);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size: 14px; font-weight:600;
+    color: var(--teal); flex-shrink:0; border: 1px solid var(--teal-dim);
+  }
+  .self-meta{ min-width:0; flex:1; }
+  .self-meta .name{ font-size: 13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:4px; }
+  .self-meta .status{ font-family: var(--font-mono); font-size: 10px; color: var(--teal); display:flex; align-items:center; gap:5px; margin-top:1px;}
+  .self-meta .status .dot{ width:6px; height:6px; border-radius:50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: blink 2s infinite; }
+  .icon-actions{ display:flex; gap:2px; flex-shrink:0; }
+  .edit-name-btn{ background:none; border:none; color: var(--text-faint); cursor:pointer; font-size: 13px; padding: 4px; }
+  .edit-name-btn:hover{ color: var(--amber); }
+
+  .admin-btn{
+    margin: 0 14px 10px; padding: 9px 10px; border-radius: var(--radius-md);
+    background: var(--surface-2); border: 1px solid var(--amber-dim); color: var(--amber);
+    font-size: 12.5px; font-weight:600; cursor:pointer;
+    display:none; align-items:center; justify-content:center; gap:6px; flex-shrink:0;
+  }
+
+  .section-label{
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em;
+    color: var(--text-faint); text-transform: uppercase; padding: 10px 18px 6px;
+    display:flex; align-items:center; justify-content:space-between; flex-shrink: 0;
+  }
+  .add-channel-btn{
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    width: 20px; height: 20px; border-radius: 6px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size: 13px; line-height:1;
+  }
+  .add-channel-btn:hover{ border-color: var(--amber); color: var(--amber); }
+
+  #channel-list{ list-style:none; margin:0; padding: 2px 10px 10px; overflow-y:auto; flex:1; min-height: 0; }
+  .channel-item{
+    display:flex; align-items:center; gap:10px; padding: 9px 10px; border-radius: var(--radius-sm);
+    cursor:pointer; margin-bottom: 2px; border: 1px solid transparent;
+  }
+  .channel-item:hover{ background: var(--surface-2); }
+  .channel-item.active{ background: var(--surface-2); border-color: var(--amber-dim); }
+  .channel-freq{
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--amber);
+    background: var(--amber-dim); padding: 2px 5px; border-radius: 4px;
+    flex-shrink:0; min-width: 40px; text-align:center;
+  }
+  .channel-name{ font-size: 13.5px; color: var(--text); font-weight: 500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+  .channel-del-btn{ background:none; border:none; color: var(--text-faint); font-size:15px; cursor:pointer; padding: 2px 6px; margin-left:auto; flex-shrink:0; }
+  .channel-del-btn:hover{ color: var(--danger); }
+
+  .online-panel{ border-top: 1px solid var(--border); padding: 12px 18px 16px; flex-shrink: 0; max-height: 30%; overflow-y: auto; }
+  #online-list{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .online-chip{
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted);
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 3px 8px 3px 3px; border-radius: 20px; display:flex; align-items:center; gap:5px;
+    animation: chipIn .25s ease;
+  }
+  .online-chip-avatar{
+    width:16px; height:16px; border-radius:50%; background:var(--surface-3);
+    display:flex; align-items:center; justify-content:center; font-size:9px; flex-shrink:0;
+  }
+
+  /* ===================== Main pane ===================== */
+  #main{ display:flex; flex-direction:column; min-width:0; min-height: 0; height:100%; position:relative; }
+
+  #topbar{
+    display:flex; align-items:center; gap:14px; padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 60%, transparent), transparent);
+    flex-shrink:0;
+  }
+  #menu-btn{ display:none; background:none; border:1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: 8px; cursor:pointer; font-size:16px; }
+  @media (max-width:760px){ #menu-btn{ display:block; } }
+
+  #topbar .titles{ min-width:0; flex-shrink:0; }
+  #topbar .titles .freq{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing: .1em; }
+  #topbar .titles h1{ font-family: var(--font-display); font-size: 17px; margin: 1px 0 0; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 40vw; }
+
+  #waveform{ flex:1; height: 34px; min-width: 60px; opacity:.85; }
+
+  #theme-toggle-top{
+    background:none; border:1px solid var(--border); color: var(--text-muted);
+    width: 34px; height: 34px; border-radius: 8px; cursor:pointer; font-size:15px; flex-shrink:0;
+  }
+
+  #onair{
+    font-family: var(--font-mono); font-size: 10px; letter-spacing:.1em; color: var(--teal);
+    display:flex; align-items:center; gap:6px; flex-shrink:0;
+    border: 1px solid var(--teal-dim); padding: 5px 10px; border-radius: 20px;
+  }
+  #onair .dot{ width:6px; height:6px; border-radius:50%; background: var(--teal); box-shadow:0 0 8px var(--teal); animation: blink 1.6s infinite; }
+  #onair.off{ color: var(--text-faint); border-color: var(--border); }
+  #onair.off .dot{ background: var(--text-faint); box-shadow:none; animation:none; }
+
+  #messages{ flex:1; min-height: 0; overflow-y:auto; padding: 22px 24px 10px; display:flex; flex-direction:column; }
+  .empty-state{ margin:auto; text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 12px; max-width: 280px; line-height:1.7; }
+
+  .day-divider{
+    align-self:center; font-family: var(--font-mono); font-size: 10px; color: var(--text-faint);
+    background: var(--surface); border: 1px solid var(--border); padding: 3px 12px; border-radius: 20px; margin: 14px 0 10px;
+  }
+
+  .msg-row{ display:flex; gap: 10px; max-width: 76%; margin: 7px 0 0; align-items: flex-end; }
+  .msg-row.mine{ align-self:flex-end; flex-direction:row-reverse; }
+  .msg-row.grouped{ margin-top: 2px; }
+
+  .msg-avatar{
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink:0; background: var(--surface-3);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size: 13px; font-weight:600; color: var(--text-muted);
+  }
+  .msg-row.chained .msg-avatar{ visibility:hidden; }
+  .msg-body{ min-width:0; }
+  .msg-meta{ display:flex; gap:8px; align-items:baseline; margin-bottom:4px; padding: 0 3px; }
+  .msg-row.mine .msg-meta{ flex-direction:row-reverse; }
+  .msg-meta .who{ font-size: 12px; font-weight:600; color: var(--text); display:inline-flex; align-items:center; gap:3px; }
+  .msg-meta .time{ font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); }
+  .msg-row.grouped .msg-meta{ display:none; }
+
+  .bubble{
+    background: var(--surface-2); border: 1px solid var(--border); padding: 9px 13px;
+    border-radius: 4px 18px 18px 18px; font-size: 14px; line-height: 1.55;
+    word-break: break-word; white-space: pre-wrap; color: var(--text);
+  }
+  .msg-row.chained .bubble{ border-radius: 4px 18px 18px 4px; }
+  .msg-row.mine .bubble{
+    background: linear-gradient(155deg, #2a2115, #1c1712); border: 1px solid var(--amber-dim);
+    border-radius: 18px 4px 18px 18px; color: #F1E6D2;
+  }
+  [data-theme="light"] .msg-row.mine .bubble{
+    background: linear-gradient(155deg, #FBEAC9, #F5DAA0); border: 1px solid var(--amber-dim); color: #2B2410;
+  }
+  .msg-row.mine.chained .bubble{ border-radius: 18px 4px 4px 18px; }
+
+  @keyframes msgIn{ from{ opacity:0; transform: translateY(10px) scale(.97); } to{ opacity:1; transform: translateY(0) scale(1); } }
+  .msg-row.msg-enter{ animation: msgIn .32s cubic-bezier(.2,.85,.25,1); }
+
+  .msg-actions{ margin-top:3px; padding: 0 3px; }
+  .msg-row.mine .msg-actions{ text-align:right; }
+  .msg-del-btn{
+    background:none; border:none; font-family: var(--font-mono); font-size: 9.5px;
+    color: var(--text-faint); cursor:pointer; padding: 2px 3px; opacity:.7;
+  }
+  .msg-del-btn:hover{ color: var(--danger); opacity:1; }
+
+  .read-chips{ display:flex; gap:3px; margin-top:4px; padding: 0 3px; cursor:pointer; }
+  .msg-row.mine .read-chips{ justify-content:flex-end; }
+  .read-chip{ width:15px; height:15px; border-radius:50%; background: var(--surface-3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; }
+  .read-names{ display:none; font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); padding: 2px 3px 0; }
+  .read-chips.expanded + .read-names{ display:block; }
+
+  .verify-badge{ flex-shrink:0; }
+
+  #typing-indicator{ min-height: 22px; padding: 0 26px; font-family: var(--font-mono); font-size: 11px; color: var(--teal); display:flex; align-items:center; gap:6px; flex-shrink: 0; }
+  #typing-indicator .bars{ display:flex; gap:2px; align-items:flex-end; height:10px; }
+  #typing-indicator .bars span{ width:2px; background: var(--teal); animation: bounce 1s infinite ease-in-out; }
+  #typing-indicator .bars span:nth-child(2){ animation-delay:.15s; }
+  #typing-indicator .bars span:nth-child(3){ animation-delay:.3s; }
+
+  #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: var(--surface); flex-shrink:0; }
+  #msg-input{
+    flex:1; resize:none; max-height: 120px; min-height: 42px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius-md); padding: 11px 14px; font-size: 14px; line-height:1.4;
+    outline:none; transition: border-color .15s;
+  }
+  #msg-input:focus{ border-color: var(--amber); }
+  #msg-input::placeholder{ color: var(--text-faint); }
+  #send-btn{
+    background: linear-gradient(150deg, var(--amber), #c97f22); border:none; color: #14100a;
+    width: 42px; height: 42px; border-radius: var(--radius-md); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; transition: transform .12s;
+  }
+  #send-btn:hover{ transform: translateY(-1px); }
+  #send-btn:active{ transform: scale(.94); }
+  #send-btn:disabled{ opacity:.4; cursor:default; transform:none; }
+
+  /* ===================== Modals ===================== */
+  .modal-scrim{
+    position:fixed; inset:0; background:#060a0ecc; backdrop-filter: blur(6px);
+    display:flex; align-items:center; justify-content:center; z-index:100; padding: 20px; overflow-y: auto;
+  }
+  .modal-card{
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 26px 24px; width: 100%; max-width: 400px; box-shadow: 0 30px 80px #000000a0; margin: auto;
+  }
+  .modal-card .eyebrow{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing:.14em; }
+  .modal-card h2{ font-family: var(--font-display); font-size: 21px; margin: 6px 0 4px; }
+  .modal-card p{ font-size: 12.5px; color: var(--text-muted); line-height:1.6; margin: 0 0 16px; }
+  .modal-card input{
+    width:100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius-sm); padding: 11px 13px; font-size: 14px; outline:none; margin-bottom: 12px;
+  }
+  .modal-card input:focus{ border-color: var(--amber); }
+  .modal-card button.primary{
+    width:100%; background: linear-gradient(150deg, var(--amber), #c97f22); border:none; color:#14100a;
+    font-weight:600; font-size: 14px; padding: 12px; border-radius: var(--radius-sm); cursor:pointer; margin-top: 4px;
+  }
+  .modal-card button.primary:disabled{ opacity:.4; cursor:default; }
+  .modal-card .cancel{
+    display:block; width:100%; text-align:center; margin-top:10px; background:none; border:none;
+    color: var(--text-faint); font-size: 12.5px; cursor:pointer; padding: 6px;
+  }
+  .field-error{ color: var(--danger); font-size: 11.5px; margin: -6px 0 12px; display:none; }
+
+  .profile-preview{ display:flex; justify-content:center; margin-bottom: 16px; }
+  .preview-avatar{
+    width: 60px; height: 60px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-family: var(--font-display); font-size: 22px; font-weight: 700;
+  }
+  .field-label{ font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); letter-spacing: .08em; margin: 0 0 6px; text-transform: uppercase; }
+  .icon-picker{ display:grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 10px; }
+  .icon-btn{
+    width: 100%; aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2);
+    font-size: 16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition: border-color .12s, transform .12s;
+  }
+  .icon-btn:active{ transform: scale(.92); }
+  .icon-btn.selected{ border-color: var(--amber); background: var(--amber-dim); }
+
+  .image-pick-row{ display:flex; gap:8px; margin-bottom: 14px; }
+  .image-pick-btn{
+    flex:1; text-align:center; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius-sm); padding: 10px; font-size: 12.5px; cursor:pointer;
+  }
+  .mini-btn, .mini-btn-outline, .mini-btn-danger{
+    border-radius: 6px; padding: 6px 10px; font-size: 11px; cursor:pointer; flex-shrink:0; white-space:nowrap;
+  }
+  .mini-btn{ background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-dim); }
+  .mini-btn-outline{ background:none; border: 1px solid var(--border); color: var(--text-muted); }
+  .mini-btn-danger{ background:#4a1f1a; color:#ff9d8a; border:1px solid #6b2f26; }
+  [data-theme="light"] .mini-btn-danger{ background:#FBE2DC; color:#B23A22; border:1px solid #EBC1B6; }
+
+  .uid-row{ display:flex; align-items:center; gap:8px; margin-bottom: 14px; }
+  .uid-row code{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 10.5px; color: var(--text-muted); background: var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:6px 8px; }
+
+  .verify-row{ margin-bottom: 16px; }
+  .verify-badge-lg{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color: var(--teal); font-weight:600; }
+  .verify-pending{ font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); }
+
+  /* Admin panel */
+  .admin-card{ max-width: 430px; }
+  .admin-tabs{ display:flex; gap:6px; margin-bottom: 14px; }
+  .admin-tab{ flex:1; background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted); padding: 8px; border-radius: 8px; font-size: 12px; cursor:pointer; }
+  .admin-tab.active{ border-color: var(--amber); color: var(--amber); }
+  .admin-panel-body{ max-height: 48vh; overflow-y:auto; }
+  .admin-row{ display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .admin-row:last-child{ border-bottom:none; }
+  .admin-row .avatar-sm{ width:26px; height:26px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; overflow:hidden; }
+  .admin-row .avatar-sm img{ width:100%; height:100%; object-fit:cover; }
+  .admin-row .info{ flex:1; min-width:0; font-size: 12.5px; display:flex; align-items:center; gap:4px; }
+  .admin-row .actions{ display:flex; gap:5px; flex-shrink:0; }
+  .admin-empty{ text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 11.5px; padding: 20px 0; }
+
+  #config-warning{
+    position:fixed; left:16px; right:16px; bottom:16px; z-index: 90;
+    background: #2b1a12; border: 1px solid #6b3f1c; color: #f0c896;
+    font-family: var(--font-mono); font-size: 11.5px; line-height:1.6;
+    padding: 12px 14px; border-radius: var(--radius-md); max-width: 480px; box-shadow: 0 20px 50px #0008;
+  }
+  #config-warning b{ color: var(--amber); }
+
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.25;} }
+  @keyframes bounce{ 0%,60%,100%{ height:3px; } 30%{ height:10px; } }
+  @keyframes chipIn{ from{ opacity:0; transform: scale(.85); } to{ opacity:1; transform: scale(1); } }
+
+  @media (prefers-reduced-motion: reduce){ * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div id="sidebar-scrim"></div>
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-text">
+        <b>SIGNAL</b>
+        <span>REALTIME · MULTI-CHANNEL</span>
+      </div>
+    </div>
+
+    <div class="self-card">
+      <div class="self-avatar" id="self-avatar">–</div>
+      <div class="self-meta">
+        <div class="name" id="self-name">–</div>
+        <div class="status"><span class="dot"></span><span id="self-status-text">送信可能</span></div>
+      </div>
+      <div class="icon-actions">
+        <button class="edit-name-btn" id="theme-toggle" title="テーマ切替">🌙</button>
+        <button class="edit-name-btn" id="edit-name-btn" title="プロフィールを編集">✎</button>
+      </div>
+    </div>
+
+    <button class="admin-btn" id="admin-panel-btn">🛡 管理者パネル</button>
+
+    <div class="section-label">
+      <span>チャンネル</span>
+      <button class="add-channel-btn" id="add-channel-btn" title="チャンネルを追加">+</button>
+    </div>
+    <ul id="channel-list"></ul>
+
+    <div class="online-panel">
+      <div class="section-label" style="padding:0;">オンライン — <span id="online-count">0</span>人</div>
+      <div id="online-list"></div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header id="topbar">
+      <button id="menu-btn">☰</button>
+      <div class="titles">
+        <div class="freq" id="topbar-freq">—</div>
+        <h1 id="topbar-name">読み込み中…</h1>
+      </div>
+      <canvas id="waveform"></canvas>
+      <div id="onair" class="off"><span class="dot"></span><span id="onair-text">接続中</span></div>
+    </header>
+
+    <div id="messages">
+      <div class="empty-state" id="empty-state">まだメッセージがありません。<br>最初の一言を送信してみましょう。</div>
+    </div>
+
+    <div id="typing-indicator"></div>
+
+    <div id="composer">
+      <textarea id="msg-input" rows="1" placeholder="メッセージを入力… (Enterで送信 / Shift+Enterで改行)"></textarea>
+      <button id="send-btn" disabled title="送信">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11L21 3L13 21L11 13L3 11Z" stroke="#14100a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </main>
+
+</div>
+
+<!-- ===================== プロフィール設定モーダル ===================== -->
+<div class="modal-scrim" id="nick-modal">
+  <div class="modal-card">
+    <div class="eyebrow">PROFILE</div>
+    <h2>周波数に接続</h2>
+    <p>チャットで表示される名前とアイコンを設定してください。あとから変更できます。</p>
+
+    <div class="profile-preview"><div class="preview-avatar" id="preview-avatar">–</div></div>
+
+    <div class="field-label">名前(他の人と重複できません)</div>
+    <input type="text" id="nick-input" maxlength="20" placeholder="例: しのぶ" autocomplete="off">
+    <div class="field-error" id="nick-error">その名前はすでに使われています</div>
+
+    <div class="field-label">画像アイコン(任意・自動で圧縮されます)</div>
+    <div class="image-pick-row">
+      <label class="image-pick-btn" for="icon-file">📷 画像を選択</label>
+      <input type="file" id="icon-file" accept="image/*" style="display:none;">
+      <button type="button" id="icon-img-clear" class="mini-btn-outline">画像を削除</button>
+    </div>
+
+    <div class="field-label">絵文字アイコン(画像が無いときに使われます)</div>
+    <div class="icon-picker" id="icon-picker">
+      <button type="button" class="icon-btn" data-icon="">Aa</button>
+      <button type="button" class="icon-btn" data-icon="🔥">🔥</button>
+      <button type="button" class="icon-btn" data-icon="🌙">🌙</button>
+      <button type="button" class="icon-btn" data-icon="⚡">⚡</button>
+      <button type="button" class="icon-btn" data-icon="🎧">🎧</button>
+      <button type="button" class="icon-btn" data-icon="🌊">🌊</button>
+      <button type="button" class="icon-btn" data-icon="🦊">🦊</button>
+      <button type="button" class="icon-btn" data-icon="🐼">🐼</button>
+      <button type="button" class="icon-btn" data-icon="🎮">🎮</button>
+      <button type="button" class="icon-btn" data-icon="🍀">🍀</button>
+      <button type="button" class="icon-btn" data-icon="⭐">⭐</button>
+      <button type="button" class="icon-btn" data-icon="👾">👾</button>
+      <button type="button" class="icon-btn" data-icon="🍉">🍉</button>
+      <button type="button" class="icon-btn" data-icon="🎵">🎵</button>
+      <button type="button" class="icon-btn" data-icon="🧊">🧊</button>
+      <button type="button" class="icon-btn" data-icon="🚀">🚀</button>
+    </div>
+    <input type="text" id="icon-input" maxlength="4" placeholder="自由入力も可(例: 🐧)" autocomplete="off">
+
+    <div class="field-label">認証バッジ</div>
+    <div class="verify-row" id="verify-status"></div>
+
+    <div class="field-label">あなたのUID(管理者設定に使います)</div>
+    <div class="uid-row"><code id="my-uid-display">読み込み中…</code><button type="button" id="copy-uid-btn" class="mini-btn-outline">コピー</button></div>
+
+    <button class="primary" id="nick-confirm" disabled>チャットを開始</button>
+  </div>
+</div>
+
+<!-- ===================== チャンネル追加モーダル ===================== -->
+<div class="modal-scrim" id="channel-modal" style="display:none;">
+  <div class="modal-card">
+    <div class="eyebrow">NEW CHANNEL</div>
+    <h2>チャンネルを作成</h2>
+    <p>新しい話題用のチャンネルを作ります。</p>
+    <input type="text" id="channel-input" maxlength="24" placeholder="例: 雑談" autocomplete="off">
+    <button class="primary" id="channel-confirm" disabled>作成する</button>
+    <button class="cancel" id="channel-cancel">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===================== 管理者パネル ===================== -->
+<div class="modal-scrim" id="admin-modal" style="display:none;">
+  <div class="modal-card admin-card">
+    <div class="eyebrow">ADMIN</div>
+    <h2>管理者パネル</h2>
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="requests">認証申請</button>
+      <button class="admin-tab" data-tab="users">ユーザー</button>
+      <button class="admin-tab" data-tab="channels">チャンネル</button>
+    </div>
+    <div class="admin-panel-body" id="admin-panel-body"></div>
+    <button class="cancel" id="admin-close">閉じる</button>
+  </div>
+</div>
+
+<!-- ===================== 設定未完了の警告 ===================== -->
+<div id="config-warning" style="display:none;">
+  <b>⚠ Firebase未設定</b><br>
+  このファイル内の <b>firebaseConfig</b> がプレースホルダのままです。
+</div>
+
+<script type="module">
+/* =========================================================================
+   SIGNAL — realtime multi-user chat (Firebase Firestore + Anonymous Auth)
+   ========================================================================= */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc,
+  onSnapshot, query, orderBy, limit, where, serverTimestamp, runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ ここにFirebaseの設定を貼り付け ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+const firebaseConfig = {
+  apiKey: "AIzaSyCLq37f-Dvak943qHOSvTjgrJoD-1Xovm0",
+  authDomain: "signalchat-d2112.firebaseapp.com",
+  projectId: "signalchat-d2112",
+  storageBucket: "signalchat-d2112.firebasestorage.app",
+  messagingSenderId: "30027633420",
+  appId: "1:30027633420:web:1b07b6b00af7eb38dbef29"
+};
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+// ▼ 管理者にしたい人のUIDをここに追加(プロフィール編集モーダルの下部で確認できます) ▼
+const ADMIN_UIDS = [
+  // "ここに管理者のUIDを貼り付け"
+];
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+let db = null, auth = null;
+
+if (isConfigured) {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  auth = getAuth(app);
+} else {
+  document.getElementById('config-warning').style.display = 'block';
+  document.getElementById('onair-text').textContent = '未接続';
+}
+
+const CHECK_SVG = '<svg class="verify-badge" viewBox="0 0 20 20" width="13" height="13" fill="none"><circle cx="10" cy="10" r="9" fill="#3B82F6"/><path d="M6 10.5l2.5 2.5L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* ------------------------------------------------------------------ */
+/* ローカルキャッシュ（初回描画を速くするため。正はFirestore側）          */
+/* ------------------------------------------------------------------ */
+const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img', THEME_KEY = 'signal_theme';
+let myUid = null;
+let myName = localStorage.getItem(NAME_KEY) || '';
+let myIcon = localStorage.getItem(ICON_KEY) || '';
+let myIconImg = localStorage.getItem(ICONIMG_KEY) || '';
+let isAdmin = false;
+let pendingIconImg = '';
+
+/* ------------------------------------------------------------------ */
+/* DOM refs                                                            */
+/* ------------------------------------------------------------------ */
+const $ = (id) => document.getElementById(id);
+const els = {
+  sidebar: $('sidebar'), scrim: $('sidebar-scrim'), menuBtn: $('menu-btn'),
+  selfName: $('self-name'), selfAvatar: $('self-avatar'), editNameBtn: $('edit-name-btn'),
+  themeToggle: $('theme-toggle'),
+  adminPanelBtn: $('admin-panel-btn'),
+  channelList: $('channel-list'), addChannelBtn: $('add-channel-btn'),
+  onlineList: $('online-list'), onlineCount: $('online-count'),
+  topbarFreq: $('topbar-freq'), topbarName: $('topbar-name'),
+  onair: $('onair'), onairText: $('onair-text'),
+  messages: $('messages'), emptyState: $('empty-state'),
+  typing: $('typing-indicator'),
+  input: $('msg-input'), sendBtn: $('send-btn'),
+  nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
+  iconPicker: $('icon-picker'), iconInput: $('icon-input'), previewAvatar: $('preview-avatar'),
+  iconFile: $('icon-file'), iconImgClear: $('icon-img-clear'),
+  verifyStatus: $('verify-status'), myUidDisplay: $('my-uid-display'), copyUidBtn: $('copy-uid-btn'),
+  channelModal: $('channel-modal'), channelInput: $('channel-input'),
+  channelConfirm: $('channel-confirm'), channelCancel: $('channel-cancel'),
+  adminModal: $('admin-modal'), adminPanelBody: $('admin-panel-body'), adminClose: $('admin-close'),
+  waveform: $('waveform'),
+};
+
+const avatarColor = (seed) => {
+  let h = 0; for (const c of String(seed)) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return `hsl(${h}, 55%, 62%)`;
+};
+const initials = (name) => (name || '?').trim().slice(0, 1).toUpperCase();
+const pseudoFreq = (id) => {
+  let h = 0; for (const c of id) h = (h * 17 + c.charCodeAt(0)) % 999;
+  return (80 + (h % 40) + (h % 100) / 100).toFixed(1);
+};
+function escapeHtml(str){
+  return (str || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+/** 画像 > 絵文字 > イニシャル の優先順でアバターのHTMLを返す */
+function avatarInner(p){
+  if (p && p.iconImg) return `<img src="${p.iconImg}" alt="">`;
+  if (p && p.icon) return `<span style="font-size:1.15em;line-height:1;">${escapeHtml(p.icon)}</span>`;
+  return escapeHtml(initials(p && p.name));
+}
+function nameWithBadge(name, verified){
+  return escapeHtml(name) + (verified ? ' ' + CHECK_SVG : '');
+}
+function normalizeName(n){ return (n || '').trim().toLowerCase(); }
+
+/** アップロードされた画像ファイルを 128x128 の正方形JPEGに圧縮してdata URLで返す */
+function fileToCompressedDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode failed'));
+      img.onload = () => {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const cctx = canvas.getContext('2d');
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale, h = img.height * scale;
+        cctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* テーマ（ライト/ダーク）                                              */
+/* ------------------------------------------------------------------ */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  const icon = t === 'light' ? '☀️' : '🌙';
+  els.themeToggle.textContent = icon;
+  localStorage.setItem(THEME_KEY, t);
+}
+applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+els.themeToggle.addEventListener('click', () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+});
+
+/* ------------------------------------------------------------------ */
+/* 波形ビジュアライザ（signature element）                              */
+/* ------------------------------------------------------------------ */
+const canvas = els.waveform;
+const ctx = canvas.getContext('2d');
+let barsAmp = new Array(28).fill(0.08);
+let pulseBoost = 0;
+let lastSize = '';
+
+function resizeCanvasIfNeeded(){
+  const rect = canvas.getBoundingClientRect();
+  const key = rect.width + 'x' + rect.height;
+  if (key !== lastSize) {
+    canvas.width = rect.width * devicePixelRatio;
+    canvas.height = rect.height * devicePixelRatio;
+    lastSize = key;
+  }
+}
+function drawWave(){
+  resizeCanvasIfNeeded();
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const n = barsAmp.length;
+  const gap = w / n;
+  for (let i = 0; i < n; i++) {
+    const target = 0.06 + Math.random() * 0.10 + pulseBoost * (0.4 + Math.random() * 0.6);
+    barsAmp[i] += (target - barsAmp[i]) * 0.18;
+    const barH = Math.max(2, barsAmp[i] * h);
+    const x = i * gap + gap * 0.3;
+    const y = (h - barH) / 2;
+    ctx.fillStyle = i % 3 === 0 ? '#37D6B0' : '#E8A33D';
+    ctx.globalAlpha = 0.55;
+    ctx.fillRect(x, y, gap * 0.4, barH);
+  }
+  pulseBoost *= 0.90;
+  requestAnimationFrame(drawWave);
+}
+requestAnimationFrame(drawWave);
+
+/* ------------------------------------------------------------------ */
+/* プロフィール（名前・アイコン・認証）                                   */
+/* ------------------------------------------------------------------ */
+function refreshSelfCard(){
+  const verified = usersCache[myUid] && usersCache[myUid].verified === true;
+  els.selfName.innerHTML = nameWithBadge(myName || '未設定', verified);
+  els.selfAvatar.innerHTML = avatarInner({ icon: myIcon, iconImg: myIconImg, name: myName || myUid });
+  const c = avatarColor(myUid || myName);
+  els.selfAvatar.style.color = c;
+  els.selfAvatar.style.borderColor = c + '55';
+}
+refreshSelfCard();
+
+function updatePreview(){
+  const nameVal = els.nickInput.value.trim();
+  const iconVal = els.iconInput.value.trim();
+  els.previewAvatar.innerHTML = avatarInner({ icon: iconVal, iconImg: pendingIconImg, name: nameVal || myUid });
+}
+function selectIconBtn(iconVal){
+  [...els.iconPicker.children].forEach(btn => btn.classList.toggle('selected', btn.dataset.icon === iconVal));
+}
+els.iconPicker.addEventListener('click', (e) => {
+  const btn = e.target.closest('.icon-btn');
+  if (!btn) return;
+  els.iconInput.value = btn.dataset.icon;
+  selectIconBtn(btn.dataset.icon);
+  updatePreview();
+});
+els.iconInput.addEventListener('input', () => { selectIconBtn(els.iconInput.value.trim()); updatePreview(); });
+els.nickInput.addEventListener('input', () => {
+  els.nickConfirm.disabled = !els.nickInput.value.trim();
+  els.nickError.style.display = 'none';
+  updatePreview();
+});
+els.iconFile.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try { pendingIconImg = await fileToCompressedDataUrl(file); updatePreview(); }
+  catch (err) { console.error('画像の処理に失敗しました', err); }
+});
+els.iconImgClear.addEventListener('click', () => { pendingIconImg = ''; els.iconFile.value = ''; updatePreview(); });
+els.copyUidBtn.addEventListener('click', () => {
+  if (!myUid) return;
+  navigator.clipboard?.writeText(myUid).catch(() => {});
+  els.copyUidBtn.textContent = 'コピー済み';
+  setTimeout(() => { els.copyUidBtn.textContent = 'コピー'; }, 1500);
+});
+
+function renderVerifyRow(){
+  const verified = usersCache[myUid] && usersCache[myUid].verified === true;
+  if (verified) {
+    els.verifyStatus.innerHTML = `<span class="verify-badge-lg">${CHECK_SVG}認証済みアカウントです</span>`;
+  } else if (myVerifyStatus && myVerifyStatus.status === 'pending') {
+    els.verifyStatus.innerHTML = `<span class="verify-pending">審査中です…</span>`;
+  } else if (myVerifyStatus && myVerifyStatus.status === 'rejected') {
+    els.verifyStatus.innerHTML = `<span class="verify-pending">前回の申請は却下されました</span><br><button type="button" class="mini-btn" id="apply-verify-btn" style="margin-top:6px;">✓ 再度申請する</button>`;
+  } else {
+    els.verifyStatus.innerHTML = `<button type="button" class="mini-btn" id="apply-verify-btn">✓ 認証を申請する</button>`;
+  }
+}
+els.verifyStatus.addEventListener('click', (e) => {
+  if (e.target.closest('#apply-verify-btn')) applyForVerification();
+});
+async function applyForVerification(){
+  if (!db || !myUid || !myName) return;
+  await setDoc(doc(db, 'verifyRequests', myUid), { name: myName, ts: serverTimestamp(), status: 'pending' }).catch(() => {});
+}
+
+function openNickModal(prefillName, prefillIcon, prefillImg){
+  els.nickInput.value = prefillName || '';
+  els.iconInput.value = prefillIcon || '';
+  pendingIconImg = prefillImg || '';
+  els.iconFile.value = '';
+  selectIconBtn(prefillIcon || '');
+  updatePreview();
+  els.nickError.style.display = 'none';
+  els.nickConfirm.disabled = !els.nickInput.value.trim();
+  els.myUidDisplay.textContent = myUid || '認証中…';
+  renderVerifyRow();
+  els.nickModal.style.display = 'flex';
+  setTimeout(() => els.nickInput.focus(), 50);
+}
+els.nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !els.nickConfirm.disabled) els.nickConfirm.click(); });
+
+async function claimUsername(newName, uid){
+  const key = normalizeName(newName);
+  if (!key) throw new Error('EMPTY');
+  await runTransaction(db, async (tx) => {
+    const newRef = doc(db, 'usernames', key);
+    const newSnap = await tx.get(newRef);
+    if (newSnap.exists() && newSnap.data().uid !== uid) throw new Error('TAKEN');
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await tx.get(userRef);
+    const oldName = userSnap.exists() ? userSnap.data().name : null;
+    if (oldName && normalizeName(oldName) !== key) {
+      tx.delete(doc(db, 'usernames', normalizeName(oldName)));
+    }
+    tx.set(newRef, { uid });
+  });
+}
+
+els.nickConfirm.addEventListener('click', async () => {
+  const v = els.nickInput.value.trim();
+  if (!v || !db || !myUid) return;
+  els.nickConfirm.disabled = true;
+  els.nickConfirm.textContent = '確認中…';
+  els.nickError.style.display = 'none';
+  try {
+    await claimUsername(v, myUid);
+    myName = v.slice(0, 20);
+    myIcon = els.iconInput.value.trim().slice(0, 4);
+    myIconImg = pendingIconImg;
+    localStorage.setItem(NAME_KEY, myName);
+    localStorage.setItem(ICON_KEY, myIcon);
+    localStorage.setItem(ICONIMG_KEY, myIconImg);
+    await setDoc(doc(db, 'users', myUid), {
+      name: myName, icon: myIcon, iconImg: myIconImg, updatedAt: serverTimestamp()
+    }, { merge: true });
+    refreshSelfCard();
+    els.nickModal.style.display = 'none';
+    startHeartbeat();
+    if (currentChannelId) markRead(currentChannelId);
+  } catch (e) {
+    els.nickError.textContent = (e && e.message === 'TAKEN') ? 'その名前はすでに使われています' : '保存に失敗しました。もう一度お試しください';
+    els.nickError.style.display = 'block';
+  } finally {
+    els.nickConfirm.disabled = !els.nickInput.value.trim();
+    els.nickConfirm.textContent = 'チャットを開始';
+  }
+});
+els.editNameBtn.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg));
+
+/* ------------------------------------------------------------------ */
+/* サイドバー（モバイル開閉）                                            */
+/* ------------------------------------------------------------------ */
+els.menuBtn.addEventListener('click', () => { els.sidebar.classList.add('open'); els.scrim.classList.add('show'); });
+els.scrim.addEventListener('click', () => { els.sidebar.classList.remove('open'); els.scrim.classList.remove('show'); });
+
+/* ------------------------------------------------------------------ */
+/* チャンネル                                                          */
+/* ------------------------------------------------------------------ */
+let currentChannelId = null;
+let currentChannelName = '';
+let unsubMessages = null, unsubTyping = null, unsubReads = null;
+let channelsCache = [];
+
+async function ensureDefaultChannels(){
+  if (!db) return;
+  const snap = await getDocs(collection(db, 'channels'));
+  if (snap.empty) {
+    await addDoc(collection(db, 'channels'), { name: '雑談', createdAt: serverTimestamp() });
+    await addDoc(collection(db, 'channels'), { name: 'お知らせ', createdAt: serverTimestamp() });
+  }
+}
+
+function renderChannelList(docs){
+  els.channelList.innerHTML = '';
+  docs.forEach((d) => {
+    const data = d.data();
+    const li = document.createElement('li');
+    li.className = 'channel-item' + (d.id === currentChannelId ? ' active' : '');
+    li.dataset.id = d.id;
+    li.innerHTML = `<span class="channel-freq">${pseudoFreq(d.id)}</span><span class="channel-name">${escapeHtml(data.name || '無題')}</span>`
+      + (isAdmin ? `<button type="button" class="channel-del-btn" title="削除">×</button>` : '');
+    li.addEventListener('click', () => selectChannel(d.id, data.name || '無題'));
+    if (isAdmin) {
+      li.querySelector('.channel-del-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteChannel(d.id, data.name || '無題');
+      });
+    }
+    els.channelList.appendChild(li);
+  });
+  if (!currentChannelId && docs.length) {
+    const first = docs[0];
+    selectChannel(first.id, first.data().name || '無題');
+  }
+}
+
+function listenChannels(){
+  if (!db) return;
+  onSnapshot(query(collection(db, 'channels'), orderBy('createdAt', 'asc')), (snap) => {
+    channelsCache = snap.docs;
+    renderChannelList(snap.docs);
+    if (adminModalOpen && currentAdminTab === 'channels') renderAdminPanel();
+  });
+}
+
+function selectChannel(id, name){
+  currentChannelId = id;
+  currentChannelName = name;
+  els.topbarName.textContent = name;
+  els.topbarFreq.textContent = pseudoFreq(id) + ' MHz';
+  [...els.channelList.children].forEach((li) => li.classList.toggle('active', li.dataset.id === id));
+  els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
+  knownIds = new Set();
+  lastDocsSnapshot = [];
+  listenMessages(id);
+  listenTyping(id);
+  listenReads(id);
+  markRead(id);
+}
+
+async function deleteChannel(channelId, name){
+  if (!isAdmin || !db) return;
+  if (!confirm(`チャンネル「${name}」を削除しますか？中のメッセージも全て消えます。`)) return;
+  try {
+    for (const sub of ['messages', 'typing', 'reads']) {
+      const snap = await getDocs(collection(db, 'channels', channelId, sub));
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+    }
+    await deleteDoc(doc(db, 'channels', channelId));
+    if (currentChannelId === channelId) currentChannelId = null;
+  } catch (e) { console.error(e); alert('削除に失敗しました'); }
+}
+
+els.addChannelBtn.addEventListener('click', () => {
+  els.channelInput.value = '';
+  els.channelConfirm.disabled = true;
+  els.channelModal.style.display = 'flex';
+  setTimeout(() => els.channelInput.focus(), 50);
+});
+els.channelCancel.addEventListener('click', () => { els.channelModal.style.display = 'none'; });
+els.channelInput.addEventListener('input', () => { els.channelConfirm.disabled = !els.channelInput.value.trim(); });
+els.channelInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !els.channelConfirm.disabled) els.channelConfirm.click(); });
+els.channelConfirm.addEventListener('click', async () => {
+  const name = els.channelInput.value.trim().slice(0, 24);
+  if (!name || !db) return;
+  els.channelConfirm.disabled = true;
+  const ref = await addDoc(collection(db, 'channels'), { name, createdAt: serverTimestamp() });
+  els.channelModal.style.display = 'none';
+  selectChannel(ref.id, name);
+});
+
+/* ------------------------------------------------------------------ */
+/* メッセージ                                                          */
+/* ------------------------------------------------------------------ */
+function formatTime(ts){
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date();
+  return d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+}
+function formatDay(ts){
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date();
+  return d.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+}
+
+let knownIds = new Set();
+let lastDocsSnapshot = [];
+let readsMap = {};
+let usersCache = {};
+let myVerifyStatus = null;
+
+function computeReceiptsByMsgId(docsArr){
+  const map = {};
+  if (!docsArr.length) return map;
+  Object.keys(readsMap).forEach((uid) => {
+    if (uid === myUid) return;
+    const r = readsMap[uid];
+    if (!r || !r.ts || !r.ts.toMillis) return;
+    const readMs = r.ts.toMillis();
+    let lastId = null;
+    for (const d of docsArr) {
+      const m = d.data();
+      const ms = m.ts && m.ts.toMillis ? m.ts.toMillis() : null;
+      if (ms !== null && ms <= readMs) lastId = d.id; else break;
+    }
+    if (lastId) {
+      const prof = usersCache[uid] || {};
+      if (!map[lastId]) map[lastId] = [];
+      map[lastId].push({ name: prof.name || r.name, icon: prof.icon || r.icon, iconImg: prof.iconImg || '' });
+    }
+  });
+  return map;
+}
+
+function renderMessages(docs){
+  // FIX(バグ): 送信直後は ts が確定するまで一時的に null になり、並び順が
+  // 崩れて先頭にジャンプ→確定後に末尾へ移動…という現象(アニメーションが
+  // 効いてないように見える/連結表示が崩れる原因)が起きていた。
+  // ここでクライアント側で確実に時系列へ再ソートする。
+  const sorted = [...docs].sort((a, b) => {
+    const ma = a.data().ts && a.data().ts.toMillis ? a.data().ts.toMillis() : Date.now();
+    const mb = b.data().ts && b.data().ts.toMillis ? b.data().ts.toMillis() : Date.now();
+    return ma - mb;
+  });
+
+  const receiptsByMsgId = computeReceiptsByMsgId(sorted);
+  const nearBottom = els.messages.scrollHeight - els.messages.scrollTop - els.messages.clientHeight < 120;
+  const wasEmpty = !!els.messages.querySelector('.empty-state');
+
+  els.messages.innerHTML = '';
+  if (!sorted.length) {
+    els.messages.appendChild(els.emptyState);
+    knownIds = new Set();
+    return;
+  }
+
+  const newKnown = new Set();
+  let lastDay = null;
+  const sameDay = (a, b) => a && b && formatDay(a.ts) === formatDay(b.ts);
+
+  sorted.forEach((d, i) => {
+    const m = d.data();
+    const day = formatDay(m.ts);
+    if (day && day !== lastDay) {
+      const div = document.createElement('div');
+      div.className = 'day-divider';
+      div.textContent = day;
+      els.messages.appendChild(div);
+      lastDay = day;
+    }
+    const mine = m.uid === myUid;
+    const prev = sorted[i - 1] ? sorted[i - 1].data() : null;
+    const next = sorted[i + 1] ? sorted[i + 1].data() : null;
+    const groupedWithPrev = !!(prev && prev.uid === m.uid && sameDay(prev, m));
+    const groupedWithNext = !!(next && next.uid === m.uid && sameDay(next, m));
+
+    const prof = usersCache[m.uid] || {};
+    const dispName = prof.name || m.name || '名無し';
+    const dispIcon = prof.icon !== undefined ? prof.icon : (m.icon || '');
+    const dispImg = prof.iconImg || '';
+    const verified = prof.verified === true;
+
+    const row = document.createElement('div');
+    row.className = 'msg-row'
+      + (mine ? ' mine' : '')
+      + (groupedWithPrev ? ' grouped' : '')
+      + (groupedWithNext ? ' chained' : '')
+      + (!knownIds.has(d.id) ? ' msg-enter' : '');
+    const color = avatarColor(m.uid);
+    row.innerHTML = `
+      <div class="msg-avatar" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
+      <div class="msg-body">
+        <div class="msg-meta"><span class="who">${nameWithBadge(dispName, verified)}</span><span class="time">${formatTime(m.ts)}</span></div>
+        <div class="bubble">${escapeHtml(m.text)}</div>
+      </div>`;
+
+    const body = row.querySelector('.msg-body');
+    const receipts = receiptsByMsgId[d.id];
+    if (receipts && receipts.length) {
+      const chipWrap = document.createElement('div');
+      chipWrap.className = 'read-chips';
+      chipWrap.innerHTML = receipts.map(r =>
+        `<span class="read-chip" title="${escapeHtml(r.name)}">${avatarInner(r)}</span>`
+      ).join('');
+      const names = document.createElement('div');
+      names.className = 'read-names';
+      names.textContent = '既読: ' + receipts.map(r => r.name).join('、');
+      body.appendChild(chipWrap);
+      body.appendChild(names);
+    }
+    if (mine || isAdmin) {
+      const actions = document.createElement('div');
+      actions.className = 'msg-actions';
+      actions.innerHTML = `<button type="button" class="msg-del-btn" data-id="${d.id}">${mine ? '取り消し' : '削除(管理者)'} 🗑</button>`;
+      body.appendChild(actions);
+    }
+
+    els.messages.appendChild(row);
+    newKnown.add(d.id);
+  });
+
+  knownIds = newKnown;
+  if (nearBottom || wasEmpty) els.messages.scrollTop = els.messages.scrollHeight;
+}
+
+els.messages.addEventListener('click', (e) => {
+  const delBtn = e.target.closest('.msg-del-btn');
+  if (delBtn && currentChannelId && db) {
+    if (confirm('このメッセージを削除しますか？')) {
+      deleteDoc(doc(db, 'channels', currentChannelId, 'messages', delBtn.dataset.id)).catch(() => alert('削除に失敗しました'));
+    }
+    return;
+  }
+  const chipWrap = e.target.closest('.read-chips');
+  if (chipWrap) chipWrap.classList.toggle('expanded');
+});
+
+function listenMessages(channelId){
+  if (unsubMessages) unsubMessages();
+  if (!db) return;
+  const q = query(collection(db, 'channels', channelId, 'messages'), orderBy('ts', 'asc'), limit(200));
+  unsubMessages = onSnapshot(q, (snap) => {
+    lastDocsSnapshot = snap.docs;
+    renderMessages(lastDocsSnapshot);
+    if (channelId === currentChannelId) markRead(channelId);
+  });
+}
+
+async function sendMessage(){
+  const text = els.input.value.trim();
+  if (!text || !currentChannelId || !db || !myName || !myUid) return;
+  els.input.value = '';
+  els.input.style.height = 'auto';
+  els.sendBtn.disabled = true;
+  pulseBoost = 1;
+  try {
+    await addDoc(collection(db, 'channels', currentChannelId, 'messages'), {
+      text, uid: myUid, name: myName, icon: myIcon || '', ts: serverTimestamp()
+    });
+  } catch (e) { console.error('送信に失敗しました', e); }
+  clearTyping();
+}
+els.input.addEventListener('input', () => {
+  els.sendBtn.disabled = !els.input.value.trim();
+  els.input.style.height = 'auto';
+  els.input.style.height = Math.min(120, els.input.scrollHeight) + 'px';
+  pushTyping();
+});
+els.input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!els.sendBtn.disabled) sendMessage(); }
+});
+els.sendBtn.addEventListener('click', sendMessage);
+
+/* ------------------------------------------------------------------ */
+/* 入力中インジケータ                                                   */
+/* ------------------------------------------------------------------ */
+let typingTimeout = null;
+async function pushTyping(){
+  if (!db || !currentChannelId || !myName || !myUid) return;
+  await setDoc(doc(db, 'channels', currentChannelId, 'typing', myUid), { name: myName, ts: serverTimestamp() }).catch(() => {});
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(clearTyping, 2500);
+}
+async function clearTyping(){
+  if (!db || !currentChannelId || !myUid) return;
+  await setDoc(doc(db, 'channels', currentChannelId, 'typing', myUid), { name: myName, ts: null }).catch(() => {});
+}
+function listenTyping(channelId){
+  if (unsubTyping) unsubTyping();
+  if (!db) return;
+  unsubTyping = onSnapshot(collection(db, 'channels', channelId, 'typing'), (snap) => {
+    const now = Date.now();
+    const names = [];
+    snap.forEach((d) => {
+      const t = d.data();
+      if (d.id === myUid || !t.ts) return;
+      const ms = t.ts.toMillis ? t.ts.toMillis() : 0;
+      if (now - ms < 3000) names.push((usersCache[d.id] && usersCache[d.id].name) || t.name);
+    });
+    els.typing.innerHTML = names.length
+      ? `<div class="bars"><span></span><span></span><span></span></div>${escapeHtml(names.join('、'))}さんが入力中…`
+      : '';
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* 既読機能                                                            */
+/* ------------------------------------------------------------------ */
+let lastMarkReadAt = 0;
+async function markRead(channelId){
+  if (!db || !channelId || !myName || !myUid || document.hidden) return;
+  const now = Date.now();
+  if (now - lastMarkReadAt < 1200) return;
+  lastMarkReadAt = now;
+  await setDoc(doc(db, 'channels', channelId, 'reads', myUid), { name: myName, icon: myIcon || '', ts: serverTimestamp() }).catch(() => {});
+}
+function listenReads(channelId){
+  if (unsubReads) unsubReads();
+  if (!db) return;
+  unsubReads = onSnapshot(collection(db, 'channels', channelId, 'reads'), (snap) => {
+    const map = {};
+    snap.forEach((d) => { map[d.id] = d.data(); });
+    readsMap = map;
+    if (lastDocsSnapshot.length) renderMessages(lastDocsSnapshot);
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* ユーザー一覧（名前/アイコン/認証バッジをリアルタイム反映するため）        */
+/* ------------------------------------------------------------------ */
+function listenUsers(){
+  if (!db) return;
+  onSnapshot(collection(db, 'users'), (snap) => {
+    const map = {};
+    snap.forEach((d) => { map[d.id] = d.data(); });
+    usersCache = map;
+    refreshSelfCard();
+    renderVerifyRow();
+    if (lastDocsSnapshot.length) renderMessages(lastDocsSnapshot);
+    if (adminModalOpen && currentAdminTab === 'users') renderAdminPanel();
+  });
+}
+function listenOwnVerifyRequest(){
+  if (!db || !myUid) return;
+  onSnapshot(doc(db, 'verifyRequests', myUid), (snap) => {
+    myVerifyStatus = snap.exists() ? snap.data() : null;
+    renderVerifyRow();
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* プレゼンス（オンライン表示）                                          */
+/* ------------------------------------------------------------------ */
+let hbTimer = null;
+async function heartbeat(){
+  if (!db || !myName || !myUid || document.hidden) return;
+  await setDoc(doc(db, 'presence', myUid), { name: myName, icon: myIcon || '', ts: serverTimestamp() }).catch(() => {});
+}
+function startHeartbeat(){ stopHeartbeat(); heartbeat(); hbTimer = setInterval(heartbeat, 10000); }
+function stopHeartbeat(){ if (hbTimer) clearInterval(hbTimer); hbTimer = null; }
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { stopHeartbeat(); }
+  else { if (myName) startHeartbeat(); if (currentChannelId) markRead(currentChannelId); }
+});
+window.addEventListener('pagehide', () => {
+  if (db && myUid) deleteDoc(doc(db, 'presence', myUid)).catch(() => {});
+});
+function listenPresence(){
+  if (!db) return;
+  onSnapshot(collection(db, 'presence'), (snap) => {
+    const now = Date.now();
+    const online = [];
+    snap.forEach((d) => {
+      const p = d.data();
+      const ms = p.ts && p.ts.toMillis ? p.ts.toMillis() : 0;
+      if (now - ms < 25000) online.push({ uid: d.id, name: p.name, icon: p.icon, iconImg: '' });
+    });
+    els.onlineCount.textContent = online.length;
+    els.onlineList.innerHTML = online.map((p) => {
+      const prof = usersCache[p.uid] || p;
+      return `<span class="online-chip"><span class="online-chip-avatar">${avatarInner(prof)}</span>${nameWithBadge(prof.name, prof.verified === true)}</span>`;
+    }).join('');
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* 管理者パネル                                                        */
+/* ------------------------------------------------------------------ */
+let adminModalOpen = false;
+let currentAdminTab = 'requests';
+let pendingVerifyRequests = [];
+
+function listenPendingVerifyRequests(){
+  if (!isAdmin || !db) return;
+  onSnapshot(query(collection(db, 'verifyRequests'), where('status', '==', 'pending')), (snap) => {
+    pendingVerifyRequests = snap.docs;
+    if (adminModalOpen && currentAdminTab === 'requests') renderAdminPanel();
+  });
+}
+
+async function approveVerify(uid){
+  await setDoc(doc(db, 'users', uid), { verified: true }, { merge: true }).catch(() => {});
+  await setDoc(doc(db, 'verifyRequests', uid), { status: 'approved' }, { merge: true }).catch(() => {});
+}
+async function rejectVerify(uid){
+  await setDoc(doc(db, 'verifyRequests', uid), { status: 'rejected' }, { merge: true }).catch(() => {});
+}
+async function setVerified(uid, val){
+  await setDoc(doc(db, 'users', uid), { verified: val }, { merge: true }).catch(() => {});
+}
+async function forceDeleteAccount(uid, name){
+  if (!isAdmin || !db) return;
+  if (!confirm(`${name} さんのアカウントを削除しますか？(過去のメッセージ自体は残ります)`)) return;
+  try {
+    await deleteDoc(doc(db, 'users', uid)).catch(() => {});
+    await deleteDoc(doc(db, 'presence', uid)).catch(() => {});
+    await deleteDoc(doc(db, 'verifyRequests', uid)).catch(() => {});
+    const key = normalizeName(name);
+    const claimSnap = await getDoc(doc(db, 'usernames', key)).catch(() => null);
+    if (claimSnap && claimSnap.exists() && claimSnap.data().uid === uid) {
+      await deleteDoc(doc(db, 'usernames', key)).catch(() => {});
+    }
+  } catch (e) { console.error(e); alert('削除に失敗しました'); }
+}
+
+function renderAdminPanel(){
+  const body = els.adminPanelBody;
+  if (currentAdminTab === 'requests') {
+    if (!pendingVerifyRequests.length) {
+      body.innerHTML = `<div class="admin-empty">保留中の申請はありません</div>`;
+      return;
+    }
+    body.innerHTML = '';
+    pendingVerifyRequests.forEach((d) => {
+      const r = d.data();
+      const row = document.createElement('div');
+      row.className = 'admin-row';
+      row.innerHTML = `<div class="info">${escapeHtml(r.name)}</div>
+        <div class="actions">
+          <button type="button" class="mini-btn" data-act="approve">承認</button>
+          <button type="button" class="mini-btn-outline" data-act="reject">却下</button>
+        </div>`;
+      row.querySelector('[data-act="approve"]').addEventListener('click', () => approveVerify(d.id));
+      row.querySelector('[data-act="reject"]').addEventListener('click', () => rejectVerify(d.id));
+      body.appendChild(row);
+    });
+  } else if (currentAdminTab === 'users') {
+    const uids = Object.keys(usersCache);
+    if (!uids.length) { body.innerHTML = `<div class="admin-empty">ユーザーがいません</div>`; return; }
+    body.innerHTML = '';
+    uids.sort((a, b) => (usersCache[a].name || '').localeCompare(usersCache[b].name || ''));
+    uids.forEach((uid) => {
+      const u = usersCache[uid];
+      const verified = u.verified === true;
+      const row = document.createElement('div');
+      row.className = 'admin-row';
+      row.innerHTML = `<div class="avatar-sm">${avatarInner(u)}</div>
+        <div class="info">${nameWithBadge(u.name || '(無名)', verified)}</div>
+        <div class="actions">
+          <button type="button" class="mini-btn-outline" data-act="toggle">${verified ? '認証解除' : '認証付与'}</button>
+          <button type="button" class="mini-btn-danger" data-act="del">削除</button>
+        </div>`;
+      row.querySelector('[data-act="toggle"]').addEventListener('click', () => setVerified(uid, !verified));
+      row.querySelector('[data-act="del"]').addEventListener('click', () => forceDeleteAccount(uid, u.name || '(無名)'));
+      body.appendChild(row);
+    });
+  } else if (currentAdminTab === 'channels') {
+    if (!channelsCache.length) { body.innerHTML = `<div class="admin-empty">チャンネルがありません</div>`; return; }
+    body.innerHTML = '';
+    channelsCache.forEach((d) => {
+      const c = d.data();
+      const row = document.createElement('div');
+      row.className = 'admin-row';
+      row.innerHTML = `<div class="info">${escapeHtml(c.name || '無題')}</div>
+        <div class="actions"><button type="button" class="mini-btn-danger" data-act="del">削除</button></div>`;
+      row.querySelector('[data-act="del"]').addEventListener('click', () => deleteChannel(d.id, c.name || '無題'));
+      body.appendChild(row);
+    });
+  }
+}
+
+function updateAdminTabsUI(){
+  document.querySelectorAll('.admin-tab').forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === currentAdminTab));
+}
+document.querySelectorAll('.admin-tab').forEach((btn) => {
+  btn.addEventListener('click', () => { currentAdminTab = btn.dataset.tab; updateAdminTabsUI(); renderAdminPanel(); });
+});
+els.adminPanelBtn.addEventListener('click', () => {
+  currentAdminTab = 'requests';
+  updateAdminTabsUI();
+  renderAdminPanel();
+  adminModalOpen = true;
+  els.adminModal.style.display = 'flex';
+});
+els.adminClose.addEventListener('click', () => { adminModalOpen = false; els.adminModal.style.display = 'none'; });
+
+/* ------------------------------------------------------------------ */
+/* 接続状態表示                                                        */
+/* ------------------------------------------------------------------ */
+function setOnAir(on){
+  els.onair.classList.toggle('off', !on);
+  els.onairText.textContent = on ? 'ON AIR' : (db ? '接続中' : '未接続');
+}
+
+/* ------------------------------------------------------------------ */
+/* 初期化（匿名認証 → 各種リスナー起動）                                  */
+/* ------------------------------------------------------------------ */
+async function afterAuthReady(){
+  isAdmin = ADMIN_UIDS.includes(myUid);
+  els.adminPanelBtn.style.display = isAdmin ? 'flex' : 'none';
+  els.myUidDisplay.textContent = myUid;
+  setOnAir(false);
+
+  await ensureDefaultChannels();
+  listenChannels();
+  listenUsers();
+  listenPresence();
+  listenOwnVerifyRequest();
+  if (isAdmin) listenPendingVerifyRequests();
+
+  const mySnap = await getDoc(doc(db, 'users', myUid)).catch(() => null);
+  if (mySnap && mySnap.exists()) {
+    const data = mySnap.data();
+    myName = data.name || myName;
+    myIcon = data.icon || '';
+    myIconImg = data.iconImg || '';
+    localStorage.setItem(NAME_KEY, myName);
+    localStorage.setItem(ICON_KEY, myIcon);
+    localStorage.setItem(ICONIMG_KEY, myIconImg);
+    refreshSelfCard();
+    els.nickModal.style.display = 'none';
+    startHeartbeat();
+  } else {
+    openNickModal(myName, myIcon, myIconImg);
+  }
+  setOnAir(true);
+}
+
+function boot(){
+  if (!auth) { setOnAir(false); return; }
+  onAuthStateChanged(auth, (user) => {
+    if (user) { myUid = user.uid; afterAuthReady(); }
+  });
+  signInAnonymously(auth).catch((e) => {
+    console.error('匿名認証に失敗しました。Firebaseコンソールで「Authentication → Sign-in method → 匿名」を有効にしてください。', e);
+    setOnAir(false);
+  });
+}
+boot();
+
+/* ------------------------------------------------------------------ */
+/* PWA: Service Worker 登録（sw.js はご自身で用意してください）           */
+/* ------------------------------------------------------------------ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      console.info('SIGNAL: sw.js が見つかりません（PWAオフライン対応は任意です）');
+    });
+  });
+}
+</script>
+</body>
+</html>
