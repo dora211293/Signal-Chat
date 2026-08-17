@@ -1,0 +1,20 @@
+{
+  "name": "SIGNAL",
+  "short_name": "SIGNAL",
+  "description": "SignalChatapp",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#0C1116",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "2048x2048",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
