@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIGNAL — リアルタイムチャット</title>
+
+<!-- ===================== PWA meta ===================== -->
+<meta name="theme-color" content="#0C1116">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SIGNAL">
+<meta name="description" content="周波数を合わせて話す、リアルタイム・グループチャット">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #0C1116;
+    --bg-grad: radial-gradient(1200px 600px at 15% -10%, #10202080 0%, transparent 60%),
+                radial-gradient(900px 500px at 110% 10%, #2a1d0d80 0%, transparent 55%),
+                #0C1116;
+    --surface: #12191F;
+    --surface-2: #1A232B;
+    --surface-3: #212C35;
+    --border: #253039;
+    --text: #E7EBEF;
+    --text-muted: #7C8A97;
+    --text-faint: #4E5A64;
+    --amber: #E8A33D;
+    --amber-dim: #E8A33D33;
+    --teal: #37D6B0;
+    --teal-dim: #37D6B033;
+    --danger: #E0654F;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ height: 100%; }
+  body{
+    margin:0;
+    background: var(--bg-grad);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  ::selection{ background: var(--amber-dim); color: var(--text); }
+  ::-webkit-scrollbar{ width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb{ background: var(--surface-3); border-radius: 8px; }
+  ::-webkit-scrollbar-track{ background: transparent; }
+
+  button{ font-family: inherit; }
+  input{ font-family: inherit; }
+
+  a11y-visually-hidden{ display:none; }
+
+  /* ===================== App shell ===================== */
+  #app{
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: 100vh;
+    height: 100dvh;
+  }
+  @media (max-width: 760px){
+    #app{ grid-template-columns: 1fr; }
+    #sidebar{
+      position: fixed; inset: 0 20% 0 0; z-index: 40;
+      transform: translateX(-105%);
+      transition: transform .28s cubic-bezier(.2,.8,.2,1);
+      box-shadow: 30px 0 60px #00000080;
+    }
+    #sidebar.open{ transform: translateX(0); }
+    #sidebar-scrim{
+      position: fixed; inset:0; background:#000a; z-index: 39;
+      opacity:0; pointer-events:none; transition: opacity .25s;
+    }
+    #sidebar-scrim.show{ opacity:1; pointer-events:auto; }
+  }
+
+  /* ===================== Sidebar ===================== */
+  #sidebar{
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display:flex; flex-direction:column;
+    min-width: 0;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    padding: 20px 18px 14px;
+  }
+  .brand-mark{
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(150deg, var(--amber), #c97f22);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-weight:700; color:#0C1116;
+    font-size: 15px; flex-shrink:0;
+  }
+  .brand-text{ display:flex; flex-direction:column; line-height:1.15; }
+  .brand-text b{ font-family: var(--font-display); font-size: 16px; letter-spacing: .04em; }
+  .brand-text span{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: .06em; }
+
+  .self-card{
+    margin: 4px 14px 14px;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display:flex; align-items:center; gap:10px;
+  }
+  .self-avatar{
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--surface-3);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size: 12px; font-weight:600;
+    color: var(--teal); flex-shrink:0;
+    border: 1px solid var(--teal-dim);
+  }
+  .self-meta{ min-width:0; flex:1; }
+  .self-meta .name{ font-size: 13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .self-meta .status{ font-family: var(--font-mono); font-size: 10px; color: var(--teal); display:flex; align-items:center; gap:5px; margin-top:1px;}
+  .self-meta .status .dot{ width:6px; height:6px; border-radius:50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: blink 2s infinite; }
+  .edit-name-btn{
+    background:none; border:none; color: var(--text-faint); cursor:pointer;
+    font-size: 13px; padding: 4px;
+  }
+  .edit-name-btn:hover{ color: var(--amber); }
+
+  .section-label{
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em;
+    color: var(--text-faint); text-transform: uppercase;
+    padding: 10px 18px 6px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .add-channel-btn{
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    width: 20px; height: 20px; border-radius: 6px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size: 13px; line-height:1;
+  }
+  .add-channel-btn:hover{ border-color: var(--amber); color: var(--amber); }
+
+  #channel-list{ list-style:none; margin:0; padding: 2px 10px 10px; overflow-y:auto; flex:1; }
+  .channel-item{
+    display:flex; align-items:center; gap:10px;
+    padding: 9px 10px; border-radius: var(--radius-sm);
+    cursor:pointer; margin-bottom: 2px;
+    border: 1px solid transparent;
+  }
+  .channel-item:hover{ background: var(--surface-2); }
+  .channel-item.active{ background: var(--surface-2); border-color: var(--border); }
+  .channel-freq{
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--amber);
+    background: var(--amber-dim); padding: 2px 5px; border-radius: 4px;
+    flex-shrink:0; min-width: 40px; text-align:center;
+  }
+  .channel-name{ font-size: 13.5px; color: var(--text); font-weight: 500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+  .channel-item.active .channel-name{ color: var(--text); }
+
+  .online-panel{ border-top: 1px solid var(--border); padding: 12px 18px 16px; }
+  #online-list{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .online-chip{
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted);
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 3px 8px; border-radius: 20px;
+    display:flex; align-items:center; gap:5px;
+  }
+  .online-chip .dot{ width:5px; height:5px; border-radius:50%; background: var(--teal); }
+
+  /* ===================== Main pane ===================== */
+  #main{ display:flex; flex-direction:column; min-width:0; height:100%; position:relative; }
+
+  #topbar{
+    display:flex; align-items:center; gap:14px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #10161c, transparent);
+    flex-shrink:0;
+  }
+  #menu-btn{
+    display:none; background:none; border:1px solid var(--border); color: var(--text);
+    width: 34px; height: 34px; border-radius: 8px; cursor:pointer; font-size:16px;
+  }
+  @media (max-width:760px){ #menu-btn{ display:block; } }
+
+  #topbar .titles{ min-width:0; flex-shrink:0; }
+  #topbar .titles .freq{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing: .1em; }
+  #topbar .titles h1{ font-family: var(--font-display); font-size: 17px; margin: 1px 0 0; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 40vw; }
+
+  #waveform{ flex:1; height: 34px; min-width: 60px; opacity:.85; }
+
+  #onair{
+    font-family: var(--font-mono); font-size: 10px; letter-spacing:.1em;
+    color: var(--teal); display:flex; align-items:center; gap:6px; flex-shrink:0;
+    border: 1px solid var(--teal-dim); padding: 5px 10px; border-radius: 20px;
+  }
+  #onair .dot{ width:6px; height:6px; border-radius:50%; background: var(--teal); box-shadow:0 0 8px var(--teal); animation: blink 1.6s infinite; }
+  #onair.off{ color: var(--text-faint); border-color: var(--border); }
+  #onair.off .dot{ background: var(--text-faint); box-shadow:none; animation:none; }
+
+  #messages{
+    flex:1; overflow-y:auto; padding: 22px 24px 10px;
+    display:flex; flex-direction:column; gap: 3px;
+  }
+  .empty-state{
+    margin:auto; text-align:center; color: var(--text-faint);
+    font-family: var(--font-mono); font-size: 12px; max-width: 280px; line-height:1.7;
+  }
+
+  .day-divider{
+    align-self:center; font-family: var(--font-mono); font-size: 10px; color: var(--text-faint);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 3px 12px; border-radius: 20px; margin: 14px 0 10px;
+  }
+
+  .msg-row{ display:flex; gap: 10px; max-width: 76%; margin: 7px 0; }
+  .msg-row.mine{ align-self:flex-end; flex-direction:row-reverse; }
+  .msg-avatar{
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink:0;
+    background: var(--surface-3); display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size: 11px; font-weight:600; color: var(--text-muted);
+    margin-top: 18px;
+  }
+  .msg-row.grouped .msg-avatar{ visibility:hidden; }
+  .msg-body{ min-width:0; }
+  .msg-meta{
+    display:flex; gap:8px; align-items:baseline; margin-bottom:4px; padding: 0 3px;
+  }
+  .msg-row.mine .msg-meta{ flex-direction:row-reverse; }
+  .msg-meta .who{ font-size: 12px; font-weight:600; color: var(--text); }
+  .msg-meta .time{ font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); }
+  .msg-row.grouped .msg-meta{ display:none; }
+
+  .bubble{
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 9px 13px; border-radius: 4px 14px 14px 14px;
+    font-size: 14px; line-height: 1.55; word-break: break-word; white-space: pre-wrap;
+    color: var(--text);
+  }
+  .msg-row.mine .bubble{
+    background: linear-gradient(155deg, #2a2115, #1c1712);
+    border: 1px solid var(--amber-dim);
+    border-radius: 14px 4px 14px 14px;
+  }
+  .msg-row.mine.grouped .bubble{ border-radius: 14px 14px 14px 14px; }
+  .msg-row:not(.mine).grouped .bubble{ border-radius: 14px 14px 14px 14px; }
+
+  #typing-indicator{
+    min-height: 22px; padding: 0 26px; font-family: var(--font-mono);
+    font-size: 11px; color: var(--teal); display:flex; align-items:center; gap:6px;
+  }
+  #typing-indicator .bars{ display:flex; gap:2px; align-items:flex-end; height:10px; }
+  #typing-indicator .bars span{ width:2px; background: var(--teal); animation: bounce 1s infinite ease-in-out; }
+  #typing-indicator .bars span:nth-child(2){ animation-delay:.15s; }
+  #typing-indicator .bars span:nth-child(3){ animation-delay:.3s; }
+
+  #composer{
+    display:flex; align-items:flex-end; gap:10px;
+    padding: 12px 20px calc(14px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink:0;
+  }
+  #msg-input{
+    flex:1; resize:none; max-height: 120px; min-height: 42px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius-md); padding: 11px 14px; font-size: 14px; line-height:1.4;
+    outline:none; transition: border-color .15s;
+  }
+  #msg-input:focus{ border-color: var(--amber); }
+  #msg-input::placeholder{ color: var(--text-faint); }
+  #send-btn{
+    background: linear-gradient(150deg, var(--amber), #c97f22);
+    border:none; color: #14100a; width: 42px; height: 42px; border-radius: var(--radius-md);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition: transform .12s;
+  }
+  #send-btn:hover{ transform: translateY(-1px); }
+  #send-btn:active{ transform: scale(.94); }
+  #send-btn:disabled{ opacity:.4; cursor:default; transform:none; }
+
+  /* ===================== Modals ===================== */
+  .modal-scrim{
+    position:fixed; inset:0; background:#060a0e cc; backdrop-filter: blur(6px);
+    display:flex; align-items:center; justify-content:center; z-index:100; padding: 20px;
+  }
+  .modal-card{
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 28px 26px; width: 100%; max-width: 360px;
+    box-shadow: 0 30px 80px #000000a0;
+  }
+  .modal-card .eyebrow{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing:.14em; }
+  .modal-card h2{ font-family: var(--font-display); font-size: 21px; margin: 6px 0 4px; }
+  .modal-card p{ font-size: 12.5px; color: var(--text-muted); line-height:1.6; margin: 0 0 18px; }
+  .modal-card input{
+    width:100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius-sm); padding: 11px 13px; font-size: 14px; outline:none; margin-bottom: 14px;
+  }
+  .modal-card input:focus{ border-color: var(--amber); }
+  .modal-card button.primary{
+    width:100%; background: linear-gradient(150deg, var(--amber), #c97f22);
+    border:none; color:#14100a; font-weight:600; font-size: 14px;
+    padding: 12px; border-radius: var(--radius-sm); cursor:pointer;
+  }
+  .modal-card button.primary:disabled{ opacity:.4; cursor:default; }
+  .modal-card .cancel{
+    display:block; width:100%; text-align:center; margin-top:10px; background:none; border:none;
+    color: var(--text-faint); font-size: 12.5px; cursor:pointer; padding: 6px;
+  }
+
+  #config-warning{
+    position:fixed; left:16px; right:16px; bottom:16px; z-index: 90;
+    background: #2b1a12; border: 1px solid #6b3f1c; color: #f0c896;
+    font-family: var(--font-mono); font-size: 11.5px; line-height:1.6;
+    padding: 12px 14px; border-radius: var(--radius-md); max-width: 480px;
+    box-shadow: 0 20px 50px #0008;
+  }
+  #config-warning b{ color: var(--amber); }
+
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.25;} }
+  @keyframes bounce{ 0%,60%,100%{ height:3px; } 30%{ height:10px; } }
+
+  @media (prefers-reduced-motion: reduce){
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div id="sidebar-scrim"></div>
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div class="brand-text">
+        <b>SIGNAL</b>
+        <span>REALTIME · MULTI-CHANNEL</span>
+      </div>
+    </div>
+
+    <div class="self-card">
+      <div class="self-avatar" id="self-avatar">–</div>
+      <div class="self-meta">
+        <div class="name" id="self-name">–</div>
+        <div class="status"><span class="dot"></span><span id="self-status-text">送信可能</span></div>
+      </div>
+      <button class="edit-name-btn" id="edit-name-btn" title="ニックネームを変更">✎</button>
+    </div>
+
+    <div class="section-label">
+      <span>チャンネル</span>
+      <button class="add-channel-btn" id="add-channel-btn" title="チャンネルを追加">+</button>
+    </div>
+    <ul id="channel-list"></ul>
+
+    <div class="online-panel">
+      <div class="section-label" style="padding:0;">オンライン — <span id="online-count">0</span>人</div>
+      <div id="online-list"></div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header id="topbar">
+      <button id="menu-btn">☰</button>
+      <div class="titles">
+        <div class="freq" id="topbar-freq">—</div>
+        <h1 id="topbar-name">読み込み中…</h1>
+      </div>
+      <canvas id="waveform"></canvas>
+      <div id="onair" class="off"><span class="dot"></span><span id="onair-text">接続中</span></div>
+    </header>
+
+    <div id="messages">
+      <div class="empty-state" id="empty-state">
+        まだメッセージがありません。<br>最初の一言を送信してみましょう。
+      </div>
+    </div>
+
+    <div id="typing-indicator"></div>
+
+    <div id="composer">
+      <textarea id="msg-input" rows="1" placeholder="メッセージを入力… (Enterで送信 / Shift+Enterで改行)"></textarea>
+      <button id="send-btn" disabled title="送信">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11L21 3L13 21L11 13L3 11Z" stroke="#14100a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </main>
+
+</div>
+
+<!-- ===================== ニックネーム設定モーダル ===================== -->
+<div class="modal-scrim" id="nick-modal">
+  <div class="modal-card">
+    <div class="eyebrow">FIRST TIME SETUP</div>
+    <h2>周波数に接続</h2>
+    <p>チャットで表示される名前を入力してください。あとから変更できます。</p>
+    <input type="text" id="nick-input" maxlength="20" placeholder="例: しのぶ" autocomplete="off">
+    <button class="primary" id="nick-confirm" disabled>チャットを開始</button>
+  </div>
+</div>
+
+<!-- ===================== チャンネル追加モーダル ===================== -->
+<div class="modal-scrim" id="channel-modal" style="display:none;">
+  <div class="modal-card">
+    <div class="eyebrow">NEW CHANNEL</div>
+    <h2>チャンネルを作成</h2>
+    <p>新しい話題用のチャンネルを作ります。</p>
+    <input type="text" id="channel-input" maxlength="24" placeholder="例: 雑談" autocomplete="off">
+    <button class="primary" id="channel-confirm" disabled>作成する</button>
+    <button class="cancel" id="channel-cancel">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===================== 設定未完了の警告 ===================== -->
+<div id="config-warning" style="display:none;">
+  <b>⚠ Firebase未設定</b><br>
+  このファイル内の <b>firebaseConfig</b> がプレースホルダのままです。
+  Firebaseプロジェクトを作成し、設定値を貼り付けてください。（下部の &lt;script type="module"&gt; 内）
+</div>
+
+<script type="module">
+/* =========================================================================
+   SIGNAL — realtime multi-user chat
+   Firebase (Firestore) をバックエンドに使用しています。
+   下の firebaseConfig にご自身のプロジェクトの設定値を貼り付けてください。
+   Firebase コンソール → プロジェクトの設定 → マイアプリ → 「SDK の設定と構成」
+   ========================================================================= */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, addDoc, setDoc, getDocs,
+  onSnapshot, query, orderBy, limit, serverTimestamp, Timestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ ここにFirebaseの設定を貼り付け ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+const firebaseConfig = {
+  apiKey: "AIzaSyCLq37f-Dvak943qHOSvTjgrJoD-1Xovm0",
+  authDomain: "signalchat-d2112.firebaseapp.com",
+  projectId: "signalchat-d2112",
+  storageBucket: "signalchat-d2112.firebasestorage.app",
+  messagingSenderId: "30027633420",
+  appId: "1:30027633420:web:1b07b6b00af7eb38dbef29"
+};
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+let db = null;
+
+if (isConfigured) {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+} else {
+  document.getElementById('config-warning').style.display = 'block';
+  document.getElementById('onair-text').textContent = '未接続';
+}
+
+/* ------------------------------------------------------------------ */
+/* ユーザー識別（匿名・ローカル保存）                                   */
+/* ------------------------------------------------------------------ */
+const UID_KEY = 'signal_uid', NAME_KEY = 'signal_name';
+let myUid = localStorage.getItem(UID_KEY);
+if (!myUid) {
+  myUid = 'u_' + Math.random().toString(36).slice(2, 10);
+  localStorage.setItem(UID_KEY, myUid);
+}
+let myName = localStorage.getItem(NAME_KEY) || '';
+
+/* ------------------------------------------------------------------ */
+/* DOM refs                                                            */
+/* ------------------------------------------------------------------ */
+const $ = (id) => document.getElementById(id);
+const els = {
+  sidebar: $('sidebar'), scrim: $('sidebar-scrim'), menuBtn: $('menu-btn'),
+  selfName: $('self-name'), selfAvatar: $('self-avatar'), editNameBtn: $('edit-name-btn'),
+  channelList: $('channel-list'), addChannelBtn: $('add-channel-btn'),
+  onlineList: $('online-list'), onlineCount: $('online-count'),
+  topbarFreq: $('topbar-freq'), topbarName: $('topbar-name'),
+  onair: $('onair'), onairText: $('onair-text'),
+  messages: $('messages'), emptyState: $('empty-state'),
+  typing: $('typing-indicator'),
+  input: $('msg-input'), sendBtn: $('send-btn'),
+  nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'),
+  channelModal: $('channel-modal'), channelInput: $('channel-input'),
+  channelConfirm: $('channel-confirm'), channelCancel: $('channel-cancel'),
+  waveform: $('waveform'),
+};
+
+const avatarColor = (seed) => {
+  let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return `hsl(${h}, 55%, 62%)`;
+};
+const initials = (name) => (name || '?').trim().slice(0, 1).toUpperCase();
+const pseudoFreq = (id) => {
+  let h = 0; for (const c of id) h = (h * 17 + c.charCodeAt(0)) % 999;
+  return (80 + (h % 40) + (h % 100) / 100).toFixed(1);
+};
+
+/* ------------------------------------------------------------------ */
+/* 波形ビジュアライザ（signature element）                              */
+/* ------------------------------------------------------------------ */
+const canvas = els.waveform;
+const ctx = canvas.getContext('2d');
+let barsAmp = new Array(28).fill(0.08);
+let pulseBoost = 0;
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+}
+window.addEventListener('resize', resizeCanvas);
+
+function drawWave(){
+  resizeCanvasIfNeeded();
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const n = barsAmp.length;
+  const gap = w / n;
+  for (let i = 0; i < n; i++) {
+    const target = 0.06 + Math.random() * 0.10 + pulseBoost * (0.4 + Math.random()*0.6);
+    barsAmp[i] += (target - barsAmp[i]) * 0.18;
+    const barH = Math.max(2, barsAmp[i] * h);
+    const x = i * gap + gap * 0.3;
+    const y = (h - barH) / 2;
+    ctx.fillStyle = i % 3 === 0 ? '#37D6B0' : '#E8A33D';
+    ctx.globalAlpha = 0.55;
+    ctx.fillRect(x, y, gap * 0.4, barH);
+  }
+  pulseBoost *= 0.90;
+  requestAnimationFrame(drawWave);
+}
+let lastSize = '';
+function resizeCanvasIfNeeded(){
+  const rect = canvas.getBoundingClientRect();
+  const key = rect.width + 'x' + rect.height;
+  if (key !== lastSize) { resizeCanvas(); lastSize = key; }
+}
+requestAnimationFrame(drawWave);
+
+/* ------------------------------------------------------------------ */
+/* ニックネーム設定                                                     */
+/* ------------------------------------------------------------------ */
+function refreshSelfCard(){
+  els.selfName.textContent = myName || '未設定';
+  els.selfAvatar.textContent = initials(myName);
+  els.selfAvatar.style.color = avatarColor(myName || myUid);
+  els.selfAvatar.style.borderColor = avatarColor(myName || myUid) + '55';
+}
+refreshSelfCard();
+
+function openNickModal(prefill){
+  els.nickInput.value = prefill || '';
+  els.nickConfirm.disabled = !(els.nickInput.value.trim());
+  els.nickModal.style.display = 'flex';
+  setTimeout(() => els.nickInput.focus(), 50);
+}
+if (!myName) openNickModal(); else els.nickModal.style.display = 'none';
+
+els.nickInput.addEventListener('input', () => {
+  els.nickConfirm.disabled = !els.nickInput.value.trim();
+});
+els.nickInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !els.nickConfirm.disabled) els.nickConfirm.click();
+});
+els.nickConfirm.addEventListener('click', () => {
+  const v = els.nickInput.value.trim();
+  if (!v) return;
+  myName = v.slice(0, 20);
+  localStorage.setItem(NAME_KEY, myName);
+  refreshSelfCard();
+  els.nickModal.style.display = 'none';
+  heartbeat();
+});
+els.editNameBtn.addEventListener('click', () => openNickModal(myName));
+
+/* ------------------------------------------------------------------ */
+/* サイドバー（モバイル開閉）                                            */
+/* ------------------------------------------------------------------ */
+els.menuBtn.addEventListener('click', () => {
+  els.sidebar.classList.add('open'); els.scrim.classList.add('show');
+});
+els.scrim.addEventListener('click', () => {
+  els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
+});
+
+/* ------------------------------------------------------------------ */
+/* チャンネル                                                          */
+/* ------------------------------------------------------------------ */
+let currentChannelId = null;
+let currentChannelName = '';
+let unsubMessages = null;
+let unsubTyping = null;
+
+async function ensureDefaultChannels(){
+  if (!db) return;
+  const snap = await getDocs(collection(db, 'channels'));
+  if (snap.empty) {
+    await addDoc(collection(db, 'channels'), { name: '雑談', createdAt: serverTimestamp() });
+    await addDoc(collection(db, 'channels'), { name: 'お知らせ', createdAt: serverTimestamp() });
+  }
+}
+
+function renderChannelList(docs){
+  els.channelList.innerHTML = '';
+  docs.forEach((d) => {
+    const data = d.data();
+    const li = document.createElement('li');
+    li.className = 'channel-item' + (d.id === currentChannelId ? ' active' : '');
+    li.innerHTML = `<span class="channel-freq">${pseudoFreq(d.id)}</span><span class="channel-name">${escapeHtml(data.name || '無題')}</span>`;
+    li.addEventListener('click', () => selectChannel(d.id, data.name || '無題'));
+    els.channelList.appendChild(li);
+  });
+  if (!currentChannelId && docs.length) {
+    const first = docs[0];
+    selectChannel(first.id, first.data().name || '無題');
+  }
+}
+
+function listenChannels(){
+  if (!db) return;
+  onSnapshot(query(collection(db, 'channels'), orderBy('createdAt', 'asc')), (snap) => {
+    renderChannelList(snap.docs);
+  });
+}
+
+function selectChannel(id, name){
+  currentChannelId = id;
+  currentChannelName = name;
+  els.topbarName.textContent = name;
+  els.topbarFreq.textContent = pseudoFreq(id) + ' MHz';
+  document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+  [...els.channelList.children].forEach((el, i) => {});
+  renderActiveHighlight();
+  els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
+  listenMessages(id);
+  listenTyping(id);
+}
+
+function renderActiveHighlight(){
+  [...els.channelList.children].forEach((li) => {
+    li.classList.remove('active');
+  });
+  // re-render triggered by next snapshot naturally re-applies "active" class via renderChannelList
+}
+
+els.addChannelBtn.addEventListener('click', () => {
+  els.channelInput.value = '';
+  els.channelConfirm.disabled = true;
+  els.channelModal.style.display = 'flex';
+  setTimeout(() => els.channelInput.focus(), 50);
+});
+els.channelCancel.addEventListener('click', () => { els.channelModal.style.display = 'none'; });
+els.channelInput.addEventListener('input', () => { els.channelConfirm.disabled = !els.channelInput.value.trim(); });
+els.channelInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !els.channelConfirm.disabled) els.channelConfirm.click(); });
+els.channelConfirm.addEventListener('click', async () => {
+  const name = els.channelInput.value.trim().slice(0, 24);
+  if (!name || !db) return;
+  els.channelConfirm.disabled = true;
+  const ref = await addDoc(collection(db, 'channels'), { name, createdAt: serverTimestamp() });
+  els.channelModal.style.display = 'none';
+  selectChannel(ref.id, name);
+});
+
+/* ------------------------------------------------------------------ */
+/* メッセージ                                                          */
+/* ------------------------------------------------------------------ */
+function escapeHtml(str){
+  return (str || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function formatTime(ts){
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date();
+  return d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+}
+function formatDay(ts){
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date();
+  return d.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+}
+
+function renderMessages(docs){
+  els.messages.innerHTML = '';
+  if (!docs.length){
+    els.messages.appendChild(els.emptyState);
+    return;
+  }
+  let lastSender = null, lastDay = null;
+  docs.forEach((d) => {
+    const m = d.data();
+    const day = formatDay(m.ts);
+    if (day && day !== lastDay) {
+      const div = document.createElement('div');
+      div.className = 'day-divider';
+      div.textContent = day;
+      els.messages.appendChild(div);
+      lastDay = day; lastSender = null;
+    }
+    const mine = m.uid === myUid;
+    const grouped = lastSender === m.uid;
+    const row = document.createElement('div');
+    row.className = 'msg-row' + (mine ? ' mine' : '') + (grouped ? ' grouped' : '');
+    row.innerHTML = `
+      <div class="msg-avatar" style="color:${avatarColor(m.name || m.uid)};border:1px solid ${avatarColor(m.name||m.uid)}55">${initials(m.name)}</div>
+      <div class="msg-body">
+        <div class="msg-meta"><span class="who">${escapeHtml(m.name || '名無し')}</span><span class="time">${formatTime(m.ts)}</span></div>
+        <div class="bubble">${escapeHtml(m.text)}</div>
+      </div>`;
+    els.messages.appendChild(row);
+    lastSender = m.uid;
+  });
+  els.messages.scrollTop = els.messages.scrollHeight;
+}
+
+function listenMessages(channelId){
+  if (unsubMessages) unsubMessages();
+  if (!db) return;
+  const q = query(collection(db, 'channels', channelId, 'messages'), orderBy('ts', 'asc'), limit(200));
+  unsubMessages = onSnapshot(q, (snap) => {
+    renderMessages(snap.docs);
+  });
+}
+
+async function sendMessage(){
+  const text = els.input.value.trim();
+  if (!text || !currentChannelId || !db || !myName) return;
+  els.input.value = '';
+  els.input.style.height = 'auto';
+  els.sendBtn.disabled = true;
+  pulseBoost = 1;
+  try {
+    await addDoc(collection(db, 'channels', currentChannelId, 'messages'), {
+      text, uid: myUid, name: myName, ts: serverTimestamp()
+    });
+  } catch (e) {
+    console.error('送信に失敗しました', e);
+  }
+  clearTyping();
+}
+
+els.input.addEventListener('input', () => {
+  els.sendBtn.disabled = !els.input.value.trim();
+  els.input.style.height = 'auto';
+  els.input.style.height = Math.min(120, els.input.scrollHeight) + 'px';
+  pushTyping();
+});
+els.input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (!els.sendBtn.disabled) sendMessage();
+  }
+});
+els.sendBtn.addEventListener('click', sendMessage);
+
+/* ------------------------------------------------------------------ */
+/* 入力中インジケータ                                                   */
+/* ------------------------------------------------------------------ */
+let typingTimeout = null;
+async function pushTyping(){
+  if (!db || !currentChannelId || !myName) return;
+  await setDoc(doc(db, 'channels', currentChannelId, 'typing', myUid), {
+    name: myName, ts: serverTimestamp()
+  }).catch(() => {});
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(clearTyping, 2500);
+}
+async function clearTyping(){
+  if (!db || !currentChannelId) return;
+  await setDoc(doc(db, 'channels', currentChannelId, 'typing', myUid), {
+    name: myName, ts: null
+  }).catch(() => {});
+}
+function listenTyping(channelId){
+  if (unsubTyping) unsubTyping();
+  if (!db) return;
+  unsubTyping = onSnapshot(collection(db, 'channels', channelId, 'typing'), (snap) => {
+    const now = Date.now();
+    const names = [];
+    snap.forEach((d) => {
+      const t = d.data();
+      if (d.id === myUid || !t.ts) return;
+      const ms = t.ts.toMillis ? t.ts.toMillis() : 0;
+      if (now - ms < 3000) names.push(t.name);
+    });
+    if (names.length) {
+      els.typing.innerHTML = `<div class="bars"><span></span><span></span><span></span></div>${escapeHtml(names.join('、'))}さんが入力中…`;
+    } else {
+      els.typing.innerHTML = '';
+    }
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* プレゼンス（オンライン表示）                                          */
+/* ------------------------------------------------------------------ */
+async function heartbeat(){
+  if (!db || !myName) return;
+  await setDoc(doc(db, 'presence', myUid), { name: myName, ts: serverTimestamp() }).catch(() => {});
+}
+function listenPresence(){
+  if (!db) return;
+  onSnapshot(collection(db, 'presence'), (snap) => {
+    const now = Date.now();
+    const online = [];
+    snap.forEach((d) => {
+      const p = d.data();
+      const ms = p.ts && p.ts.toMillis ? p.ts.toMillis() : 0;
+      if (now - ms < 45000) online.push(p.name);
+    });
+    els.onlineCount.textContent = online.length;
+    els.onlineList.innerHTML = online.map(n =>
+      `<span class="online-chip"><span class="dot"></span>${escapeHtml(n)}</span>`
+    ).join('');
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* 接続状態表示                                                        */
+/* ------------------------------------------------------------------ */
+function setOnAir(on){
+  els.onair.classList.toggle('off', !on);
+  els.onairText.textContent = on ? 'ON AIR' : (db ? '接続中' : '未接続');
+}
+
+/* ------------------------------------------------------------------ */
+/* 初期化                                                              */
+/* ------------------------------------------------------------------ */
+async function init(){
+  if (!db) { setOnAir(false); return; }
+  setOnAir(false);
+  await ensureDefaultChannels();
+  listenChannels();
+  listenPresence();
+  if (myName) heartbeat();
+  setInterval(heartbeat, 15000);
+  setOnAir(true);
+}
+init();
+
+/* ------------------------------------------------------------------ */
+/* PWA: Service Worker 登録（sw.js はご自身で用意してください）           */
+/* ------------------------------------------------------------------ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      console.info('SIGNAL: sw.js が見つかりません（PWAオフライン対応は任意です）');
+    });
+  });
+}
+</script>
+</body>
+</html>
