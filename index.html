@@ -37,6 +37,11 @@
     --teal: #37D6B0;
     --teal-dim: #37D6B033;
     --danger: #E0654F;
+    --gold: #E8B94D;
+    --gold-dim: #E8B94D2e;
+    --gold-2: #C9932E;
+    --shadow-sm: 0 2px 10px #00000024, 0 1px 2px #00000030;
+    --shadow-md: 0 20px 50px #00000055, 0 4px 14px #00000030;
     --radius-lg: 18px;
     --radius-md: 12px;
     --radius-sm: 8px;
@@ -58,6 +63,11 @@
     --amber-dim: #B9701C26;
     --teal: #0F8A73;
     --teal-dim: #0F8A7326;
+    --gold: #9C6E17;
+    --gold-dim: #9C6E1720;
+    --gold-2: #B98526;
+    --shadow-sm: 0 2px 10px #4a3a1a14, 0 1px 2px #4a3a1a1c;
+    --shadow-md: 0 24px 60px #4a3a1a22, 0 6px 16px #4a3a1a18;
   }
 
   *{ box-sizing: border-box; }
@@ -76,9 +86,23 @@
   ::-webkit-scrollbar-thumb{ background: var(--surface-3); border-radius: 8px; }
   ::-webkit-scrollbar-track{ background: transparent; }
 
-  button{ font-family: inherit; }
-  input{ font-family: inherit; }
+  button{ font-family: inherit; transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .12s ease, box-shadow .16s ease, opacity .16s ease; }
+  input, textarea{ font-family: inherit; }
   code{ font-family: var(--font-mono); }
+
+  /* テーマ切替時に主要パーツがふわっとクロスフェードするための共通トランジション */
+  #sidebar, #main, #topbar, #composer, #messages, .modal-card, .modal-scrim, .bubble,
+  .channel-item, .self-card, .online-chip, .admin-row, #msg-input, .icon-btn, input,
+  .day-divider, #config-warning, .msg-avatar, .self-avatar, .preview-avatar, .admin-tab,
+  .verify-pending, #onair, .empty-state{
+    transition: background-color .35s ease, border-color .35s ease, color .3s ease, box-shadow .35s ease;
+  }
+
+  button:focus-visible, input:focus-visible, textarea:focus-visible, .channel-item:focus-visible{
+    outline: 2px solid var(--amber); outline-offset: 2px;
+  }
+
+  @keyframes appIn{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform: translateY(0); } }
 
   /* ===================== App shell ===================== */
   #app{
@@ -88,6 +112,7 @@
     height: 100vh;
     height: 100dvh;
     min-height: 0;
+    animation: appIn .5s cubic-bezier(.2,.85,.25,1);
   }
   @media (max-width: 760px){
     #app{ grid-template-columns: 1fr; }
@@ -121,6 +146,7 @@
     margin: 4px 14px 10px; padding: 10px 12px;
     background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md);
     display:flex; align-items:center; gap:10px; flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
   }
   .self-avatar, .msg-avatar, .preview-avatar, .online-chip-avatar, .read-chip{ overflow: hidden; }
   .self-avatar img, .msg-avatar img, .preview-avatar img, .online-chip-avatar img, .read-chip img{
@@ -146,6 +172,7 @@
     font-size: 12.5px; font-weight:600; cursor:pointer;
     display:none; align-items:center; justify-content:center; gap:6px; flex-shrink:0;
   }
+  .admin-btn:hover{ background: var(--amber-dim); box-shadow: var(--shadow-sm); }
 
   .section-label{
     font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em;
@@ -163,9 +190,11 @@
   .channel-item{
     display:flex; align-items:center; gap:10px; padding: 9px 10px; border-radius: var(--radius-sm);
     cursor:pointer; margin-bottom: 2px; border: 1px solid transparent;
+    transition: background-color .15s ease, border-color .15s ease, transform .12s ease, box-shadow .15s ease;
   }
-  .channel-item:hover{ background: var(--surface-2); }
-  .channel-item.active{ background: var(--surface-2); border-color: var(--amber-dim); }
+  .channel-item:hover{ background: var(--surface-2); transform: translateX(1px); }
+  .channel-item:active{ transform: scale(.98); }
+  .channel-item.active{ background: var(--surface-2); border-color: var(--amber-dim); box-shadow: var(--shadow-sm); }
   .channel-freq{
     font-family: var(--font-mono); font-size: 10.5px; color: var(--amber);
     background: var(--amber-dim); padding: 2px 5px; border-radius: 4px;
@@ -249,7 +278,10 @@
     background: var(--surface-2); border: 1px solid var(--border); padding: 9px 13px;
     border-radius: 4px 18px 18px 18px; font-size: 14px; line-height: 1.55;
     word-break: break-word; white-space: pre-wrap; color: var(--text);
+    box-shadow: var(--shadow-sm);
+    transition: background-color .35s ease, border-color .35s ease, color .3s ease, transform .15s ease, box-shadow .15s ease;
   }
+  .msg-row:hover .bubble{ transform: translateY(-1px); box-shadow: var(--shadow-md); }
   .msg-row.chained .bubble{ border-radius: 4px 18px 18px 4px; }
   .msg-row.mine .bubble{
     background: linear-gradient(155deg, #2a2115, #1c1712); border: 1px solid var(--amber-dim);
@@ -260,8 +292,16 @@
   }
   .msg-row.mine.chained .bubble{ border-radius: 18px 4px 4px 18px; }
 
-  @keyframes msgIn{ from{ opacity:0; transform: translateY(10px) scale(.97); } to{ opacity:1; transform: translateY(0) scale(1); } }
-  .msg-row.msg-enter{ animation: msgIn .32s cubic-bezier(.2,.85,.25,1); }
+  @keyframes msgIn{
+    from{ opacity:0; transform: translateY(16px) scale(.93); filter: blur(3px); }
+    60%{ filter: blur(0); }
+    to{ opacity:1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+  .msg-row.msg-enter{ animation: msgIn .4s cubic-bezier(.16,.9,.25,1) both; }
+  @keyframes avatarPop{ from{ opacity:0; transform: scale(.35); } to{ opacity:1; transform: scale(1); } }
+  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .4s cubic-bezier(.3,1.5,.4,1) both; }
+  @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
+  .day-divider{ animation: dayIn .3s ease; }
 
   .msg-actions{ margin-top:3px; padding: 0 3px; }
   .msg-row.mine .msg-actions{ text-align:right; }
@@ -273,11 +313,13 @@
 
   .read-chips{ display:flex; gap:3px; margin-top:4px; padding: 0 3px; cursor:pointer; }
   .msg-row.mine .read-chips{ justify-content:flex-end; }
-  .read-chip{ width:15px; height:15px; border-radius:50%; background: var(--surface-3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; }
+  .read-chip{ width:15px; height:15px; border-radius:50%; background: var(--surface-3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; animation: chipIn .22s ease; }
   .read-names{ display:none; font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); padding: 2px 3px 0; }
   .read-chips.expanded + .read-names{ display:block; }
 
-  .verify-badge{ flex-shrink:0; }
+  .verify-badge{ flex-shrink:0; filter: drop-shadow(0 1px 1px #00000030); vertical-align: -2px; }
+  .verify-badge.gold{ animation: goldPulse 2.6s ease-in-out infinite; }
+  @keyframes goldPulse{ 0%,100%{ filter: drop-shadow(0 1px 1px #00000030) drop-shadow(0 0 0 transparent); } 50%{ filter: drop-shadow(0 1px 1px #00000030) drop-shadow(0 0 3px var(--gold)); } }
 
   #typing-indicator{ min-height: 22px; padding: 0 26px; font-family: var(--font-mono); font-size: 11px; color: var(--teal); display:flex; align-items:center; gap:6px; flex-shrink: 0; }
   #typing-indicator .bars{ display:flex; gap:2px; align-items:flex-end; height:10px; }
@@ -297,20 +339,27 @@
   #send-btn{
     background: linear-gradient(150deg, var(--amber), #c97f22); border:none; color: #14100a;
     width: 42px; height: 42px; border-radius: var(--radius-md); cursor:pointer;
-    display:flex; align-items:center; justify-content:center; flex-shrink:0; transition: transform .12s;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition: transform .12s, box-shadow .18s;
   }
-  #send-btn:hover{ transform: translateY(-1px); }
-  #send-btn:active{ transform: scale(.94); }
-  #send-btn:disabled{ opacity:.4; cursor:default; transform:none; }
+  #send-btn:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 6px 18px #E8A33D40; }
+  #send-btn:active:not(:disabled){ transform: scale(.94); }
+  #send-btn:disabled{ opacity:.4; cursor:default; transform:none; box-shadow:none; }
+  @keyframes sendPulse{ 0%{ transform: scale(1); } 40%{ transform: scale(.86); } 100%{ transform: scale(1); } }
+  #send-btn.sent{ animation: sendPulse .32s cubic-bezier(.3,1.6,.4,1); }
 
   /* ===================== Modals ===================== */
+  @keyframes modalScrimIn{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes modalCardIn{ from{ opacity:0; transform: translateY(16px) scale(.96); } to{ opacity:1; transform: translateY(0) scale(1); } }
   .modal-scrim{
     position:fixed; inset:0; background:#060a0ecc; backdrop-filter: blur(6px);
     display:flex; align-items:center; justify-content:center; z-index:100; padding: 20px; overflow-y: auto;
+    animation: modalScrimIn .2s ease;
   }
   .modal-card{
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-    padding: 26px 24px; width: 100%; max-width: 400px; box-shadow: 0 30px 80px #000000a0; margin: auto;
+    padding: 26px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow-md); margin: auto;
+    animation: modalCardIn .32s cubic-bezier(.2,.85,.25,1);
   }
   .modal-card .eyebrow{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing:.14em; }
   .modal-card h2{ font-family: var(--font-display); font-size: 21px; margin: 6px 0 4px; }
@@ -351,19 +400,23 @@
     flex:1; text-align:center; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
     border-radius: var(--radius-sm); padding: 10px; font-size: 12.5px; cursor:pointer;
   }
-  .mini-btn, .mini-btn-outline, .mini-btn-danger{
+  .mini-btn, .mini-btn-outline, .mini-btn-danger, .mini-btn-gold{
     border-radius: 6px; padding: 6px 10px; font-size: 11px; cursor:pointer; flex-shrink:0; white-space:nowrap;
   }
   .mini-btn{ background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-dim); }
   .mini-btn-outline{ background:none; border: 1px solid var(--border); color: var(--text-muted); }
   .mini-btn-danger{ background:#4a1f1a; color:#ff9d8a; border:1px solid #6b2f26; }
   [data-theme="light"] .mini-btn-danger{ background:#FBE2DC; color:#B23A22; border:1px solid #EBC1B6; }
+  .mini-btn-gold{ background: var(--gold-dim); color: var(--gold-2); border: 1px solid var(--gold-dim); }
+  .mini-btn:hover, .mini-btn-outline:hover, .mini-btn-gold:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .mini-btn-danger:hover{ transform: translateY(-1px); }
 
   .uid-row{ display:flex; align-items:center; gap:8px; margin-bottom: 14px; }
   .uid-row code{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 10.5px; color: var(--text-muted); background: var(--surface-2); border:1px solid var(--border); border-radius:6px; padding:6px 8px; }
 
   .verify-row{ margin-bottom: 16px; }
   .verify-badge-lg{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color: var(--teal); font-weight:600; }
+  .verify-badge-lg.gold{ color: var(--gold-2); }
   .verify-pending{ font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); }
 
   /* Admin panel */
@@ -377,7 +430,7 @@
   .admin-row .avatar-sm{ width:26px; height:26px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; overflow:hidden; }
   .admin-row .avatar-sm img{ width:100%; height:100%; object-fit:cover; }
   .admin-row .info{ flex:1; min-width:0; font-size: 12.5px; display:flex; align-items:center; gap:4px; }
-  .admin-row .actions{ display:flex; gap:5px; flex-shrink:0; }
+  .admin-row .actions{ display:flex; gap:5px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
   .admin-empty{ text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 11.5px; padding: 20px 0; }
 
   #config-warning{
@@ -497,6 +550,8 @@
       <button type="button" class="icon-btn" data-icon="👾">👾</button>
       <button type="button" class="icon-btn" data-icon="🍉">🍉</button>
       <button type="button" class="icon-btn" data-icon="🎵">🎵</button>
+      <button type="button" class="icon-btn" data-icon="🧊">🧊</button>
+      <button type="button" class="icon-btn" data-icon="🚀">🚀</button>
     </div>
     <input type="text" id="icon-input" maxlength="4" placeholder="自由入力も可(例: 🐧)" autocomplete="off">
 
@@ -570,7 +625,7 @@ const firebaseConfig = {
 
 // ▼ 管理者にしたい人のUIDをここに追加(プロフィール編集モーダルの下部で確認できます) ▼
 const ADMIN_UIDS = [
-  "p1h9p2bdxDO3lce6dPkhxM7fhui1"
+  // "ここに管理者のUIDを貼り付け"
 ];
 // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
@@ -586,7 +641,8 @@ if (isConfigured) {
   document.getElementById('onair-text').textContent = '未接続';
 }
 
-const CHECK_SVG = '<svg class="verify-badge" viewBox="0 0 20 20" width="13" height="13" fill="none"><circle cx="10" cy="10" r="9" fill="#3B82F6"/><path d="M6 10.5l2.5 2.5L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CHECK_SVG = '<svg class="verify-badge" viewBox="0 0 20 20" width="13" height="13" fill="none"><defs><radialGradient id="vbBlueGrad" cx="35%" cy="28%" r="80%"><stop offset="0%" stop-color="#8FC3FF"/><stop offset="55%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#1D4ED8"/></radialGradient></defs><circle cx="10" cy="10" r="9" fill="url(#vbBlueGrad)"/><path d="M6 10.5l2.5 2.5L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const GOLD_CHECK_SVG = '<svg class="verify-badge gold" viewBox="0 0 20 20" width="13" height="13" fill="none"><defs><radialGradient id="vbGoldGrad" cx="35%" cy="28%" r="80%"><stop offset="0%" stop-color="#FDEFC0"/><stop offset="50%" stop-color="#E8B94D"/><stop offset="100%" stop-color="#9C6E17"/></radialGradient></defs><circle cx="10" cy="10" r="9" fill="url(#vbGoldGrad)"/><path d="M6 10.5l2.5 2.5L14 7.5" stroke="#3B2607" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /* ------------------------------------------------------------------ */
 /* ローカルキャッシュ（初回描画を速くするため。正はFirestore側）          */
@@ -669,8 +725,9 @@ function avatarInner(p){
   if (p && p.icon) return `<span style="font-size:1.15em;line-height:1;">${escapeHtml(p.icon)}</span>`;
   return escapeHtml(initials(p && p.name));
 }
-function nameWithBadge(name, verified){
-  return escapeHtml(name) + (verified ? ' ' + CHECK_SVG : '');
+function nameWithBadge(name, verified, gold){
+  const badge = gold ? GOLD_CHECK_SVG : (verified ? CHECK_SVG : '');
+  return escapeHtml(name) + (badge ? ' ' + badge : '');
 }
 function normalizeName(n){ return (n || '').trim().toLowerCase(); }
 
@@ -755,8 +812,10 @@ requestAnimationFrame(drawWave);
 /* プロフィール（名前・アイコン・認証）                                   */
 /* ------------------------------------------------------------------ */
 function refreshSelfCard(){
-  const verified = usersCache[myUid] && usersCache[myUid].verified === true;
-  els.selfName.innerHTML = nameWithBadge(myName || '未設定', verified);
+  const selfProf = usersCache[myUid] || {};
+  const verified = selfProf.verified === true;
+  const gold = selfProf.goldVerified === true;
+  els.selfName.innerHTML = nameWithBadge(myName || '未設定', verified, gold);
   els.selfAvatar.innerHTML = avatarInner({ icon: myIcon, iconImg: myIconImg, name: myName || myUid });
   const c = avatarColor(myUid || myName);
   els.selfAvatar.style.color = c;
@@ -828,8 +887,12 @@ els.copyUidBtn.addEventListener('click', () => {
 });
 
 function renderVerifyRow(){
-  const verified = usersCache[myUid] && usersCache[myUid].verified === true;
-  if (verified) {
+  const selfProf = usersCache[myUid] || {};
+  const verified = selfProf.verified === true;
+  const gold = selfProf.goldVerified === true;
+  if (gold) {
+    els.verifyStatus.innerHTML = `<span class="verify-badge-lg gold">${GOLD_CHECK_SVG}ゴールド認証アカウントです</span>`;
+  } else if (verified) {
     els.verifyStatus.innerHTML = `<span class="verify-badge-lg">${CHECK_SVG}認証済みアカウントです</span>`;
   } else if (myVerifyStatus && myVerifyStatus.status === 'pending') {
     els.verifyStatus.innerHTML = `<span class="verify-pending">審査中です…</span>`;
@@ -1097,6 +1160,7 @@ function renderMessages(docs){
     const dispIcon = prof.icon !== undefined ? prof.icon : (m.icon || '');
     const dispImg = prof.iconImg || '';
     const verified = prof.verified === true;
+    const gold = prof.goldVerified === true;
 
     const row = document.createElement('div');
     row.className = 'msg-row'
@@ -1108,7 +1172,7 @@ function renderMessages(docs){
     row.innerHTML = `
       <div class="msg-avatar" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
       <div class="msg-body">
-        <div class="msg-meta"><span class="who">${nameWithBadge(dispName, verified)}</span><span class="time">${formatTime(m.ts)}</span></div>
+        <div class="msg-meta"><span class="who">${nameWithBadge(dispName, verified, gold)}</span><span class="time">${formatTime(m.ts)}</span></div>
         <div class="bubble">${escapeHtml(m.text)}</div>
       </div>`;
 
@@ -1170,6 +1234,9 @@ async function sendMessage(){
   els.input.value = '';
   els.input.style.height = 'auto';
   els.sendBtn.disabled = true;
+  els.sendBtn.classList.remove('sent');
+  void els.sendBtn.offsetWidth;
+  els.sendBtn.classList.add('sent');
   pulseBoost = 1;
   try {
     await addDoc(collection(db, 'channels', currentChannelId, 'messages'), {
@@ -1286,7 +1353,7 @@ function renderOnlineList(online){
   els.onlineCount.textContent = lastOnline.length;
   els.onlineList.innerHTML = lastOnline.map((p) => {
     const prof = usersCache[p.uid] || p;
-    return `<span class="online-chip"><span class="online-chip-avatar">${avatarInner(prof)}</span>${nameWithBadge(prof.name || p.name, !!prof.verified)}</span>`;
+    return `<span class="online-chip"><span class="online-chip-avatar">${avatarInner(prof)}</span>${nameWithBadge(prof.name || p.name, !!prof.verified, !!prof.goldVerified)}</span>`;
   }).join('');
 }
 function listenPresence(){
@@ -1323,6 +1390,9 @@ async function rejectVerify(uid){
 }
 async function setVerified(uid, val){
   await setDoc(doc(db, 'users', uid), { verified: val }, { merge: true }).catch(() => {});
+}
+async function setGoldVerified(uid, val){
+  await setDoc(doc(db, 'users', uid), { goldVerified: val }, { merge: true }).catch(() => {});
 }
 async function forceDeleteAccount(uid, name){
   if (!isAdmin || !db) return;
@@ -1368,15 +1438,18 @@ function renderAdminPanel(){
     uids.forEach((uid) => {
       const u = usersCache[uid];
       const verified = u.verified === true;
+      const gold = u.goldVerified === true;
       const row = document.createElement('div');
       row.className = 'admin-row';
       row.innerHTML = `<div class="avatar-sm">${avatarInner(u)}</div>
-        <div class="info">${nameWithBadge(u.name || '(無名)', verified)}</div>
+        <div class="info">${nameWithBadge(u.name || '(無名)', verified, gold)}</div>
         <div class="actions">
           <button type="button" class="mini-btn-outline" data-act="toggle">${verified ? '認証解除' : '認証付与'}</button>
+          <button type="button" class="mini-btn-gold" data-act="toggle-gold">${gold ? '金解除' : '金付与'}</button>
           <button type="button" class="mini-btn-danger" data-act="del">削除</button>
         </div>`;
       row.querySelector('[data-act="toggle"]').addEventListener('click', () => setVerified(uid, !verified));
+      row.querySelector('[data-act="toggle-gold"]').addEventListener('click', () => setGoldVerified(uid, !gold));
       row.querySelector('[data-act="del"]').addEventListener('click', () => forceDeleteAccount(uid, u.name || '(無名)'));
       body.appendChild(row);
     });
