@@ -310,18 +310,23 @@
   .msg-row.mine.chained .bubble{ border-radius: 18px 4px 4px 18px; }
 
   @keyframes msgIn{
-    from{ opacity:0; transform: translateY(16px) scale(.93); filter: blur(3px); }
-    60%{ filter: blur(0); }
-    to{ opacity:1; transform: translateY(0) scale(1); filter: blur(0); }
+    from{ opacity:0; transform: translateY(34px) scale(.96); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
   }
-  .msg-row.msg-enter{ animation: msgIn .4s cubic-bezier(.16,.9,.25,1) both; }
+  .msg-row.msg-enter{ animation: msgIn .38s cubic-bezier(.22,.9,.28,1) both; transform-origin: bottom center; }
   @keyframes avatarPop{ from{ opacity:0; transform: scale(.35); } to{ opacity:1; transform: scale(1); } }
-  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .4s cubic-bezier(.3,1.5,.4,1) both; }
+  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .38s cubic-bezier(.3,1.5,.4,1) .05s both; }
   @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
   .day-divider{ animation: dayIn .3s ease; }
 
-  .msg-actions{ margin-top:3px; padding: 0 3px; }
+  .msg-actions{
+    margin-top:3px; padding: 0 3px;
+    max-height:0; opacity:0; overflow:hidden; pointer-events:none;
+    transition: max-height .2s ease, opacity .15s ease, margin-top .2s ease;
+  }
+  .msg-row.menu-open .msg-actions{ max-height:28px; opacity:1; pointer-events:auto; }
   .msg-row.mine .msg-actions{ text-align:right; }
+  .msg-row.has-actions .bubble{ cursor:pointer; }
   .msg-del-btn{
     background:none; border:none; font-family: var(--font-mono); font-size: 9.5px;
     color: var(--text-faint); cursor:pointer; padding: 2px 3px; opacity:.7;
@@ -643,7 +648,7 @@ const firebaseConfig = {
 
 // ▼ 管理者にしたい人のUIDをここに追加(プロフィール編集モーダルの下部で確認できます) ▼
 const ADMIN_UIDS = [
-  "p1h9p2bdxDO3lce6dPkhxM7fhui1"
+  "p1h9p2bdxDO3lce6dPkhxM7fhui1",
 ];
 // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
@@ -1145,6 +1150,8 @@ function computeReceiptsByMsgId(docsArr){
   return map;
 }
 
+const rowElsById = new Map();
+
 function renderMessages(docs){
   // FIX(バグ): 送信直後は ts が確定するまで一時的に null になり、並び順が
   // 崩れて先頭にジャンプ→確定後に末尾へ移動…という現象(アニメーションが
@@ -1160,17 +1167,22 @@ function renderMessages(docs){
   const nearBottom = els.messages.scrollHeight - els.messages.scrollTop - els.messages.clientHeight < 120;
   const wasEmpty = !!els.messages.querySelector('.empty-state');
 
-  els.messages.innerHTML = '';
   if (!sorted.length) {
-    els.messages.appendChild(els.emptyState);
+    els.messages.replaceChildren(els.emptyState);
     knownIds = new Set();
+    rowElsById.clear();
     return;
   }
 
   const newKnown = new Set();
+  const orderedNodes = [];
   let lastDay = null;
   const sameDay = (a, b) => a && b && formatDay(a.ts) === formatDay(b.ts);
 
+  // FIX: 送信直後(ローカル反映)→サーバー確定 で同じメッセージが2回描画されると、
+  // 毎回 innerHTML を全消去して作り直していたせいで「下からスッと出る」入場アニメーションが
+  // 再生の途中で打ち切られ、体感的にアニメーションなしに見えていた。
+  // 既存の行DOM要素を id ごとに使い回すことで、アニメーション中の要素を壊さずに更新する。
   sorted.forEach((d, i) => {
     const m = d.data();
     const day = formatDay(m.ts);
@@ -1178,7 +1190,7 @@ function renderMessages(docs){
       const div = document.createElement('div');
       div.className = 'day-divider';
       div.textContent = day;
-      els.messages.appendChild(div);
+      orderedNodes.push(div);
       lastDay = day;
     }
     const mine = m.uid === myUid;
@@ -1194,12 +1206,19 @@ function renderMessages(docs){
     const verified = prof.verified === true;
     const gold = prof.goldVerified === true;
 
-    const row = document.createElement('div');
-    row.className = 'msg-row'
-      + (mine ? ' mine' : '')
-      + (groupedWithPrev ? ' grouped' : '')
-      + (groupedWithNext ? ' chained' : '')
-      + (!knownIds.has(d.id) ? ' msg-enter' : '');
+    const isNew = !knownIds.has(d.id);
+    let row = rowElsById.get(d.id);
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'msg-row';
+      rowElsById.set(d.id, row);
+    }
+    row.classList.toggle('mine', mine);
+    row.classList.toggle('grouped', groupedWithPrev);
+    row.classList.toggle('chained', groupedWithNext);
+    row.classList.toggle('has-actions', mine || isAdmin);
+    if (isNew) row.classList.add('msg-enter'); // 一度だけ付与。以後は消さないので再生が途中で切れない
+
     const color = avatarColor(m.uid);
     row.innerHTML = `
       <div class="msg-avatar" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
@@ -1229,10 +1248,16 @@ function renderMessages(docs){
       body.appendChild(actions);
     }
 
-    els.messages.appendChild(row);
+    orderedNodes.push(row);
     newKnown.add(d.id);
   });
 
+  // 表示されなくなった(削除された)メッセージの行キャッシュを掃除
+  for (const id of rowElsById.keys()) {
+    if (!newKnown.has(id)) rowElsById.delete(id);
+  }
+
+  els.messages.replaceChildren(...orderedNodes);
   knownIds = newKnown;
   if (nearBottom || wasEmpty) els.messages.scrollTop = els.messages.scrollHeight;
 }
@@ -1246,7 +1271,12 @@ els.messages.addEventListener('click', (e) => {
     return;
   }
   const chipWrap = e.target.closest('.read-chips');
-  if (chipWrap) chipWrap.classList.toggle('expanded');
+  if (chipWrap) { chipWrap.classList.toggle('expanded'); return; }
+  const bubble = e.target.closest('.bubble');
+  if (bubble) {
+    const row = bubble.closest('.msg-row');
+    if (row && row.classList.contains('has-actions')) row.classList.toggle('menu-open');
+  }
 });
 
 function listenMessages(channelId){
