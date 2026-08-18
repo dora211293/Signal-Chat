@@ -392,7 +392,43 @@
   #typing-indicator .bars span:nth-child(2){ animation-delay:.15s; }
   #typing-indicator .bars span:nth-child(3){ animation-delay:.3s; }
 
+  .msg-image{
+    display:block; max-width: 240px; max-height: 320px; width:auto; height:auto;
+    border-radius: 14px; cursor:zoom-in; box-shadow: var(--shadow-sm);
+  }
+  .bubble.has-image{ padding: 5px !important; background: transparent !important; border: none !important; box-shadow:none !important; }
+  .bubble.has-image.has-text{ padding: 5px 5px 9px !important; background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-sm) !important; }
+  [data-theme="light"] .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, #FBEAC9, #F5DAA0) !important; border-color: var(--amber-dim) !important; }
+  .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, #2a2115, #1c1712) !important; border-color: var(--amber-dim) !important; }
+  .bubble.has-image.has-text .msg-image{ margin-bottom: 6px; }
+  .bubble.has-image .msg-image-expired{
+    display:flex; align-items:center; justify-content:center; width:180px; height:110px;
+    border-radius:14px; background: var(--surface-2); border:1px dashed var(--border);
+    color: var(--text-faint); font-size:11.5px; font-family: var(--font-mono);
+  }
+
+  #image-preview-strip{ padding: 8px 20px 0; background: var(--surface); flex-shrink:0; }
+  .image-preview-item{ position:relative; display:inline-flex; align-items:center; gap:8px; background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-md); padding:6px; animation: chipIn .3s var(--ease-spring); }
+  .image-preview-item img{ width:52px; height:52px; object-fit:cover; border-radius:8px; }
+  #image-preview-meta{ font-family: var(--font-mono); font-size:10px; color: var(--text-faint); padding-right:22px; }
+  #image-preview-clear{
+    position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%;
+    background: var(--danger); color:#fff; border:2px solid var(--surface); cursor:pointer;
+    font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+
   #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: var(--surface); flex-shrink:0; }
+  #attach-btn{
+    background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
+    width:42px; height:42px; border-radius: var(--radius-pill); cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; transition: transform .12s, color .15s, border-color .15s;
+  }
+  #attach-btn:hover{ color: var(--amber); border-color: var(--amber-dim); transform: translateY(-1px); }
+  #attach-btn:active{ transform: scale(.94); }
+
+  #lightbox-modal{ background:#04060acc; cursor:zoom-out; }
+  #lightbox-inner{ max-width:92vw; max-height:88vh; animation: modalCardIn .25s var(--ease-spring); }
+  #lightbox-img{ max-width:92vw; max-height:88vh; width:auto; height:auto; border-radius:10px; box-shadow: 0 20px 60px #000000a0; display:block; }
   #msg-input{
     flex:1; resize:none; max-height: 120px; min-height: 42px;
     background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
@@ -628,7 +664,18 @@
 
     <div id="typing-indicator"></div>
 
+    <div id="image-preview-strip" style="display:none;">
+      <div class="image-preview-item">
+        <img id="image-preview-thumb" src="" alt="">
+        <button type="button" id="image-preview-clear" title="画像を取り消す">✕</button>
+        <div id="image-preview-meta"></div>
+      </div>
+    </div>
     <div id="composer">
+      <input type="file" id="image-file-input" accept="image/*" style="display:none;">
+      <button id="attach-btn" type="button" title="画像を送信">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
       <textarea id="msg-input" rows="1" placeholder="メッセージを入力…"></textarea>
       <button id="send-btn" disabled title="送信">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11L21 3L13 21L11 13L3 11Z" stroke="#14100a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
@@ -636,6 +683,13 @@
     </div>
   </main>
 
+</div>
+
+<!-- ===================== 画像ライトボックス ===================== -->
+<div class="modal-scrim" id="lightbox-modal" style="display:none;">
+  <div id="lightbox-inner">
+    <img id="lightbox-img" src="" alt="">
+  </div>
 </div>
 
 <!-- ===================== プロフィール設定モーダル ===================== -->
@@ -757,7 +811,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc,
+  getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc, deleteField,
   onSnapshot, query, orderBy, limit, where, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
@@ -860,6 +914,10 @@ const els = {
   messages: $('messages'), emptyState: $('empty-state'),
   typing: $('typing-indicator'),
   input: $('msg-input'), sendBtn: $('send-btn'),
+  attachBtn: $('attach-btn'), imageFileInput: $('image-file-input'),
+  imagePreviewStrip: $('image-preview-strip'), imagePreviewThumb: $('image-preview-thumb'),
+  imagePreviewClear: $('image-preview-clear'), imagePreviewMeta: $('image-preview-meta'),
+  lightboxModal: $('lightbox-modal'), lightboxImg: $('lightbox-img'),
   nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
   iconPicker: $('icon-picker'), iconInput: $('icon-input'), previewAvatar: $('preview-avatar'),
   iconFile: $('icon-file'), iconImgClear: $('icon-img-clear'),
@@ -951,6 +1009,123 @@ function fileToCompressedDataUrl(file){
     };
     reader.readAsDataURL(file);
   });
+}
+
+/* ------------------------------------------------------------------ */
+/* チャット画像送信（Firestoreの1ドキュメント1MiB上限に収めるため、        */
+/* 認証バッジ(金/青/なし)に応じた長辺サイズ+JPEG圧縮率で縮小する）        */
+/* ------------------------------------------------------------------ */
+const IMAGE_RETENTION_DAYS = 7; // この日数を過ぎた画像はテキストを残して自動削除
+const CHAT_IMAGE_DATAURL_BUDGET = 700000; // base64文字数の目安（Firestore上限に対する安全マージン）
+
+/** 自分の認証バッジから「長辺サイズ / 初期JPEG品質」を決める */
+function chatImageSpecForSelf(){
+  const prof = usersCache[myUid] || {};
+  if (prof.goldVerified === true) return { maxSide: 2048, quality: 0.85, label: '金認証(2048px)' };
+  if (prof.verified === true) return { maxSide: 1536, quality: 0.8, label: '青認証(1536px)' };
+  return { maxSide: 1024, quality: 0.75, label: '未認証(1024px)' };
+}
+
+/** 画像ファイルを認証バッジ相当の長辺サイズへ縮小しJPEGへ圧縮。
+ *  品質→サイズの順に段階的に下げ、Firestoreの1ドキュメント上限内に収まるようにする。 */
+function fileToChatImageDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode failed'));
+      img.onload = () => {
+        const spec = chatImageSpecForSelf();
+        let side = spec.maxSide;
+        const drawAt = (maxSide) => {
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.round(img.width * scale));
+          const h = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          return canvas;
+        };
+        let canvas = drawAt(side);
+        let quality = spec.quality;
+        let url = canvas.toDataURL('image/jpeg', quality);
+        while (url.length > CHAT_IMAGE_DATAURL_BUDGET && quality > 0.4) {
+          quality -= 0.1;
+          url = canvas.toDataURL('image/jpeg', quality);
+        }
+        while (url.length > CHAT_IMAGE_DATAURL_BUDGET && side > 480) {
+          side = Math.round(side * 0.8);
+          canvas = drawAt(side);
+          quality = spec.quality;
+          url = canvas.toDataURL('image/jpeg', quality);
+          while (url.length > CHAT_IMAGE_DATAURL_BUDGET && quality > 0.4) {
+            quality -= 0.1;
+            url = canvas.toDataURL('image/jpeg', quality);
+          }
+        }
+        resolve({ dataUrl: url, w: canvas.width, h: canvas.height, bytes: Math.round(url.length * 0.75) });
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+let pendingImage = null; // { dataUrl, w, h, bytes } | null
+
+function formatBytes(n){
+  if (n < 1024) return n + 'B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(0) + 'KB';
+  return (n / (1024 * 1024)).toFixed(1) + 'MB';
+}
+
+function showImagePreview(){
+  if (!pendingImage) { els.imagePreviewStrip.style.display = 'none'; return; }
+  els.imagePreviewThumb.src = pendingImage.dataUrl;
+  els.imagePreviewMeta.textContent = `${pendingImage.w}×${pendingImage.h} ・ ${formatBytes(pendingImage.bytes)}`;
+  els.imagePreviewStrip.style.display = 'block';
+  els.sendBtn.disabled = false;
+}
+function clearImagePreview(){
+  pendingImage = null;
+  els.imageFileInput.value = '';
+  els.imagePreviewStrip.style.display = 'none';
+  els.sendBtn.disabled = !els.input.value.trim();
+}
+
+els.attachBtn.addEventListener('click', () => els.imageFileInput.click());
+els.imageFileInput.addEventListener('change', async () => {
+  const file = els.imageFileInput.files && els.imageFileInput.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('画像ファイルを選択してください'); clearImagePreview(); return; }
+  try {
+    pendingImage = await fileToChatImageDataUrl(file);
+    showImagePreview();
+  } catch (e) {
+    console.error('画像の圧縮に失敗しました', e);
+    alert('画像の読み込みに失敗しました');
+    clearImagePreview();
+  }
+});
+els.imagePreviewClear.addEventListener('click', clearImagePreview);
+
+els.lightboxModal.addEventListener('click', () => { els.lightboxModal.style.display = 'none'; });
+function openLightbox(src){
+  els.lightboxImg.src = src;
+  els.lightboxModal.style.display = 'flex';
+}
+
+/** 期限切れ画像の自動削除（クライアント側の遅延掃除）。1メッセージにつき1回だけ試みる。 */
+const imageCleanupAttempted = new Set();
+function sweepExpiredImage(docId, coll, baseId, m){
+  if (!m.img || imageCleanupAttempted.has(docId)) return;
+  const ms = m.ts && m.ts.toMillis ? m.ts.toMillis() : null;
+  if (ms === null) return;
+  const ageDays = (Date.now() - ms) / 86400000;
+  if (ageDays < IMAGE_RETENTION_DAYS) return;
+  imageCleanupAttempted.add(docId);
+  updateDoc(doc(db, coll, baseId, 'messages', docId), { img: deleteField(), imgW: deleteField(), imgH: deleteField() }).catch(() => {});
 }
 
 /* ------------------------------------------------------------------ */
@@ -1574,12 +1749,21 @@ function renderMessages(docs){
     if (isNew) row.classList.add('msg-enter'); // 一度だけ付与。以後は消さないので再生が途中で切れない
 
     const color = avatarColor(m.uid);
+    const hasText = !!(m.text && m.text.trim());
+    const hasImage = !!m.img;
+    const imageHtml = hasImage
+      ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}">`
+      : (m.imgExpired ? `<div class="msg-image-expired">画像は期限切れです</div>` : '');
+    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasText ? ' has-text' : '');
     row.innerHTML = `
       <div class="msg-avatar" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
       <div class="msg-body">
         <div class="msg-meta"><span class="who">${nameWithBadge(dispName, verified, gold)}</span><span class="time">${formatTime(m.ts)}</span></div>
-        <div class="bubble">${escapeHtml(m.text)}</div>
+        <div class="${bubbleClass}">${imageHtml}${hasText ? `<div class="msg-text">${escapeHtml(m.text)}</div>` : ''}</div>
       </div>`;
+
+    const [sweepColl, sweepId] = activeBasePath();
+    sweepExpiredImage(d.id, sweepColl, sweepId, m);
 
     const body = row.querySelector('.msg-body');
     const receipts = receiptsByMsgId[d.id];
@@ -1626,6 +1810,8 @@ els.messages.addEventListener('click', (e) => {
     }
     return;
   }
+  const img = e.target.closest('.msg-image');
+  if (img) { openLightbox(img.dataset.full || img.src); return; }
   const chipWrap = e.target.closest('.read-chips');
   if (chipWrap) { chipWrap.classList.toggle('expanded'); return; }
   const bubble = e.target.closest('.bubble');
@@ -1654,10 +1840,12 @@ function listenMessages(channelId, dmId){
 
 async function sendMessage(){
   const text = els.input.value.trim();
+  const image = pendingImage;
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
-  if (!text || !targetId || !db || !myName || !myUid) return;
+  if ((!text && !image) || !targetId || !db || !myName || !myUid) return;
   els.input.value = '';
   els.input.style.height = 'auto';
+  clearImagePreview();
   els.sendBtn.disabled = true;
   els.sendBtn.classList.remove('sent');
   void els.sendBtn.offsetWidth;
@@ -1665,17 +1853,17 @@ async function sendMessage(){
   pulseBoost = 1;
   const [coll, id] = activeBasePath();
   try {
-    await addDoc(collection(db, coll, id, 'messages'), {
-      text, uid: myUid, name: myName, icon: myIcon || '', ts: serverTimestamp()
-    });
+    const payload = { text, uid: myUid, name: myName, icon: myIcon || '', ts: serverTimestamp() };
+    if (image) { payload.img = image.dataUrl; payload.imgW = image.w; payload.imgH = image.h; }
+    await addDoc(collection(db, coll, id, 'messages'), payload);
     if (coll === 'dms') {
-      await setDoc(doc(db, 'dms', id), { participants: [myUid, currentDmOtherUid], lastText: text.slice(0, 80), updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+      await setDoc(doc(db, 'dms', id), { participants: [myUid, currentDmOtherUid], lastText: text ? text.slice(0, 80) : '📷 画像', updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
     }
   } catch (e) { console.error('送信に失敗しました', e); }
   clearTyping();
 }
 els.input.addEventListener('input', () => {
-  els.sendBtn.disabled = !els.input.value.trim();
+  els.sendBtn.disabled = !els.input.value.trim() && !pendingImage;
   els.input.style.height = 'auto';
   els.input.style.height = Math.min(120, els.input.scrollHeight) + 'px';
   pushTyping();
