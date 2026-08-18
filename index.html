@@ -594,13 +594,7 @@ const CHECK_SVG = '<svg class="verify-badge" viewBox="0 0 20 20" width="13" heig
 /* ローカルキャッシュ（初回描画を速くするため。正はFirestore側）          */
 /* ------------------------------------------------------------------ */
 const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img', THEME_KEY = 'signal_theme';
-const UID_KEY = 'signal_uid';
-let myUid = localStorage.getItem(UID_KEY);
-
-if (!myUid) {
-  myUid = 'u_' + Math.random().toString(36).slice(2, 10);
-  localStorage.setItem(UID_KEY, myUid);
-}
+let myUid = null;
 let myName = localStorage.getItem(NAME_KEY) || '';
 let myIcon = localStorage.getItem(ICON_KEY) || '';
 let myIconImg = localStorage.getItem(ICONIMG_KEY) || '';
@@ -770,8 +764,16 @@ els.nickInput.addEventListener('input', () => {
 els.iconFile.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  try { pendingIconImg = await fileToCompressedDataUrl(file); updatePreview(); }
-  catch (err) { console.error('画像の処理に失敗しました', err); }
+  try {
+    pendingIconImg = await fileToCompressedDataUrl(file);
+    updatePreview();
+  } catch (err) {
+    console.error('画像の処理に失敗しました', err);
+    pendingIconImg = '';
+    els.iconFile.value = '';
+    updatePreview();
+    alert('画像の読み込みに失敗しました。別の画像を試してください。');
+  }
 });
 els.iconImgClear.addEventListener('click', () => { pendingIconImg = ''; els.iconFile.value = ''; updatePreview(); });
 els.copyUidBtn.addEventListener('click', () => {
@@ -810,6 +812,7 @@ function openNickModal(prefillName, prefillIcon, prefillImg){
   updatePreview();
   els.nickError.style.display = 'none';
   els.nickConfirm.disabled = !els.nickInput.value.trim();
+  els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
   els.myUidDisplay.textContent = myUid || '認証中…';
   renderVerifyRow();
   els.nickModal.style.display = 'flex';
@@ -860,7 +863,7 @@ els.nickConfirm.addEventListener('click', async () => {
     els.nickError.style.display = 'block';
   } finally {
     els.nickConfirm.disabled = !els.nickInput.value.trim();
-    els.nickConfirm.textContent = 'チャットを開始';
+    els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
   }
 });
 els.editNameBtn.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg));
@@ -1215,6 +1218,7 @@ function listenUsers(){
     refreshSelfCard();
     renderVerifyRow();
     if (lastDocsSnapshot.length) renderMessages(lastDocsSnapshot);
+    if (lastOnline.length) renderOnlineList(lastOnline);
     if (adminModalOpen && currentAdminTab === 'users') renderAdminPanel();
   });
 }
@@ -1230,6 +1234,7 @@ function listenOwnVerifyRequest(){
 /* プレゼンス（オンライン表示）                                          */
 /* ------------------------------------------------------------------ */
 let hbTimer = null;
+let lastOnline = [];
 async function heartbeat(){
   if (!db || !myName || !myUid || document.hidden) return;
   await setDoc(doc(db, 'presence', myUid), { name: myName, icon: myIcon || '', ts: serverTimestamp() }).catch(() => {});
@@ -1243,6 +1248,14 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', () => {
   if (db && myUid) deleteDoc(doc(db, 'presence', myUid)).catch(() => {});
 });
+function renderOnlineList(online){
+  lastOnline = online || [];
+  els.onlineCount.textContent = lastOnline.length;
+  els.onlineList.innerHTML = lastOnline.map((p) => {
+    const prof = usersCache[p.uid] || p;
+    return `<span class="online-chip"><span class="online-chip-avatar">${avatarInner(prof)}</span>${nameWithBadge(prof.name || p.name, !!prof.verified)}</span>`;
+  }).join('');
+}
 function listenPresence(){
   if (!db) return;
   onSnapshot(collection(db, 'presence'), (snap) => {
@@ -1253,11 +1266,7 @@ function listenPresence(){
       const ms = p.ts && p.ts.toMillis ? p.ts.toMillis() : 0;
       if (now - ms < 25000) online.push({ uid: d.id, name: p.name, icon: p.icon, iconImg: '' });
     });
-    els.onlineCount.textContent = online.length;
-    els.onlineList.innerHTML = online.map((p) => {
-      const prof = usersCache[p.uid] || p;
-      return `<span class="online-chip"><span class="online-chip-avatar">${avatarInner(prof)}</span>${nameWithBadge(prof.name, prof.verified === true)}</span>`;
-    }).join('');
+    renderOnlineList(online);
   });
 }
 
@@ -1386,40 +1395,62 @@ function setOnAir(on){
 async function afterAuthReady(){
   isAdmin = ADMIN_UIDS.includes(myUid);
   els.adminPanelBtn.style.display = isAdmin ? 'flex' : 'none';
-  els.myUidDisplay.textContent = myUid;
+  els.myUidDisplay.textContent = myUid || '認証中…';
   setOnAir(false);
 
-  await ensureDefaultChannels();
-  listenChannels();
-  listenUsers();
-  listenPresence();
-  listenOwnVerifyRequest();
-  if (isAdmin) listenPendingVerifyRequests();
+  try {
+    await ensureDefaultChannels();
+    listenChannels();
+    listenUsers();
+    listenPresence();
+    listenOwnVerifyRequest();
+    if (isAdmin) listenPendingVerifyRequests();
 
-  const mySnap = await getDoc(doc(db, 'users', myUid)).catch(() => null);
-  if (mySnap && mySnap.exists()) {
-    const data = mySnap.data();
-    myName = data.name || myName;
-    myIcon = data.icon || '';
-    myIconImg = data.iconImg || '';
-    localStorage.setItem(NAME_KEY, myName);
-    localStorage.setItem(ICON_KEY, myIcon);
-    localStorage.setItem(ICONIMG_KEY, myIconImg);
-    refreshSelfCard();
-    els.nickModal.style.display = 'none';
-    startHeartbeat();
-  } else {
-    openNickModal(myName, myIcon, myIconImg);
+    const mySnap = await getDoc(doc(db, 'users', myUid)).catch(() => null);
+    if (mySnap && mySnap.exists()) {
+      const data = mySnap.data();
+      myName = data.name || myName;
+      myIcon = data.icon || '';
+      myIconImg = data.iconImg || '';
+      localStorage.setItem(NAME_KEY, myName);
+      localStorage.setItem(ICON_KEY, myIcon);
+      localStorage.setItem(ICONIMG_KEY, myIconImg);
+      refreshSelfCard();
+      els.nickModal.style.display = 'none';
+      startHeartbeat();
+    } else {
+      openNickModal(myName, myIcon, myIconImg);
+    }
+    setOnAir(true);
+  } catch (err) {
+    console.error('初期化中にエラーが発生しました', err);
+    els.myUidDisplay.textContent = myUid || 'エラー';
+    // モーダルが開いている場合はUIDだけでも見せる
+    if (els.nickModal.style.display !== 'none') {
+      openNickModal(myName, myIcon, myIconImg);
+    }
   }
-  setOnAir(true);
 }
 
 function boot(){
-  if (!db) {
+  if (!auth) {
     setOnAir(false);
+    els.myUidDisplay.textContent = '未設定';
     return;
   }
-  afterAuthReady();
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      myUid = user.uid;
+      els.myUidDisplay.textContent = myUid;
+      afterAuthReady();
+    }
+  });
+  signInAnonymously(auth).catch((e) => {
+    console.error('匿名認証に失敗しました。Firebaseコンソールで「Authentication → Sign-in method → 匿名」を有効にしてください。', e);
+    setOnAir(false);
+    els.myUidDisplay.textContent = '認証失敗';
+    els.onairText.textContent = '認証失敗';
+  });
 }
 boot();
 
