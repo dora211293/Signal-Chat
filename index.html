@@ -600,6 +600,23 @@ let myIcon = localStorage.getItem(ICON_KEY) || '';
 let myIconImg = localStorage.getItem(ICONIMG_KEY) || '';
 let isAdmin = false;
 let pendingIconImg = '';
+// 早期に使う変数はここでまとめて宣言（Temporal Dead Zone 回避）
+let usersCache = {};
+let myVerifyStatus = null;
+let knownIds = new Set();
+let lastDocsSnapshot = [];
+let readsMap = {};
+let lastOnline = [];
+let currentChannelId = null;
+let currentChannelName = '';
+let unsubMessages = null, unsubTyping = null, unsubReads = null;
+let channelsCache = [];
+let typingTimeout = null;
+let lastMarkReadAt = 0;
+let hbTimer = null;
+let adminModalOpen = false;
+let currentAdminTab = 'requests';
+let pendingVerifyRequests = [];
 
 /* ------------------------------------------------------------------ */
 /* DOM refs                                                            */
@@ -910,11 +927,6 @@ els.scrim.addEventListener('click', () => { els.sidebar.classList.remove('open')
 /* ------------------------------------------------------------------ */
 /* チャンネル                                                          */
 /* ------------------------------------------------------------------ */
-let currentChannelId = null;
-let currentChannelName = '';
-let unsubMessages = null, unsubTyping = null, unsubReads = null;
-let channelsCache = [];
-
 async function ensureDefaultChannels(){
   if (!db) return;
   const snap = await getDocs(collection(db, 'channels'));
@@ -1016,12 +1028,6 @@ function formatDay(ts){
   const d = ts.toDate ? ts.toDate() : new Date();
   return d.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
 }
-
-let knownIds = new Set();
-let lastDocsSnapshot = [];
-let readsMap = {};
-let usersCache = {};
-let myVerifyStatus = null;
 
 function computeReceiptsByMsgId(docsArr){
   const map = {};
@@ -1188,7 +1194,6 @@ els.sendBtn.addEventListener('click', sendMessage);
 /* ------------------------------------------------------------------ */
 /* 入力中インジケータ                                                   */
 /* ------------------------------------------------------------------ */
-let typingTimeout = null;
 async function pushTyping(){
   if (!db || !currentChannelId || !myName || !myUid) return;
   await setDoc(doc(db, 'channels', currentChannelId, 'typing', myUid), { name: myName, ts: serverTimestamp() }).catch(() => {});
@@ -1220,7 +1225,6 @@ function listenTyping(channelId){
 /* ------------------------------------------------------------------ */
 /* 既読機能                                                            */
 /* ------------------------------------------------------------------ */
-let lastMarkReadAt = 0;
 async function markRead(channelId){
   if (!db || !channelId || !myName || !myUid || document.hidden) return;
   const now = Date.now();
@@ -1266,8 +1270,6 @@ function listenOwnVerifyRequest(){
 /* ------------------------------------------------------------------ */
 /* プレゼンス（オンライン表示）                                          */
 /* ------------------------------------------------------------------ */
-let hbTimer = null;
-let lastOnline = [];
 async function heartbeat(){
   if (!db || !myName || !myUid || document.hidden) return;
   await setDoc(doc(db, 'presence', myUid), { name: myName, icon: myIcon || '', ts: serverTimestamp() }).catch(() => {});
@@ -1306,10 +1308,6 @@ function listenPresence(){
 /* ------------------------------------------------------------------ */
 /* 管理者パネル                                                        */
 /* ------------------------------------------------------------------ */
-let adminModalOpen = false;
-let currentAdminTab = 'requests';
-let pendingVerifyRequests = [];
-
 function listenPendingVerifyRequests(){
   if (!isAdmin || !db) return;
   onSnapshot(query(collection(db, 'verifyRequests'), where('status', '==', 'pending')), (snap) => {
