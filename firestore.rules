@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAdmin() {
-      return request.auth != null && request.auth.uid in [
+      return request.auth != null && request.auth.uid in [p1h9p2bdxDO3lce6dPkhxM7fhui1
         'ここに管理者のUIDを1つ以上貼り付け'
       ];
     }
