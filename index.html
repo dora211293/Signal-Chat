@@ -594,7 +594,13 @@ const CHECK_SVG = '<svg class="verify-badge" viewBox="0 0 20 20" width="13" heig
 /* ローカルキャッシュ（初回描画を速くするため。正はFirestore側）          */
 /* ------------------------------------------------------------------ */
 const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img', THEME_KEY = 'signal_theme';
-let myUid = null;
+const UID_KEY = 'signal_uid';
+let myUid = localStorage.getItem(UID_KEY);
+
+if (!myUid) {
+  myUid = 'u_' + Math.random().toString(36).slice(2, 10);
+  localStorage.setItem(UID_KEY, myUid);
+}
 let myName = localStorage.getItem(NAME_KEY) || '';
 let myIcon = localStorage.getItem(ICON_KEY) || '';
 let myIconImg = localStorage.getItem(ICONIMG_KEY) || '';
@@ -1409,14 +1415,11 @@ async function afterAuthReady(){
 }
 
 function boot(){
-  if (!auth) { setOnAir(false); return; }
-  onAuthStateChanged(auth, (user) => {
-    if (user) { myUid = user.uid; afterAuthReady(); }
-  });
-  signInAnonymously(auth).catch((e) => {
-    console.error('匿名認証に失敗しました。Firebaseコンソールで「Authentication → Sign-in method → 匿名」を有効にしてください。', e);
+  if (!db) {
     setOnAir(false);
-  });
+    return;
+  }
+  afterAuthReady();
 }
 boot();
 
