@@ -47,6 +47,9 @@
     --radius-sm: 12px;
     --radius-xs: 9px;
     --radius-pill: 999px;
+    --ease-ios: cubic-bezier(.32,.72,0,1);
+    --ease-spring: cubic-bezier(.34,1.56,.64,1);
+    --ease-standard: cubic-bezier(.4,0,.2,1);
     --font-display: 'Space Grotesk', sans-serif;
     --font-body: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
@@ -88,9 +91,15 @@
   ::-webkit-scrollbar-thumb{ background: var(--surface-3); border-radius: 8px; }
   ::-webkit-scrollbar-track{ background: transparent; }
 
-  button{ font-family: inherit; transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .12s ease, box-shadow .16s ease, opacity .16s ease; }
+  button{ font-family: inherit; transition: background-color .18s var(--ease-ios), border-color .18s var(--ease-ios), color .18s var(--ease-ios), transform .32s var(--ease-spring), box-shadow .18s var(--ease-ios), opacity .16s ease; }
+  button:active:not(:disabled){ transform: scale(.96); transition-duration: .1s; }
   input, textarea{ font-family: inherit; }
   code{ font-family: var(--font-mono); }
+
+  #messages, #channel-list, #dm-list, .online-panel, .admin-panel-body, .modal-scrim{
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  }
+  #messages{ transition: opacity .16s var(--ease-ios); }
 
   /* テーマ切替時に主要パーツがふわっとクロスフェードするための共通トランジション */
   #sidebar, #main, #topbar, #composer, #messages, .modal-card, .modal-scrim, .bubble,
@@ -121,13 +130,13 @@
     #sidebar{
       position: fixed; inset: 0 20% 0 0; z-index: 40;
       transform: translateX(-105%);
-      transition: transform .28s cubic-bezier(.2,.8,.2,1);
+      transition: transform .38s var(--ease-ios);
       box-shadow: 30px 0 60px #00000080;
     }
     #sidebar.open{ transform: translateX(0); }
     #sidebar-scrim{
       position: fixed; inset:0; background:#000a; z-index: 39;
-      opacity:0; pointer-events:none; transition: opacity .25s;
+      opacity:0; pointer-events:none; transition: opacity .3s var(--ease-ios);
     }
     #sidebar-scrim.show{ opacity:1; pointer-events:auto; }
   }
@@ -165,8 +174,10 @@
   .self-meta .status{ font-family: var(--font-mono); font-size: 10px; color: var(--teal); display:flex; align-items:center; gap:5px; margin-top:1px;}
   .self-meta .status .dot{ width:6px; height:6px; border-radius:50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: blink 2s infinite; }
   .icon-actions{ display:flex; gap:2px; flex-shrink:0; }
-  .edit-name-btn{ background:none; border:none; color: var(--text-faint); cursor:pointer; font-size: 13px; padding: 4px; }
+  .edit-name-btn{ background:none; border:none; color: var(--text-faint); cursor:pointer; font-size: 13px; padding: 4px; display:inline-flex; }
   .edit-name-btn:hover{ color: var(--amber); }
+  #theme-toggle{ transition: transform .5s var(--ease-spring); }
+  #theme-toggle.spin{ transform: rotate(360deg); }
 
   .admin-btn{
     margin: 0 14px 10px; padding: 9px 10px; border-radius: var(--radius-md);
@@ -197,13 +208,19 @@
   .scope-switch{
     display:none; align-items:center; gap:0; margin: 2px 18px 6px; background: var(--surface-2);
     border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 3px; font-family: var(--font-mono);
+    position: relative;
   }
   .scope-switch.show{ display:flex; }
-  .scope-switch button{
-    flex:1; border:none; background:none; color: var(--text-muted); font-size: 10.5px; padding: 6px 4px;
-    border-radius: var(--radius-pill); cursor:pointer;
+  .scope-switch .tab-thumb{
+    position:absolute; top:3px; bottom:3px; left:3px; width: 40px;
+    background: var(--amber); border-radius: var(--radius-pill);
+    transition: transform .42s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
   }
-  .scope-switch button.active{ background: var(--amber); color:#14100a; font-weight:700; }
+  .scope-switch button{
+    position:relative; z-index:1; flex:1; border:none; background:none; color: var(--text-muted); font-size: 10.5px; padding: 6px 4px;
+    border-radius: var(--radius-pill); cursor:pointer; transition: color .25s var(--ease-ios);
+  }
+  .scope-switch button.active{ color:#14100a; font-weight:700; }
   .channel-edit-controls{ display:flex; align-items:center; gap:2px; flex-shrink:0; }
   .ch-arrow-btn, .ch-rename-btn{
     background:none; border:none; color: var(--text-faint); cursor:pointer; font-size:12px; padding: 3px 4px; line-height:1;
@@ -217,10 +234,10 @@
   .channel-item{
     display:flex; align-items:center; gap:10px; padding: 9px 10px; border-radius: var(--radius-sm);
     cursor:pointer; margin-bottom: 2px; border: 1px solid transparent;
-    transition: background-color .15s ease, border-color .15s ease, transform .12s ease, box-shadow .15s ease;
+    transition: background-color .15s var(--ease-ios), border-color .15s var(--ease-ios), transform .28s var(--ease-spring), box-shadow .15s var(--ease-ios);
   }
   .channel-item:hover{ background: var(--surface-2); transform: translateX(1px); }
-  .channel-item:active{ transform: scale(.98); }
+  .channel-item:active{ transform: scale(.97); transition: transform .1s var(--ease-ios); }
   .channel-item.active{ background: var(--surface-2); border-color: var(--amber-dim); box-shadow: var(--shadow-sm); }
   .channel-freq{
     font-family: var(--font-mono); font-size: 10.5px; color: var(--amber);
@@ -231,7 +248,7 @@
   .channel-unread{
     min-width:18px; height:18px; padding:0 5px; border-radius:10px; background: var(--amber); color:#14100a;
     font-family: var(--font-mono); font-size: 10px; font-weight:700; line-height:18px; text-align:center;
-    flex-shrink:0; margin-left:4px; animation: chipIn .22s ease;
+    flex-shrink:0; margin-left:4px; animation: chipIn .42s var(--ease-spring);
   }
   .channel-item.active .channel-unread{ display:none; }
   .channel-del-btn{ background:none; border:none; color: var(--text-faint); font-size:15px; cursor:pointer; padding: 2px 6px; margin-left:auto; flex-shrink:0; }
@@ -243,7 +260,7 @@
     font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted);
     background: var(--surface-2); border: 1px solid var(--border);
     padding: 3px 8px 3px 3px; border-radius: 20px; display:flex; align-items:center; gap:5px;
-    animation: chipIn .25s ease;
+    animation: chipIn .42s var(--ease-spring);
   }
   .online-chip-avatar{
     width:16px; height:16px; border-radius:50%; background:var(--surface-3);
@@ -280,7 +297,7 @@
     position:absolute; top:-3px; right:-3px; min-width:15px; height:15px; padding:0 3px;
     border-radius:10px; background: var(--danger); color:#fff; font-family: var(--font-mono);
     font-size: 9px; line-height:15px; text-align:center; display:none; box-shadow: 0 0 0 2px var(--surface);
-    animation: chipIn .22s ease;
+    animation: chipIn .42s var(--ease-spring);
   }
   #notif-toggle .unread-dot.show{ display:block; }
 
@@ -323,10 +340,9 @@
     border-radius: 8px 22px 22px 22px; font-size: 14px; line-height: 1.55;
     word-break: break-word; white-space: pre-wrap; color: var(--text);
     box-shadow: var(--shadow-sm);
-    transition: background-color .35s ease, border-color .35s ease, color .3s ease, transform .15s ease, box-shadow .15s ease;
+    transition: background-color .35s ease, border-color .35s ease, color .3s ease, transform .3s var(--ease-spring), box-shadow .2s var(--ease-ios);
   }
-  .msg-row:hover .bubble{ transform: translateY(-1px); box-shadow: var(--shadow-md); }
-  .msg-row.chained .bubble{ border-radius: 8px 22px 22px 8px; }
+  .msg-row:hover .bubble{ transform: translateY(-1px); box-shadow: var(--shadow-md); }  .msg-row.chained .bubble{ border-radius: 8px 22px 22px 8px; }
   .msg-row.mine .bubble{
     background: linear-gradient(155deg, #2a2115, #1c1712); border: 1px solid var(--amber-dim);
     border-radius: 22px 8px 22px 22px; color: #F1E6D2;
@@ -340,7 +356,7 @@
     from{ opacity:0; transform: translateY(34px) scale(.96); }
     to{ opacity:1; transform: translateY(0) scale(1); }
   }
-  .msg-row.msg-enter{ animation: msgIn .38s cubic-bezier(.22,.9,.28,1) both; transform-origin: bottom center; }
+  .msg-row.msg-enter{ animation: msgIn .48s var(--ease-spring) both; transform-origin: bottom center; }
   @keyframes avatarPop{ from{ opacity:0; transform: scale(.35); } to{ opacity:1; transform: scale(1); } }
   .msg-row.msg-enter .msg-avatar{ animation: avatarPop .38s cubic-bezier(.3,1.5,.4,1) .05s both; }
   @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
@@ -362,7 +378,7 @@
 
   .read-chips{ display:flex; gap:3px; margin-top:4px; padding: 0 3px; cursor:pointer; }
   .msg-row.mine .read-chips{ justify-content:flex-end; }
-  .read-chip{ width:15px; height:15px; border-radius:50%; background: var(--surface-3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; animation: chipIn .22s ease; }
+  .read-chip{ width:15px; height:15px; border-radius:50%; background: var(--surface-3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; animation: chipIn .42s var(--ease-spring); }
   .read-names{ display:none; font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); padding: 2px 3px 0; }
   .read-chips.expanded + .read-names{ display:block; }
 
@@ -398,17 +414,17 @@
   #send-btn.sent{ animation: sendPulse .32s cubic-bezier(.3,1.6,.4,1); }
 
   /* ===================== Modals ===================== */
-  @keyframes modalScrimIn{ from{ opacity:0; } to{ opacity:1; } }
-  @keyframes modalCardIn{ from{ opacity:0; transform: translateY(16px) scale(.96); } to{ opacity:1; transform: translateY(0) scale(1); } }
+  @keyframes modalScrimIn{ from{ opacity:0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); } to{ opacity:1; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); } }
+  @keyframes modalCardIn{ from{ opacity:0; transform: translateY(28px) scale(.92); } to{ opacity:1; transform: translateY(0) scale(1); } }
   .modal-scrim{
-    position:fixed; inset:0; background:#060a0ecc; backdrop-filter: blur(6px);
+    position:fixed; inset:0; background:#060a0ecc; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     display:flex; align-items:center; justify-content:center; z-index:100; padding: 20px; overflow-y: auto;
-    animation: modalScrimIn .2s ease;
+    animation: modalScrimIn .32s var(--ease-ios);
   }
   .modal-card{
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
     padding: 26px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow-md); margin: auto;
-    animation: modalCardIn .32s cubic-bezier(.2,.85,.25,1);
+    animation: modalCardIn .46s var(--ease-spring);
   }
   .modal-card .eyebrow{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing:.14em; }
   .modal-card h2{ font-family: var(--font-display); font-size: 21px; margin: 6px 0 4px; }
@@ -470,9 +486,14 @@
 
   /* Admin panel */
   .admin-card{ max-width: 430px; }
-  .admin-tabs{ display:flex; gap:6px; margin-bottom: 14px; }
-  .admin-tab{ flex:1; background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted); padding: 8px; border-radius: var(--radius-pill); font-size: 12px; cursor:pointer; }
-  .admin-tab.active{ border-color: var(--amber); color: var(--amber); }
+  .admin-tabs{ position:relative; display:flex; gap:4px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 4px; }
+  .admin-tabs .tab-thumb{
+    position:absolute; top:4px; bottom:4px; left:4px; width: 40px;
+    background: linear-gradient(150deg, var(--amber), #c97f22); border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm); transition: transform .45s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
+  }
+  .admin-tab{ position:relative; z-index:1; flex:1; background:none; border:none; color: var(--text-muted); padding: 8px; border-radius: var(--radius-pill); font-size: 12px; cursor:pointer; transition: color .25s var(--ease-ios); }
+  .admin-tab.active{ border-color: transparent; color: #14100a; font-weight:600; }
   .admin-panel-body{ max-height: 48vh; overflow-y:auto; }
   .admin-row{ display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom: 1px solid var(--border); }
   .admin-row:last-child{ border-bottom:none; }
@@ -531,7 +552,7 @@
 
   @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.25;} }
   @keyframes bounce{ 0%,60%,100%{ height:3px; } 30%{ height:10px; } }
-  @keyframes chipIn{ from{ opacity:0; transform: scale(.85); } to{ opacity:1; transform: scale(1); } }
+  @keyframes chipIn{ from{ opacity:0; transform: scale(.5); } to{ opacity:1; transform: scale(1); } }
 
   @media (prefers-reduced-motion: reduce){ * { animation: none !important; transition: none !important; } }
 </style>
@@ -572,6 +593,7 @@
       </span>
     </div>
     <div class="scope-switch" id="scope-switch">
+      <div class="tab-thumb"></div>
       <button type="button" data-scope="personal" class="active">自分だけ</button>
       <button type="button" data-scope="global">全体(管理者)</button>
     </div>
@@ -697,7 +719,8 @@
   <div class="modal-card admin-card">
     <div class="eyebrow">FRIENDS</div>
     <h2>フレンド</h2>
-    <div class="admin-tabs">
+    <div class="admin-tabs" id="friends-tabs">
+      <div class="tab-thumb"></div>
       <button class="admin-tab active" data-ftab="list">友達</button>
       <button class="admin-tab" data-ftab="requests">申請<span id="friend-tab-dot"></span></button>
       <button class="admin-tab" data-ftab="add">追加</button>
@@ -712,7 +735,8 @@
   <div class="modal-card admin-card">
     <div class="eyebrow">ADMIN</div>
     <h2>管理者パネル</h2>
-    <div class="admin-tabs">
+    <div class="admin-tabs" id="admin-tabs">
+      <div class="tab-thumb"></div>
       <button class="admin-tab active" data-tab="requests">認証申請</button>
       <button class="admin-tab" data-tab="users">ユーザー</button>
       <button class="admin-tab" data-tab="channels">チャンネル</button>
@@ -890,6 +914,23 @@ function nameWithBadge(name, verified, gold){
 }
 function normalizeName(n){ return (n || '').trim().toLowerCase(); }
 
+/** iOS風セグメントコントロールのスライド式ハイライトを、アクティブなボタンの実測位置・幅に合わせて動かす */
+function positionTabThumb(container){
+  if (!container) return;
+  const thumb = container.querySelector(':scope > .tab-thumb');
+  const buttons = [...container.children].filter((el) => el.tagName === 'BUTTON');
+  if (!thumb || !buttons.length) return;
+  const active = buttons.find((b) => b.classList.contains('active')) || buttons[0];
+  const base = buttons[0].offsetLeft;
+  thumb.style.width = active.offsetWidth + 'px';
+  thumb.style.transform = `translateX(${active.offsetLeft - base}px)`;
+}
+window.addEventListener('resize', () => {
+  positionTabThumb(els.scopeSwitch);
+  positionTabThumb(document.getElementById('admin-tabs'));
+  positionTabThumb(document.getElementById('friends-tabs'));
+});
+
 /** アップロードされた画像ファイルを 128x128 の正方形JPEGに圧縮してdata URLで返す */
 function fileToCompressedDataUrl(file){
   return new Promise((resolve, reject) => {
@@ -926,6 +967,9 @@ function applyTheme(t){
 applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 els.themeToggle.addEventListener('click', () => {
   applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  els.themeToggle.classList.remove('spin');
+  void els.themeToggle.offsetWidth;
+  els.themeToggle.classList.add('spin');
 });
 
 /* ------------------------------------------------------------------ */
@@ -1300,15 +1344,18 @@ els.editModeBtn.addEventListener('click', () => {
   els.editModeBtn.classList.toggle('active', editMode);
   els.scopeSwitch.classList.toggle('show', editMode && isAdmin);
   renderChannelList(channelsCache);
+  if (editMode && isAdmin) requestAnimationFrame(() => positionTabThumb(els.scopeSwitch));
 });
 els.scopeSwitch.addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-scope]');
   if (!btn) return;
   scopeMode = btn.dataset.scope;
-  [...els.scopeSwitch.children].forEach((b) => b.classList.toggle('active', b === btn));
+  [...els.scopeSwitch.children].forEach((b) => { if (b.tagName === 'BUTTON') b.classList.toggle('active', b === btn); });
+  positionTabThumb(els.scopeSwitch);
 });
 
 function selectChannel(id, name){
+  flashConversationSwitch();
   currentKind = 'channel';
   currentDmId = null; currentDmOtherUid = null; currentDmOtherName = null;
   currentChannelId = id;
@@ -1336,8 +1383,15 @@ function selectChannel(id, name){
 /* ------------------------------------------------------------------ */
 function dmIdFor(uidA, uidB){ return [uidA, uidB].sort().join('__'); }
 
+/** チャンネル/DM切り替え時にメッセージ欄をふわっとクロスフェードさせる */
+function flashConversationSwitch(){
+  els.messages.style.opacity = '0';
+  requestAnimationFrame(() => { setTimeout(() => { els.messages.style.opacity = '1'; }, 90); });
+}
+
 function selectDm(otherUid, otherName){
   if (!myUid) return;
+  flashConversationSwitch();
   currentKind = 'dm';
   currentChannelId = null;
   currentDmId = dmIdFor(myUid, otherUid);
@@ -1997,6 +2051,7 @@ function renderFriendsPanel(){
 }
 function updateFriendTabsUI(){
   document.querySelectorAll('#friends-modal .admin-tab').forEach((btn) => btn.classList.toggle('active', btn.dataset.ftab === currentFriendTab));
+  positionTabThumb(document.getElementById('friends-tabs'));
 }
 document.querySelectorAll('#friends-modal .admin-tab').forEach((btn) => {
   btn.addEventListener('click', () => { currentFriendTab = btn.dataset.ftab; updateFriendTabsUI(); renderFriendsPanel(); });
@@ -2006,6 +2061,7 @@ els.friendsPanelBtn.addEventListener('click', () => {
   updateFriendTabsUI();
   renderFriendsPanel();
   els.friendsModal.style.display = 'flex';
+  requestAnimationFrame(() => positionTabThumb(document.getElementById('friends-tabs')));
 });
 els.friendsClose.addEventListener('click', () => { els.friendsModal.style.display = 'none'; });
 
@@ -2154,9 +2210,10 @@ function renderAdminPanel(){
 }
 
 function updateAdminTabsUI(){
-  document.querySelectorAll('.admin-tab').forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === currentAdminTab));
+  document.querySelectorAll('#admin-modal .admin-tab').forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === currentAdminTab));
+  positionTabThumb(document.getElementById('admin-tabs'));
 }
-document.querySelectorAll('.admin-tab').forEach((btn) => {
+document.querySelectorAll('#admin-modal .admin-tab').forEach((btn) => {
   btn.addEventListener('click', () => { currentAdminTab = btn.dataset.tab; updateAdminTabsUI(); renderAdminPanel(); });
 });
 els.adminPanelBtn.addEventListener('click', () => {
@@ -2165,6 +2222,7 @@ els.adminPanelBtn.addEventListener('click', () => {
   renderAdminPanel();
   adminModalOpen = true;
   els.adminModal.style.display = 'flex';
+  requestAnimationFrame(() => positionTabThumb(document.getElementById('admin-tabs')));
 });
 els.adminClose.addEventListener('click', () => { adminModalOpen = false; els.adminModal.style.display = 'none'; });
 
