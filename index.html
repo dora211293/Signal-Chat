@@ -201,6 +201,12 @@
     flex-shrink:0; min-width: 40px; text-align:center;
   }
   .channel-name{ font-size: 13.5px; color: var(--text); font-weight: 500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+  .channel-unread{
+    min-width:18px; height:18px; padding:0 5px; border-radius:10px; background: var(--amber); color:#14100a;
+    font-family: var(--font-mono); font-size: 10px; font-weight:700; line-height:18px; text-align:center;
+    flex-shrink:0; margin-left:4px; animation: chipIn .22s ease;
+  }
+  .channel-item.active .channel-unread{ display:none; }
   .channel-del-btn{ background:none; border:none; color: var(--text-faint); font-size:15px; cursor:pointer; padding: 2px 6px; margin-left:auto; flex-shrink:0; }
   .channel-del-btn:hover{ color: var(--danger); }
 
@@ -235,10 +241,21 @@
 
   #waveform{ flex:1; height: 34px; min-width: 60px; opacity:.85; }
 
-  #theme-toggle-top{
+  #notif-toggle{
+    position:relative;
     background:none; border:1px solid var(--border); color: var(--text-muted);
     width: 34px; height: 34px; border-radius: 8px; cursor:pointer; font-size:15px; flex-shrink:0;
   }
+  #notif-toggle:hover{ border-color: var(--amber); color: var(--amber); }
+  #notif-toggle.on{ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
+  #notif-toggle.denied{ color: var(--text-faint); opacity:.55; cursor:not-allowed; }
+  #notif-toggle .unread-dot{
+    position:absolute; top:-3px; right:-3px; min-width:15px; height:15px; padding:0 3px;
+    border-radius:10px; background: var(--danger); color:#fff; font-family: var(--font-mono);
+    font-size: 9px; line-height:15px; text-align:center; display:none; box-shadow: 0 0 0 2px var(--surface);
+    animation: chipIn .22s ease;
+  }
+  #notif-toggle .unread-dot.show{ display:block; }
 
   #onair{
     font-family: var(--font-mono); font-size: 10px; letter-spacing:.1em; color: var(--teal);
@@ -495,6 +512,7 @@
         <h1 id="topbar-name">読み込み中…</h1>
       </div>
       <canvas id="waveform"></canvas>
+      <button id="notif-toggle" title="通知を有効化">🔔<span class="unread-dot" id="notif-unread-dot">0</span></button>
       <div id="onair" class="off"><span class="dot"></span><span id="onair-text">接続中</span></div>
     </header>
 
@@ -647,7 +665,7 @@ const GOLD_CHECK_SVG = '<svg class="verify-badge gold" viewBox="0 0 20 20" width
 /* ------------------------------------------------------------------ */
 /* ローカルキャッシュ（初回描画を速くするため。正はFirestore側）          */
 /* ------------------------------------------------------------------ */
-const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img', THEME_KEY = 'signal_theme';
+const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img', THEME_KEY = 'signal_theme', NOTIF_KEY = 'signal_notif';
 let myUid = null;
 let myName = localStorage.getItem(NAME_KEY) || '';
 let myIcon = localStorage.getItem(ICON_KEY) || '';
@@ -671,6 +689,10 @@ let hbTimer = null;
 let adminModalOpen = false;
 let currentAdminTab = 'requests';
 let pendingVerifyRequests = [];
+let notifEnabled = false;
+let unreadByChannel = {};
+let channelNameCache = {};
+const notifWatchers = {};
 
 /* ------------------------------------------------------------------ */
 /* DOM refs                                                            */
@@ -696,6 +718,7 @@ const els = {
   channelConfirm: $('channel-confirm'), channelCancel: $('channel-cancel'),
   adminModal: $('admin-modal'), adminPanelBody: $('admin-panel-body'), adminClose: $('admin-close'),
   waveform: $('waveform'),
+  notifToggle: $('notif-toggle'), notifUnreadDot: $('notif-unread-dot'),
 };
 
 // スクリプトが動いている証拠として即座に表示を変える
@@ -1001,10 +1024,13 @@ function renderChannelList(docs){
   els.channelList.innerHTML = '';
   docs.forEach((d) => {
     const data = d.data();
+    channelNameCache[d.id] = data.name || '無題';
     const li = document.createElement('li');
     li.className = 'channel-item' + (d.id === currentChannelId ? ' active' : '');
     li.dataset.id = d.id;
+    const unread = unreadByChannel[d.id] || 0;
     li.innerHTML = `<span class="channel-freq">${pseudoFreq(d.id)}</span><span class="channel-name">${escapeHtml(data.name || '無題')}</span>`
+      + (unread > 0 ? `<span class="channel-unread">${unread > 99 ? '99+' : unread}</span>` : '')
       + (isAdmin ? `<button type="button" class="channel-del-btn" title="削除">×</button>` : '');
     li.addEventListener('click', () => selectChannel(d.id, data.name || '無題'));
     if (isAdmin) {
@@ -1014,7 +1040,10 @@ function renderChannelList(docs){
       });
     }
     els.channelList.appendChild(li);
+    watchChannelForNotif(d.id);
   });
+  const currentIds = new Set(docs.map((d) => d.id));
+  Object.keys(notifWatchers).forEach((id) => { if (!currentIds.has(id)) unwatchChannelForNotif(id); });
   if (!currentChannelId && docs.length) {
     const first = docs[0];
     selectChannel(first.id, first.data().name || '無題');
@@ -1039,6 +1068,9 @@ function selectChannel(id, name){
   els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
   knownIds = new Set();
   lastDocsSnapshot = [];
+  unreadByChannel[id] = 0;
+  updateChannelUnreadBadge(id);
+  updateGlobalUnreadUI();
   listenMessages(id);
   listenTyping(id);
   listenReads(id);
@@ -1309,6 +1341,110 @@ function listenReads(channelId){
 }
 
 /* ------------------------------------------------------------------ */
+/* 通知（ブラウザ通知 + 未読バッジ）                                      */
+/* ------------------------------------------------------------------ */
+function updateChannelUnreadBadge(channelId){
+  const li = els.channelList.querySelector(`.channel-item[data-id="${channelId}"]`);
+  if (!li) return;
+  let badge = li.querySelector('.channel-unread');
+  const unread = unreadByChannel[channelId] || 0;
+  if (unread > 0) {
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'channel-unread';
+      const delBtn = li.querySelector('.channel-del-btn');
+      if (delBtn) li.insertBefore(badge, delBtn); else li.appendChild(badge);
+    }
+    badge.textContent = unread > 99 ? '99+' : String(unread);
+  } else if (badge) {
+    badge.remove();
+  }
+}
+function updateGlobalUnreadUI(){
+  const total = Object.values(unreadByChannel).reduce((a, b) => a + b, 0);
+  if (els.notifUnreadDot) {
+    els.notifUnreadDot.textContent = total > 99 ? '99+' : String(total);
+    els.notifUnreadDot.classList.toggle('show', total > 0);
+  }
+  document.title = total > 0 ? `(${total > 99 ? '99+' : total}) SIGNAL` : 'SIGNAL — リアルタイムチャット';
+}
+function updateNotifBtnUI(){
+  if (!els.notifToggle) return;
+  const supported = 'Notification' in window;
+  if (!supported) { els.notifToggle.style.display = 'none'; return; }
+  const denied = Notification.permission === 'denied';
+  els.notifToggle.classList.toggle('on', notifEnabled && Notification.permission === 'granted');
+  els.notifToggle.classList.toggle('denied', denied);
+  els.notifToggle.title = denied
+    ? '通知がブロックされています(ブラウザのサイト設定から許可してください)'
+    : (notifEnabled ? '通知：オン（クリックでオフ）' : '通知：オフ（クリックでオン）');
+}
+function handleIncomingMessageForNotif(channelId, m){
+  const isOpenAndVisible = channelId === currentChannelId && !document.hidden;
+  if (!isOpenAndVisible) {
+    unreadByChannel[channelId] = (unreadByChannel[channelId] || 0) + 1;
+    updateChannelUnreadBadge(channelId);
+    updateGlobalUnreadUI();
+  }
+  const shouldNotify = notifEnabled && ('Notification' in window) && Notification.permission === 'granted'
+    && (document.hidden || channelId !== currentChannelId);
+  if (!shouldNotify) return;
+  const senderProf = usersCache[m.uid] || {};
+  const senderName = senderProf.name || m.name || '誰か';
+  const chName = channelNameCache[channelId] || 'SIGNAL';
+  try {
+    const n = new Notification(`${senderName} — ${chName}`, {
+      body: (m.text || '').slice(0, 120),
+      icon: 'icon-192.png',
+      tag: 'signal-' + channelId,
+    });
+    n.onclick = () => {
+      window.focus();
+      if (channelId !== currentChannelId) selectChannel(channelId, channelNameCache[channelId] || '');
+      n.close();
+    };
+  } catch (_) { /* 通知の生成に失敗しても本編には影響させない */ }
+}
+function watchChannelForNotif(channelId){
+  if (!db || notifWatchers[channelId]) return;
+  const q = query(collection(db, 'channels', channelId, 'messages'), orderBy('ts', 'desc'), limit(1));
+  let first = true;
+  notifWatchers[channelId] = onSnapshot(q, (snap) => {
+    if (first) { first = false; return; } // 接続直後の既存メッセージでは通知しない
+    snap.docChanges().forEach((change) => {
+      if (change.type !== 'added') return;
+      const m = change.doc.data();
+      if (!m || m.uid === myUid) return;
+      handleIncomingMessageForNotif(channelId, m);
+    });
+  });
+}
+function unwatchChannelForNotif(channelId){
+  if (notifWatchers[channelId]) { notifWatchers[channelId](); delete notifWatchers[channelId]; }
+}
+if (els.notifToggle) {
+  if (localStorage.getItem(NOTIF_KEY) === '1' && 'Notification' in window && Notification.permission === 'granted') {
+    notifEnabled = true;
+  }
+  updateNotifBtnUI();
+  els.notifToggle.addEventListener('click', async () => {
+    if (!('Notification' in window)) { alert('このブラウザ・環境は通知に対応していません'); return; }
+    if (Notification.permission === 'denied') {
+      alert('通知がブロックされています。ブラウザのサイト設定から通知を許可してください。');
+      return;
+    }
+    if (Notification.permission !== 'granted') {
+      const perm = await Notification.requestPermission().catch(() => 'denied');
+      if (perm === 'granted') notifEnabled = true;
+    } else {
+      notifEnabled = !notifEnabled;
+    }
+    localStorage.setItem(NOTIF_KEY, notifEnabled ? '1' : '0');
+    updateNotifBtnUI();
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* ユーザー一覧（名前/アイコン/認証バッジをリアルタイム反映するため）        */
 /* ------------------------------------------------------------------ */
 function listenUsers(){
@@ -1343,7 +1479,15 @@ function startHeartbeat(){ stopHeartbeat(); heartbeat(); hbTimer = setInterval(h
 function stopHeartbeat(){ if (hbTimer) clearInterval(hbTimer); hbTimer = null; }
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { stopHeartbeat(); }
-  else { if (myName) startHeartbeat(); if (currentChannelId) markRead(currentChannelId); }
+  else {
+    if (myName) startHeartbeat();
+    if (currentChannelId) {
+      markRead(currentChannelId);
+      unreadByChannel[currentChannelId] = 0;
+      updateChannelUnreadBadge(currentChannelId);
+      updateGlobalUnreadUI();
+    }
+  }
 });
 window.addEventListener('pagehide', () => {
   if (db && myUid) deleteDoc(doc(db, 'presence', myUid)).catch(() => {});
