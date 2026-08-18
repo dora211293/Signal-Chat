@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SIGNAL — リアルタイムチャット</title>
+<title>SIGNAL</title>
 
 <meta name="theme-color" content="#0C1116">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SIGNAL">
-<meta name="description" content="周波数を合わせて話す、リアルタイム・グループチャット">
+<meta name="description" content="リアルタイム・グループチャット">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
@@ -582,8 +582,8 @@
       </div>
     </div>
 
-    <button class="admin-btn" id="admin-panel-btn">🛡 管理者パネル</button>
-    <button class="friends-btn" id="friends-panel-btn">🤝 フレンド<span class="req-dot" id="friend-req-dot">0</span></button>
+    <button class="admin-btn" id="admin-panel-btn">管理者パネル</button>
+    <button class="friends-btn" id="friends-panel-btn">フレンド<span class="req-dot" id="friend-req-dot">0</span></button>
 
     <div class="section-label">
       <span>チャンネル</span>
@@ -648,7 +648,7 @@
     <div class="profile-preview"><div class="preview-avatar" id="preview-avatar">–</div></div>
 
     <div class="field-label">名前(他の人と重複できません)</div>
-    <input type="text" id="nick-input" maxlength="20" placeholder="例: しのぶ" autocomplete="off">
+    <input type="text" id="nick-input" maxlength="20" placeholder="太郎" autocomplete="off">
     <div class="field-error" id="nick-error">その名前はすでに使われています</div>
 
     <div class="field-label">画像アイコン(任意・自動で圧縮されます)</div>
@@ -680,7 +680,7 @@
     <div class="field-label">認証バッジ</div>
     <div class="verify-row" id="verify-status"></div>
 
-    <div class="field-label">あなたのUID(管理者設定に使います)</div>
+    <div class="field-label">UID(管理者設定に使います)</div>
     <div class="uid-row"><code id="my-uid-display">読み込み中…</code><button type="button" id="copy-uid-btn" class="mini-btn-outline">コピー</button></div>
 
     <button class="primary" id="nick-confirm" disabled>チャットを開始</button>
