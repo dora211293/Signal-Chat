@@ -554,20 +554,20 @@
     font-size: 9.5px; line-height:16px; text-align:center; display:none; box-shadow: 0 0 0 2px var(--surface);
   }
   .friends-btn .req-dot.show{ display:block; }
-  #dm-list{ list-style:none; margin:0; padding: 2px 10px 12px; max-height: 34%; overflow-y:auto; flex-shrink:0; }
+  #dm-list{ list-style:none; margin:0; padding: 4px 10px 14px; max-height: 260px; min-height: 64px; overflow-y:auto; flex-shrink:0; }
   .dm-item{
-    display:flex; align-items:center; gap:10px; padding: 8px 10px; border-radius: var(--radius-sm);
-    cursor:pointer; margin-bottom: 2px; border: 1px solid transparent;
+    display:flex; align-items:center; gap:10px; padding: 9px 10px; border-radius: var(--radius-sm);
+    cursor:pointer; margin-bottom: 3px; border: 1px solid transparent;
     transition: background-color .15s ease, border-color .15s ease;
   }
   .dm-item:hover{ background: var(--surface-2); }
   .dm-item.active{ background: var(--surface-2); border-color: var(--teal-dim); box-shadow: var(--shadow-sm); }
   .dm-avatar{
-    width: 26px; height: 26px; border-radius: 50%; background: var(--surface-3); flex-shrink:0;
-    display:flex; align-items:center; justify-content:center; font-size:12px; overflow:hidden;
+    width: 32px; height: 32px; border-radius: 50%; background: var(--surface-3); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:14px; overflow:hidden;
     border: 1px solid var(--border);
   }
-  .dm-name{ font-size: 13px; color: var(--text); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dm-name{ font-size: 13.5px; color: var(--text); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .dm-empty{ font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); padding: 4px 8px; }
 
   .friend-search-row{ display:flex; gap:8px; margin-bottom:10px; }
@@ -1535,7 +1535,7 @@ function selectChannel(id, name){
   currentChannelName = displayChannelName(id, name);
   els.topbarName.textContent = currentChannelName;
   els.topbarFreq.textContent = pseudoFreq(id) + ' MHz';
-  els.input.placeholder = 'メッセージを入力… (Enterで送信 / Shift+Enterで改行)';
+  els.input.placeholder = 'メッセージを入力…';
   [...els.channelList.children].forEach((li) => li.classList.toggle('active', li.dataset.id === id));
   renderDmList();
   els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
