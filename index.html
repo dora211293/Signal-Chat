@@ -627,9 +627,13 @@ const els = {
   waveform: $('waveform'),
 };
 
-// スクリプトが動いている証拠として即座に表示を変える（ここが変わらない場合はJS自体が動いていない）
+// スクリプトが動いている証拠として即座に表示を変える
+// （ここが「読み込み中…」のままなら、JSが読み込めていないかデプロイが古い）
 if (els.myUidDisplay) {
   els.myUidDisplay.textContent = '認証準備中…';
+}
+if (els.onairText) {
+  els.onairText.textContent = '初期化中';
 }
 
 const avatarColor = (seed) => {
@@ -769,20 +773,38 @@ els.nickInput.addEventListener('input', () => {
 els.iconFile.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  // 処理中表示
-  els.previewAvatar.innerHTML = '<span style="font-size:11px;color:var(--text-faint);">圧縮中…</span>';
+
+  // まず選択した画像を即座にプレビュー（ObjectURLで確実に表示）
+  try {
+    const tempUrl = URL.createObjectURL(file);
+    els.previewAvatar.innerHTML = `<img src="${tempUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;">`;
+    // 後で revoke するために保持
+    if (els.previewAvatar._tempUrl) URL.revokeObjectURL(els.previewAvatar._tempUrl);
+    els.previewAvatar._tempUrl = tempUrl;
+  } catch (_) {
+    els.previewAvatar.innerHTML = '<span style="font-size:11px;color:var(--text-faint);">読み込み中…</span>';
+  }
+
+  // 裏で圧縮して保存用のdata URLを作る
   try {
     pendingIconImg = await fileToCompressedDataUrl(file);
-    updatePreview();
+    updatePreview(); // 圧縮版に差し替え
   } catch (err) {
-    console.error('画像の処理に失敗しました', err);
+    console.error('画像の圧縮に失敗しました', err);
+    // プレビューは残すが、保存用データはクリア
     pendingIconImg = '';
-    els.iconFile.value = '';
-    updatePreview();
-    alert('画像の読み込みに失敗しました。\n対応形式: JPEG / PNG / WebP / GIF など\n別の画像を試してください。');
+    alert('画像の圧縮に失敗しました。\nJPEG / PNG / WebP などの一般的な形式を試してください。\n（プレビューは出ていますが、このまま保存すると画像は付きません）');
   }
 });
-els.iconImgClear.addEventListener('click', () => { pendingIconImg = ''; els.iconFile.value = ''; updatePreview(); });
+els.iconImgClear.addEventListener('click', () => {
+  pendingIconImg = '';
+  els.iconFile.value = '';
+  if (els.previewAvatar._tempUrl) {
+    URL.revokeObjectURL(els.previewAvatar._tempUrl);
+    els.previewAvatar._tempUrl = null;
+  }
+  updatePreview();
+});
 els.copyUidBtn.addEventListener('click', () => {
   if (!myUid) return;
   navigator.clipboard?.writeText(myUid).catch(() => {});
@@ -820,7 +842,11 @@ function openNickModal(prefillName, prefillIcon, prefillImg){
   els.nickError.style.display = 'none';
   els.nickConfirm.disabled = !els.nickInput.value.trim();
   els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
-  els.myUidDisplay.textContent = myUid || '認証中…';
+  if (myUid) {
+    els.myUidDisplay.textContent = myUid;
+  } else if (!els.myUidDisplay.textContent || els.myUidDisplay.textContent.includes('読み込み') || els.myUidDisplay.textContent.includes('準備')) {
+    els.myUidDisplay.textContent = '認証中…';
+  }
   renderVerifyRow();
   els.nickModal.style.display = 'flex';
   setTimeout(() => els.nickInput.focus(), 50);
