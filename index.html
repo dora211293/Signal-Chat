@@ -539,7 +539,7 @@
   </div>
 </div>
 
-<!-- ===================== 設定未完了の警告 ===================== -->
+<!-- ===================== 設定未完了 / エラーの警告 ===================== -->
 <div id="config-warning" style="display:none;">
   <b>⚠ Firebase未設定</b><br>
   このファイル内の <b>firebaseConfig</b> がプレースホルダのままです。
@@ -626,6 +626,11 @@ const els = {
   adminModal: $('admin-modal'), adminPanelBody: $('admin-panel-body'), adminClose: $('admin-close'),
   waveform: $('waveform'),
 };
+
+// スクリプトが動いている証拠として即座に表示を変える（ここが変わらない場合はJS自体が動いていない）
+if (els.myUidDisplay) {
+  els.myUidDisplay.textContent = '認証準備中…';
+}
 
 const avatarColor = (seed) => {
   let h = 0; for (const c of String(seed)) h = (h * 31 + c.charCodeAt(0)) % 360;
@@ -764,6 +769,8 @@ els.nickInput.addEventListener('input', () => {
 els.iconFile.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
+  // 処理中表示
+  els.previewAvatar.innerHTML = '<span style="font-size:11px;color:var(--text-faint);">圧縮中…</span>';
   try {
     pendingIconImg = await fileToCompressedDataUrl(file);
     updatePreview();
@@ -772,7 +779,7 @@ els.iconFile.addEventListener('change', async (e) => {
     pendingIconImg = '';
     els.iconFile.value = '';
     updatePreview();
-    alert('画像の読み込みに失敗しました。別の画像を試してください。');
+    alert('画像の読み込みに失敗しました。\n対応形式: JPEG / PNG / WebP / GIF など\n別の画像を試してください。');
   }
 });
 els.iconImgClear.addEventListener('click', () => { pendingIconImg = ''; els.iconFile.value = ''; updatePreview(); });
@@ -1424,12 +1431,27 @@ async function afterAuthReady(){
     setOnAir(true);
   } catch (err) {
     console.error('初期化中にエラーが発生しました', err);
-    els.myUidDisplay.textContent = myUid || 'エラー';
+    showFatalError(
+      '初期化エラー',
+      'Firestoreのルールやネットワークを確認してください。UIDは表示できている場合もあります。'
+    );
+    if (myUid) els.myUidDisplay.textContent = myUid;
     // モーダルが開いている場合はUIDだけでも見せる
     if (els.nickModal.style.display !== 'none') {
       openNickModal(myName, myIcon, myIconImg);
     }
   }
+}
+
+function showFatalError(title, detail){
+  const box = document.getElementById('config-warning');
+  if (box) {
+    box.style.display = 'block';
+    box.innerHTML = `<b>⚠ ${escapeHtml(title)}</b><br>${escapeHtml(detail)}`;
+  }
+  if (els.myUidDisplay) els.myUidDisplay.textContent = 'エラー';
+  if (els.onairText) els.onairText.textContent = 'エラー';
+  setOnAir(false);
 }
 
 function boot(){
@@ -1447,9 +1469,10 @@ function boot(){
   });
   signInAnonymously(auth).catch((e) => {
     console.error('匿名認証に失敗しました。Firebaseコンソールで「Authentication → Sign-in method → 匿名」を有効にしてください。', e);
-    setOnAir(false);
-    els.myUidDisplay.textContent = '認証失敗';
-    els.onairText.textContent = '認証失敗';
+    showFatalError(
+      '匿名認証に失敗しました',
+      'Firebaseコンソール → Authentication → Sign-in method →「匿名」を有効にしてください。ブラウザのコンソールも確認してください。'
+    );
   });
 }
 boot();
