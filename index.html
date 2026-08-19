@@ -324,7 +324,7 @@
   #onair.off{ color: var(--text-faint); border-color: var(--border); }
   #onair.off .dot{ background: var(--text-faint); box-shadow:none; animation:none; }
 
-  #messages{ flex:1; min-height: 0; overflow-y:auto; padding: 22px 24px 10px; display:flex; flex-direction:column; }
+  #messages{ flex:1; min-height: 0; overflow-y:auto; padding: 22px 24px 10px; display:flex; flex-direction:column; scroll-behavior: smooth; }
   .empty-state{ margin:auto; text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 12px; max-width: 280px; line-height:1.7; }
 
   .day-divider{
@@ -367,12 +367,14 @@
   .msg-row.mine.chained .bubble{ border-radius: 22px 8px 8px 22px; }
 
   @keyframes msgIn{
-    from{ opacity:0; transform: translateY(34px) scale(.96); }
-    to{ opacity:1; transform: translateY(0) scale(1); }
+    0%{ opacity:0; transform: translateY(46px) scale(.82); }
+    55%{ opacity:1; transform: translateY(-5px) scale(1.03); }
+    78%{ transform: translateY(2px) scale(.99); }
+    100%{ transform: translateY(0) scale(1); }
   }
-  .msg-row.msg-enter{ animation: msgIn .48s var(--ease-spring) both; transform-origin: bottom center; }
+  .msg-row.msg-enter{ animation: msgIn .72s cubic-bezier(.21,.98,.3,1.22) both; transform-origin: bottom center; }
   @keyframes avatarPop{ from{ opacity:0; transform: scale(.35); } to{ opacity:1; transform: scale(1); } }
-  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .38s cubic-bezier(.3,1.5,.4,1) .05s both; }
+  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .55s cubic-bezier(.22,1.3,.36,1) .08s both; }
   @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
   .day-divider{ animation: dayIn .3s ease; }
 
@@ -1910,7 +1912,14 @@ function renderMessages(docs){
   // 本当に位置がずれた行だけ insertBefore で動かす最小差分パッチに変更。
   patchMessageList(els.messages, orderedNodes);
   knownIds = newKnown;
-  if (nearBottom || wasEmpty) els.messages.scrollTop = els.messages.scrollHeight;
+  // FIX: 新規チャンネルを開いた直後(wasEmpty)は過去ログの末尾までスムーズスクロールすると
+  // 長い距離をゆっくり流れて不自然なので瞬時にジャンプ。既に最下部にいる状態での新着更新
+  // (nearBottom)だけ、他のメッセージが上に押し上げられるようにスムーズスクロールさせる。
+  if (wasEmpty) {
+    els.messages.scrollTop = els.messages.scrollHeight;
+  } else if (nearBottom) {
+    els.messages.scrollTo({ top: els.messages.scrollHeight, behavior: 'smooth' });
+  }
 }
 
 /** 子要素リストを最小限のDOM操作で orderedNodes の並びに一致させる（既存要素は動かさない） */
