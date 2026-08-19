@@ -620,10 +620,91 @@
   @keyframes bounce{ 0%,60%,100%{ height:3px; } 30%{ height:10px; } }
   @keyframes chipIn{ from{ opacity:0; transform: scale(.5); } to{ opacity:1; transform: scale(1); } }
 
+  /* ===================== 起動画面（スプラッシュ） ===================== */
+  html.show-splash #app{ opacity:0; }
+  #splash-screen{
+    position:fixed; inset:0; z-index:600;
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+    background: var(--bg-grad); gap: 14px;
+    opacity:1; transition: opacity .5s var(--ease-ios);
+  }
+  html.show-splash #splash-screen{ display:flex; }
+  #splash-screen.splash-out{ opacity:0; pointer-events:none; }
+  .splash-mark{
+    width:74px; height:74px; border-radius: 22px;
+    background: linear-gradient(150deg, var(--teal-dim), var(--amber-dim));
+    border: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size: 30px; color: var(--teal);
+    box-shadow: var(--shadow-md);
+    animation: splashPulse 1.8s ease-in-out infinite;
+  }
+  .splash-title{ font-family: var(--font-display); font-size: 19px; font-weight:600; letter-spacing:.06em; color: var(--text); }
+  .splash-sub{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing:.14em; }
+  .splash-loader{ display:flex; gap:5px; margin-top: 6px; }
+  .splash-loader span{ width:6px; height:6px; border-radius:50%; background: var(--teal); animation: bounce 1.1s ease-in-out infinite; }
+  .splash-loader span:nth-child(2){ animation-delay:.15s; background: var(--amber); }
+  .splash-loader span:nth-child(3){ animation-delay:.3s; background: var(--gold); }
+  @keyframes splashPulse{ 0%,100%{ transform: scale(1); box-shadow: var(--shadow-md); } 50%{ transform: scale(1.06); box-shadow: 0 0 0 10px #3de0b81a; } }
+
+  /* ===================== メンテナンスモード ===================== */
+  #maintenance-screen{
+    position:fixed; inset:0; z-index:500;
+    display:none; align-items:center; justify-content:center;
+    background: var(--bg-grad); padding: 20px;
+  }
+  .maintenance-card{
+    max-width: 380px; width:100%; text-align:center;
+    background: var(--surface-2); border: 1px solid var(--gold-dim); border-radius: var(--radius-lg);
+    padding: 36px 26px; box-shadow: var(--shadow-md);
+  }
+  .maintenance-icon{
+    width:56px; height:56px; margin: 0 auto 16px; border-radius: 50%;
+    background: var(--gold-dim); color: var(--gold); font-size: 24px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .maintenance-card h2{ margin: 0 0 10px; font-family: var(--font-display); font-size: 19px; letter-spacing:.02em; }
+  .maintenance-card p{ margin: 0 0 6px; font-size: 13px; color: var(--text-muted); line-height:1.7; }
+  .maintenance-sub{ margin-top: 14px; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); letter-spacing:.04em; }
+  .maintenance-admin-status{ display:inline-flex; align-items:center; gap:7px; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); padding: 6px 12px; border-radius: var(--radius-pill); background: var(--surface-3); margin-bottom:10px; }
+  .maintenance-admin-status .dot{ width:7px; height:7px; border-radius:50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+  .maintenance-admin-status.on{ color: var(--gold); }
+  .maintenance-admin-status.on .dot{ background: var(--gold); box-shadow: 0 0 6px var(--gold); animation: blink 1.4s infinite; }
+  .maintenance-admin-desc{ font-size: 12px; color: var(--text-muted); line-height:1.6; margin-bottom: 14px; }
+
   @media (prefers-reduced-motion: reduce){ * { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
+
+<script>
+  // 起動画面: 初回起動時は表示せず、2回目以降の起動時のみ表示する
+  (function(){
+    try {
+      var LAUNCH_KEY = 'signal_launched_before';
+      var launchedBefore = localStorage.getItem(LAUNCH_KEY) === '1';
+      localStorage.setItem(LAUNCH_KEY, '1');
+      if (launchedBefore) document.documentElement.classList.add('show-splash');
+    } catch(_) {}
+  })();
+</script>
+
+<div id="splash-screen">
+  <div class="splash-mark">📡</div>
+  <div class="splash-title">SIGNAL</div>
+  <div class="splash-sub">REALTIME · MULTI-CHANNEL</div>
+  <div class="splash-loader"><span></span><span></span><span></span></div>
+</div>
+
+<div id="maintenance-screen">
+  <div class="maintenance-card">
+    <div class="maintenance-icon">🛠</div>
+    <h2>ただいまメンテナンス中です</h2>
+    <p>現在SIGNALはメンテナンスのため一時的にご利用いただけません。</p>
+    <p>金認証バッジをお持ちの方のみログインできます。</p>
+    <div class="maintenance-sub">しばらくしてから再度アクセスしてください</div>
+  </div>
+</div>
 
 <div id="app">
 
@@ -822,6 +903,7 @@
       <button class="admin-tab active" data-tab="requests">認証申請</button>
       <button class="admin-tab" data-tab="users">ユーザー</button>
       <button class="admin-tab" data-tab="channels">チャンネル</button>
+      <button class="admin-tab" data-tab="maintenance">メンテナンス</button>
     </div>
     <div class="admin-panel-body" id="admin-panel-body"></div>
     <button class="cancel" id="admin-close">閉じる</button>
@@ -927,6 +1009,7 @@ let notifEnabled = false;
 let unreadByChannel = {};
 let channelNameCache = {};
 const notifWatchers = {};
+let maintenanceEnabled = false; // メンテナンスモード（金認証ユーザー以外はログイン不可）
 
 /* ------------------------------------------------------------------ */
 /* DOM refs                                                            */
@@ -955,6 +1038,7 @@ const els = {
   channelModal: $('channel-modal'), channelInput: $('channel-input'),
   channelConfirm: $('channel-confirm'), channelCancel: $('channel-cancel'),
   adminModal: $('admin-modal'), adminPanelBody: $('admin-panel-body'), adminClose: $('admin-close'),
+  maintenanceScreen: $('maintenance-screen'), splashScreen: $('splash-screen'),
   waveform: $('waveform'),
   notifToggle: $('notif-toggle'), notifUnreadDot: $('notif-unread-dot'),
   editModeBtn: $('edit-mode-btn'), scopeSwitch: $('scope-switch'),
@@ -2113,6 +2197,7 @@ function listenUsers(){
     usersCache = map;
     refreshSelfCard();
     renderVerifyRow();
+    applyMaintenanceGate();
     if (lastDocsSnapshot.length) renderMessages(lastDocsSnapshot);
     if (lastOnline.length) renderOnlineList(lastOnline);
     if (adminModalOpen && currentAdminTab === 'users') renderAdminPanel();
@@ -2124,6 +2209,32 @@ function listenOwnVerifyRequest(){
     myVerifyStatus = snap.exists() ? snap.data() : null;
     renderVerifyRow();
   });
+}
+
+/* ------------------------------------------------------------------ */
+/* メンテナンスモード（config/maintenance をリアルタイム監視）               */
+/* 有効時は「金認証バッジ」を持つユーザー(と管理者)以外はログインできない       */
+/* ------------------------------------------------------------------ */
+function listenMaintenance(){
+  if (!db) return;
+  onSnapshot(doc(db, 'config', 'maintenance'), (snap) => {
+    maintenanceEnabled = !!(snap.exists() && snap.data().enabled === true);
+    applyMaintenanceGate();
+    if (adminModalOpen && currentAdminTab === 'maintenance') renderAdminPanel();
+  }, () => { /* 権限エラー等は無視（未メンテナンス扱い） */ });
+}
+function applyMaintenanceGate(){
+  if (!els.maintenanceScreen) return;
+  const myProf = usersCache[myUid] || {};
+  const bypass = myProf.goldVerified === true || isAdmin;
+  const blocked = maintenanceEnabled && !!myUid && !bypass;
+  els.maintenanceScreen.style.display = blocked ? 'flex' : 'none';
+}
+async function toggleMaintenance(){
+  if (!db || !isAdmin) return;
+  try {
+    await setDoc(doc(db, 'config', 'maintenance'), { enabled: !maintenanceEnabled, updatedAt: serverTimestamp() }, { merge: true });
+  } catch (e) { console.error(e); alert('メンテナンスモードの切り替えに失敗しました'); }
 }
 
 /* ------------------------------------------------------------------ */
@@ -2424,6 +2535,14 @@ function renderAdminPanel(){
       row.querySelector('[data-act="del"]').addEventListener('click', () => deleteChannel(d.id, c.name || '無題'));
       body.appendChild(row);
     });
+  } else if (currentAdminTab === 'maintenance') {
+    body.innerHTML = `
+      <div style="text-align:center; padding: 8px 4px;">
+        <div class="maintenance-admin-status${maintenanceEnabled ? ' on' : ''}"><span class="dot"></span>${maintenanceEnabled ? 'メンテナンス中' : '通常運転中'}</div>
+        <div class="maintenance-admin-desc">ONにすると、金認証バッジを持つユーザー(と管理者)以外はログインできなくなります。</div>
+        <button type="button" class="mini-btn${maintenanceEnabled ? '-danger' : ''}" id="maintenance-toggle-btn">${maintenanceEnabled ? 'メンテナンスを解除する' : 'メンテナンスを開始する'}</button>
+      </div>`;
+    document.getElementById('maintenance-toggle-btn').addEventListener('click', toggleMaintenance);
   }
 }
 
@@ -2460,6 +2579,8 @@ async function afterAuthReady(){
   els.adminPanelBtn.style.display = isAdmin ? 'flex' : 'none';
   els.myUidDisplay.textContent = myUid || '認証中…';
   setOnAir(false);
+  listenMaintenance();
+  applyMaintenanceGate();
 
   try {
     await ensureDefaultChannels();
@@ -2535,6 +2656,19 @@ function boot(){
   });
 }
 boot();
+
+/* ------------------------------------------------------------------ */
+/* 起動画面（スプラッシュ）を一定時間表示してからフェードアウトさせる         */
+/* ------------------------------------------------------------------ */
+if (document.documentElement.classList.contains('show-splash')) {
+  setTimeout(() => {
+    if (els.splashScreen) els.splashScreen.classList.add('splash-out');
+    setTimeout(() => {
+      document.documentElement.classList.remove('show-splash');
+      if (els.splashScreen) els.splashScreen.style.display = 'none';
+    }, 520);
+  }, 1200);
+}
 
 /* ------------------------------------------------------------------ */
 /* PWA: Service Worker 登録（sw.js はご自身で用意してください）           */
