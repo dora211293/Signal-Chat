@@ -347,7 +347,6 @@
   .msg-row.mine .msg-meta{ flex-direction:row-reverse; }
   .msg-meta .who{ font-size: 12px; font-weight:600; color: var(--text); display:inline-flex; align-items:center; gap:3px; }
   .msg-meta .time{ font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); }
-  .msg-row.grouped .msg-meta{ display:none; }
 
   .bubble{
     background: var(--surface-2); border: 1px solid var(--border); padding: 9px 13px;
@@ -1865,36 +1864,63 @@ function renderMessages(docs){
       ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}">`
       : (m.imgExpired ? `<div class="msg-image-expired">画像は期限切れです</div>` : '');
     const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasText ? ' has-text' : '');
-    row.innerHTML = `
-      <div class="msg-avatar" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
-      <div class="msg-body">
-        <div class="msg-meta"><span class="who">${nameWithBadge(dispName, verified, gold)}</span><span class="time">${formatTime(m.ts)}</span></div>
-        <div class="${bubbleClass}">${imageHtml}${hasText ? `<div class="msg-text">${escapeHtml(m.text)}</div>` : ''}</div>
-      </div>`;
+
+    // 名前は連続投稿の先頭だけ表示。時刻は先頭、または直前と「分」が変わったタイミングだけ表示
+    // （例: LINE等と同様、同じ人の連投でも1分経てば時刻を出す）
+    const timeStr = formatTime(m.ts);
+    const prevTimeStr = groupedWithPrev && prev ? formatTime(prev.ts) : null;
+    const showName = !groupedWithPrev;
+    const showTime = !groupedWithPrev || prevTimeStr !== timeStr;
+    const metaHtml = (showName || showTime)
+      ? `<div class="msg-meta">${showName ? `<span class="who">${nameWithBadge(dispName, verified, gold)}</span>` : ''}${showTime ? `<span class="time">${timeStr}</span>` : ''}</div>`
+      : '';
+
+    // 自分が送ったメッセージにだけ既読を表示する（相手のメッセージには出さない）
+    const receipts = mine ? receiptsByMsgId[d.id] : null;
+
+    // FIX(バグ): 内容が変わっていない行まで毎回 innerHTML を作り直していたせいで、
+    // メッセージ送信のたびに全アバター画像(<img>)が再生成され、読み込み直しで
+    // 一瞬ちらつく不具合があった。実際に見た目へ影響する値のシグネチャを保持し、
+    // 変化がない行は innerHTML の再構築を丸ごとスキップする。
+    const sig = JSON.stringify([
+      mine, groupedWithPrev, groupedWithNext, canDelete,
+      dispName, dispIcon, dispImg, verified, gold,
+      hasText, m.text || '', hasImage, m.img || '', !!m.imgExpired,
+      metaHtml, receipts
+    ]);
+
+    if (row.dataset.sig !== sig) {
+      row.dataset.sig = sig;
+      row.innerHTML = `
+        <div class="msg-avatar" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
+        <div class="msg-body">
+          ${metaHtml}
+          <div class="${bubbleClass}">${imageHtml}${hasText ? `<div class="msg-text">${escapeHtml(m.text)}</div>` : ''}</div>
+        </div>`;
+
+      const body = row.querySelector('.msg-body');
+      if (receipts && receipts.length) {
+        const chipWrap = document.createElement('div');
+        chipWrap.className = 'read-chips';
+        chipWrap.innerHTML = receipts.map(r =>
+          `<span class="read-chip" title="${escapeHtml(r.name)}">${avatarInner(r)}</span>`
+        ).join('');
+        const names = document.createElement('div');
+        names.className = 'read-names';
+        names.textContent = '既読: ' + receipts.map(r => r.name).join('、');
+        body.appendChild(chipWrap);
+        body.appendChild(names);
+      }
+      if (canDelete) {
+        const actions = document.createElement('div');
+        actions.className = 'msg-actions';
+        actions.innerHTML = `<button type="button" class="msg-del-btn" data-id="${d.id}">${mine ? '取り消し' : '削除(管理者)'} 🗑</button>`;
+        body.appendChild(actions);
+      }
+    }
 
     const [sweepColl, sweepId] = activeBasePath();
     sweepExpiredImage(d.id, sweepColl, sweepId, m);
-
-    const body = row.querySelector('.msg-body');
-    const receipts = receiptsByMsgId[d.id];
-    if (receipts && receipts.length) {
-      const chipWrap = document.createElement('div');
-      chipWrap.className = 'read-chips';
-      chipWrap.innerHTML = receipts.map(r =>
-        `<span class="read-chip" title="${escapeHtml(r.name)}">${avatarInner(r)}</span>`
-      ).join('');
-      const names = document.createElement('div');
-      names.className = 'read-names';
-      names.textContent = '既読: ' + receipts.map(r => r.name).join('、');
-      body.appendChild(chipWrap);
-      body.appendChild(names);
-    }
-    if (canDelete) {
-      const actions = document.createElement('div');
-      actions.className = 'msg-actions';
-      actions.innerHTML = `<button type="button" class="msg-del-btn" data-id="${d.id}">${mine ? '取り消し' : '削除(管理者)'} 🗑</button>`;
-      body.appendChild(actions);
-    }
 
     orderedNodes.push(row);
     newKnown.add(d.id);
