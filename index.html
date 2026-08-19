@@ -630,7 +630,7 @@
   }
   html.show-splash #splash-screen{ display:flex; }
   #splash-screen.splash-out{ opacity:0; pointer-events:none; }
-  .splash-mark{ width:88px; height:88px; border-radius: 22px; overflow:hidden; }
+  .splash-mark{ width:140px; height:140px; border-radius: 32px; overflow:hidden; }
   .splash-mark img{ width:100%; height:100%; object-fit:cover; display:block; }
   .splash-sub{ font-family: var(--font-mono); font-size: 10px; color:#8E8E93; letter-spacing:.14em; margin-top: 2px; }
   .splash-spinner{
@@ -2601,6 +2601,7 @@ async function afterAuthReady(){
       openNickModal(myName, myIcon, myIconImg);
     }
     setOnAir(true);
+    hideSplash();
   } catch (err) {
     console.error('初期化中にエラーが発生しました', err);
     showFatalError(
@@ -2612,6 +2613,7 @@ async function afterAuthReady(){
     if (els.nickModal.style.display !== 'none') {
       openNickModal(myName, myIcon, myIconImg);
     }
+    hideSplash();
   }
 }
 
@@ -2630,6 +2632,7 @@ function boot(){
   if (!auth) {
     setOnAir(false);
     els.myUidDisplay.textContent = '未設定';
+    hideSplash();
     return;
   }
   onAuthStateChanged(auth, (user) => {
@@ -2645,22 +2648,31 @@ function boot(){
       '匿名認証に失敗しました',
       'Firebaseコンソール → Authentication → Sign-in method →「匿名」を有効にしてください。ブラウザのコンソールも確認してください。'
     );
+    hideSplash();
   });
 }
 boot();
 
 /* ------------------------------------------------------------------ */
-/* 起動画面（スプラッシュ）を一定時間表示してからフェードアウトさせる         */
+/* 起動画面（スプラッシュ）: ログイン〜初期データ取得が終わるまで表示を保持   */
 /* ------------------------------------------------------------------ */
-if (document.documentElement.classList.contains('show-splash')) {
+const splashShownAt = document.documentElement.classList.contains('show-splash') ? Date.now() : null;
+let splashHidden = splashShownAt === null;
+function hideSplash(){
+  if (splashHidden) return;
+  splashHidden = true;
+  const elapsed = Date.now() - splashShownAt;
+  const minDelay = Math.max(0, 500 - elapsed); // ちらつき防止の最低表示時間
   setTimeout(() => {
     if (els.splashScreen) els.splashScreen.classList.add('splash-out');
     setTimeout(() => {
       document.documentElement.classList.remove('show-splash');
       if (els.splashScreen) els.splashScreen.style.display = 'none';
     }, 520);
-  }, 1200);
+  }, minDelay);
 }
+// 万一 auth/初期化が固まった場合の保険（最大6秒で強制的に閉じる）
+if (splashShownAt !== null) setTimeout(hideSplash, 6000);
 
 /* ------------------------------------------------------------------ */
 /* PWA: Service Worker 登録（sw.js はご自身で用意してください）           */
