@@ -625,16 +625,16 @@
   #splash-screen{
     position:fixed; inset:0; z-index:600;
     display:none; align-items:center; justify-content:center; flex-direction:column;
-    background:#ffffff; gap: 14px;
+    background:#ffffff; gap: 4px;
     opacity:1; transition: opacity .5s var(--ease-ios);
   }
   html.show-splash #splash-screen{ display:flex; }
   #splash-screen.splash-out{ opacity:0; pointer-events:none; }
-  .splash-mark{ width:140px; height:140px; border-radius: 32px; overflow:hidden; }
+  .splash-mark{ width:140px; height:140px; border-radius: 32px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
   .splash-mark img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .splash-sub{ font-family: var(--font-mono); font-size: 10px; color:#8E8E93; letter-spacing:.14em; margin-top: 2px; }
+  .splash-sub{ font-family: var(--font-mono); font-size: 10px; color:#8E8E93; letter-spacing:.14em; margin-top: 0; }
   .splash-spinner{
-    width:26px; height:26px; margin-top: 8px; border-radius:50%;
+    width:26px; height:26px; margin-top: 10px; border-radius:50%;
     border: 2.5px solid #E5E5EA; border-top-color: #1C1C1E;
     animation: splashSpin .8s linear infinite;
   }
@@ -1903,9 +1903,38 @@ function renderMessages(docs){
     if (!newKnown.has(id)) rowElsById.delete(id);
   }
 
-  els.messages.replaceChildren(...orderedNodes);
+  // FIX(バグ): replaceChildren() は毎回「全行を取り外して並べ直す」ため、
+  // 内容が変わっていない既存の行までDOMから瞬間的に外れて戻ることになり、
+  // ①一瞬非表示になる ②msg-enterの入場アニメーションが再発火して二重に見える
+  // という不具合が起きていた。位置が変わっていない行には一切触れず、
+  // 本当に位置がずれた行だけ insertBefore で動かす最小差分パッチに変更。
+  patchMessageList(els.messages, orderedNodes);
   knownIds = newKnown;
   if (nearBottom || wasEmpty) els.messages.scrollTop = els.messages.scrollHeight;
+}
+
+/** 子要素リストを最小限のDOM操作で orderedNodes の並びに一致させる（既存要素は動かさない） */
+function patchMessageList(container, orderedNodes){
+  const current = Array.from(container.children);
+  let identical = current.length === orderedNodes.length;
+  if (identical) {
+    for (let i = 0; i < current.length; i++) {
+      if (current[i] !== orderedNodes[i]) { identical = false; break; }
+    }
+  }
+  if (identical) return; // 並びが変わっていなければ何もしない（＝アニメーション再発火なし）
+
+  const wanted = new Set(orderedNodes);
+  current.forEach((node) => { if (!wanted.has(node)) node.remove(); });
+
+  let ref = container.firstChild;
+  for (const node of orderedNodes) {
+    if (ref === node) {
+      ref = ref.nextSibling;
+    } else {
+      container.insertBefore(node, ref);
+    }
+  }
 }
 
 els.messages.addEventListener('click', (e) => {
