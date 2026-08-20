@@ -543,6 +543,9 @@
   }
   #msg-input:focus{ border-color: var(--amber); box-shadow: 0 0 0 3.5px var(--amber-dim); }
   #msg-input::placeholder{ color: var(--text-faint); }
+  #msg-input:disabled{ opacity:.5; cursor:not-allowed; }
+  #attach-btn:disabled{ opacity:.35; cursor:not-allowed; }
+  #attach-btn:disabled:hover{ transform:none; color: var(--text-muted); border-color: var(--border); background:none; }
   #send-btn{
     background: linear-gradient(150deg, var(--amber), #c97f22); border:none; color: #14100a;
     width: 42px; height: 42px; border-radius: var(--radius-pill); cursor:pointer;
@@ -721,9 +724,8 @@
   }
   html.show-splash #splash-screen{ display:flex; }
   #splash-screen.splash-out{ opacity:0; pointer-events:none; }
-  .splash-mark{ width:140px; height:140px; border-radius: 32px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom: 2px; }
+  .splash-mark{ width:190px; height:190px; border-radius: 40px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom: 10px; }
   .splash-mark img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .splash-sub{ font-family: var(--font-mono); font-size: 10px; color:#8E8E93; letter-spacing:.14em; margin-top: 0; }
   .splash-spinner{
     width:28px; height:28px; margin-top: 14px; border-radius:50%;
     background: conic-gradient(from 0deg, transparent 0%, #C7C7CC 35%, #1C1C1E 100%);
@@ -777,7 +779,6 @@
 
 <div id="splash-screen">
   <div class="splash-mark"><img src="icon-192.png" alt="SIGNAL"></div>
-  <div class="splash-sub">REALTIME・CHAT</div>
   <div class="splash-spinner"></div>
 </div>
 
@@ -1715,7 +1716,7 @@ function renderChannelList(docs){
         <button type="button" class="ch-rename-btn" data-act="rename" title="名前を変更">✎</button>
       </span>`;
     }
-    li.innerHTML = `<span class="channel-freq">${pseudoFreq(d.id)}</span><span class="channel-name">${escapeHtml(shownName)}</span>`
+    li.innerHTML = `<span class="channel-freq">${pseudoFreq(d.id)}</span><span class="channel-name">${data.postGoldOnly === true ? '🔒 ' : ''}${escapeHtml(shownName)}</span>`
       + (unread > 0 && !editMode ? `<span class="channel-unread">${unread > 99 ? '99+' : unread}</span>` : '')
       + controls
       + (isAdmin && !editMode ? `<button type="button" class="channel-del-btn" title="削除">×</button>` : '');
@@ -1751,7 +1752,33 @@ function listenChannels(){
     channelsCache = snap.docs;
     renderChannelList(snap.docs);
     if (adminModalOpen && currentAdminTab === 'channels') renderAdminPanel();
+    updateComposerPermission();
   });
+}
+
+/* ------------------------------------------------------------------ */
+/* チャンネルごとの投稿制限（金バッジのみ 等）                              */
+/* ------------------------------------------------------------------ */
+function canPostInCurrentChannel(){
+  if (currentKind !== 'channel' || !currentChannelId) return true; // DMは常に投稿可
+  const chDoc = channelsCache.find((d) => d.id === currentChannelId);
+  const data = chDoc ? chDoc.data() : null;
+  if (!data || data.postGoldOnly !== true) return true;
+  if (isAdmin) return true;
+  const me = usersCache[myUid] || {};
+  return me.goldVerified === true;
+}
+function updateComposerPermission(){
+  const allowed = canPostInCurrentChannel();
+  els.input.disabled = !allowed;
+  els.attachBtn.disabled = !allowed;
+  if (!allowed) {
+    els.input.placeholder = 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます';
+    els.sendBtn.disabled = true;
+  } else if (currentKind === 'channel') {
+    els.input.placeholder = 'メッセージを入力…';
+    els.sendBtn.disabled = !els.input.value.trim() && !pendingImage;
+  }
 }
 
 /** チャンネルの並び替え。scopeMode==='global' なら管理者としてFirestoreのorderを更新（全員に反映）、
@@ -1865,6 +1892,7 @@ function selectChannel(id, name){
   unreadByChannel[id] = 0;
   updateChannelUnreadBadge(id);
   updateGlobalUnreadUI();
+  updateComposerPermission();
   listenMessages(id);
   listenTyping(id);
   listenReads(id);
@@ -1902,6 +1930,7 @@ function selectDm(otherUid, otherName){
   rowElsById.clear();
   unreadByDm[currentDmId] = 0;
   updateGlobalUnreadUI();
+  updateComposerPermission();
   setDoc(doc(db, 'dms', currentDmId), { participants: [myUid, otherUid] }, { merge: true }).catch(() => {});
   listenMessages(null, currentDmId);
   listenTyping(null, currentDmId);
@@ -2270,6 +2299,7 @@ async function sendMessage(){
   const image = pendingImage;
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
   if ((!text && !image) || !targetId || !db || !myName || !myUid) return;
+  if (!canPostInCurrentChannel()) { alert('このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
   const replySnapshot = replyingTo;
   els.input.value = '';
   els.input.style.height = 'auto';
@@ -2519,6 +2549,7 @@ function listenUsers(){
     refreshSelfCard();
     renderVerifyRow();
     applyMaintenanceGate();
+    updateComposerPermission();
     if (lastDocsSnapshot.length) renderMessages(lastDocsSnapshot);
     if (lastOnline.length) renderOnlineList(lastOnline);
     if (adminModalOpen && currentAdminTab === 'users') renderAdminPanel();
@@ -2785,6 +2816,10 @@ async function setVerified(uid, val){
 async function setGoldVerified(uid, val){
   await setDoc(doc(db, 'users', uid), { goldVerified: val }, { merge: true }).catch(() => {});
 }
+async function setChannelGoldOnly(channelId, val){
+  if (!isAdmin || !db) return;
+  await setDoc(doc(db, 'channels', channelId), { postGoldOnly: val }, { merge: true }).catch(() => {});
+}
 async function forceDeleteAccount(uid, name){
   if (!isAdmin || !db) return;
   if (!confirm(`${name} さんのアカウントを削除しますか？(過去のメッセージ自体は残ります)`)) return;
@@ -2849,10 +2884,15 @@ function renderAdminPanel(){
     body.innerHTML = '';
     channelsCache.forEach((d) => {
       const c = d.data();
+      const goldOnly = c.postGoldOnly === true;
       const row = document.createElement('div');
       row.className = 'admin-row';
       row.innerHTML = `<div class="info">${escapeHtml(c.name || '無題')}</div>
-        <div class="actions"><button type="button" class="mini-btn-danger" data-act="del">削除</button></div>`;
+        <div class="actions">
+          <button type="button" class="${goldOnly ? 'mini-btn-gold' : 'mini-btn-outline'}" data-act="toggle-post">${goldOnly ? '🔒 金バッジのみ投稿可' : '投稿を金バッジのみに制限'}</button>
+          <button type="button" class="mini-btn-danger" data-act="del">削除</button>
+        </div>`;
+      row.querySelector('[data-act="toggle-post"]').addEventListener('click', () => setChannelGoldOnly(d.id, !goldOnly));
       row.querySelector('[data-act="del"]').addEventListener('click', () => deleteChannel(d.id, c.name || '無題'));
       body.appendChild(row);
     });
