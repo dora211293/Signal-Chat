@@ -410,7 +410,7 @@
   }
   .msg-row:hover .bubble{ transform: translateY(-1px); box-shadow: var(--shadow-md); }  .msg-row.chained .bubble{ border-radius: 8px 22px 22px 8px; }
   .msg-row.mine .bubble{
-    background: linear-gradient(155deg, var(--mine-bubble-1), var(--mine-bubble-2)); border: 1px solid var(--amber-dim);
+    background: linear-gradient(155deg, var(--mine-bubble-1), var(--mine-bubble-2)); border: 1px solid var(--border);
     border-radius: 22px 8px 22px 22px; color: var(--mine-bubble-text);
   }
   .msg-row.mine.chained .bubble{ border-radius: 22px 8px 8px 22px; }
@@ -529,7 +529,7 @@
   }
   .bubble.has-image{ padding: 5px !important; background: transparent !important; border: none !important; box-shadow:none !important; }
   .bubble.has-image.has-text{ padding: 5px 5px 9px !important; background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-sm) !important; }
-  .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, var(--mine-bubble-1), var(--mine-bubble-2)) !important; border-color: var(--amber-dim) !important; }
+  .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, var(--mine-bubble-1), var(--mine-bubble-2)) !important; border-color: var(--border) !important; }
   .bubble.has-image.has-text .msg-image{ margin-bottom: 6px; }
   .bubble.has-image .msg-image-expired{
     display:flex; align-items:center; justify-content:center; width:180px; height:110px;
@@ -585,7 +585,7 @@
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
     transition: transform .12s, box-shadow .18s;
   }
-  #send-btn:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 6px 18px color-mix(in srgb, var(--amber) 40%, transparent); }
+  #send-btn:hover:not(:disabled){ transform: translateY(-1px); }
   #send-btn:active:not(:disabled){ transform: scale(.94); }
   #send-btn:disabled{ opacity:.4; cursor:default; transform:none; box-shadow:none; }
   @keyframes sendPulse{ 0%{ transform: scale(1); } 40%{ transform: scale(.86); } 100%{ transform: scale(1); } }
@@ -733,7 +733,7 @@
   .admin-tabs .tab-thumb{
     position:absolute; top:4px; bottom:4px; left:4px; width: 40px;
     background: linear-gradient(150deg, var(--amber), color-mix(in srgb, var(--amber) 65%, black)); border-radius: var(--radius-pill);
-    box-shadow: var(--shadow-sm); transition: transform .45s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
+    transition: transform .45s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
   }
   .admin-tab{ position:relative; z-index:1; flex:1; background:none; border:none; color: var(--text-muted); padding: 8px; border-radius: var(--radius-pill); font-size: 12px; cursor:pointer; transition: color .25s var(--ease-ios); }
   .admin-tab.active{ border-color: transparent; color: #14100a; font-weight:600; }
