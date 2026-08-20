@@ -171,6 +171,8 @@
   /* ===================== Sidebar ===================== */
   #sidebar{
     background: color-mix(in srgb, var(--surface) calc(var(--panel-alpha) * 100%), transparent);
+    backdrop-filter: blur(calc(6px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
+    -webkit-backdrop-filter: blur(calc(6px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
     border-right: 1px solid var(--border);
     display:flex; flex-direction:column;
     min-width: 0; min-height: 0; height: 100%;
@@ -333,7 +335,7 @@
     display:flex; align-items:center; gap:14px; padding: 14px 20px;
     border-bottom: 1px solid var(--border);
     background: linear-gradient(180deg, color-mix(in srgb, var(--surface) calc(72% * var(--panel-alpha)), transparent), color-mix(in srgb, var(--surface) calc(20% * var(--panel-alpha)), transparent));
-    backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
     flex-shrink:0;
   }
   #menu-btn{ display:none; background:none; border:1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: var(--radius-md); cursor:pointer; font-size:16px; }
@@ -398,6 +400,8 @@
 
   .bubble{
     background: color-mix(in srgb, var(--surface-2) calc(var(--panel-alpha) * 100%), transparent);
+    backdrop-filter: blur(calc(4px + (1 - var(--panel-alpha)) * 16px)) saturate(180%);
+    -webkit-backdrop-filter: blur(calc(4px + (1 - var(--panel-alpha)) * 16px)) saturate(180%);
     border: 1px solid var(--border); padding: 9px 13px;
     border-radius: 8px 22px 22px 22px; font-size: 14px; line-height: 1.55;
     word-break: break-word; white-space: pre-wrap; color: var(--text);
@@ -543,7 +547,7 @@
     font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
   }
 
-  #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) calc(88% * var(--panel-alpha)), transparent); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); flex-shrink:0; }
+  #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) calc(88% * var(--panel-alpha)), transparent); backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); flex-shrink:0; }
   #attach-btn{
     background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
     width:42px; height:42px; border-radius: var(--radius-pill); cursor:pointer; flex-shrink:0;
@@ -597,6 +601,8 @@
   }
   .modal-card{
     background: color-mix(in srgb, var(--surface) calc(var(--panel-alpha) * 100%), transparent);
+    backdrop-filter: blur(calc(6px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
+    -webkit-backdrop-filter: blur(calc(6px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
     border: 1px solid var(--border); border-radius: var(--radius-lg);
     padding: 26px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow-md); margin: auto;
     animation: modalCardIn .46s var(--ease-spring);
@@ -726,7 +732,7 @@
   .admin-tabs{ position:relative; display:flex; gap:4px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 4px; }
   .admin-tabs .tab-thumb{
     position:absolute; top:4px; bottom:4px; left:4px; width: 40px;
-    background: linear-gradient(150deg, var(--amber), #c97f22); border-radius: var(--radius-pill);
+    background: linear-gradient(150deg, var(--amber), color-mix(in srgb, var(--amber) 65%, black)); border-radius: var(--radius-pill);
     box-shadow: var(--shadow-sm); transition: transform .45s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
   }
   .admin-tab{ position:relative; z-index:1; flex:1; background:none; border:none; color: var(--text-muted); padding: 8px; border-radius: var(--radius-pill); font-size: 12px; cursor:pointer; transition: color .25s var(--ease-ios); }
