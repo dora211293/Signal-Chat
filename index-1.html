@@ -1,0 +1,3018 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIGNAL</title>
+
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SIGNAL">
+<meta name="description" content="リアルタイム・グループチャット">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #000000;
+    --bg-grad: radial-gradient(1000px 560px at 12% -12%, #0d1f1c66 0%, transparent 58%),
+                radial-gradient(820px 460px at 112% 6%, #241c0d66 0%, transparent 55%),
+                #000000;
+    --surface: #121214;
+    --surface-2: #1C1C1E;
+    --surface-3: #2C2C2E;
+    --surface-4: #3A3A3C;
+    --border: #38383A66;
+    --text: #F2F2F7;
+    --text-muted: #98989D;
+    --text-faint: #636366;
+    --amber: #F0A93F;
+    --amber-dim: #F0A93F2e;
+    --teal: #3DE0B8;
+    --teal-dim: #3DE0B82e;
+    --danger: #FF6B5B;
+    --gold: #F2C766;
+    --gold-dim: #F2C76630;
+    --gold-2: #D9A73C;
+    --shadow-sm: 0 2px 12px #00000040, 0 1px 2px #00000050;
+    --shadow-md: 0 24px 56px #00000070, 0 6px 18px #00000050;
+    --radius-lg: 30px;
+    --radius-md: 20px;
+    --radius-sm: 15px;
+    --radius-xs: 12px;
+    --radius-pill: 999px;
+    --ease-ios: cubic-bezier(.32,.72,0,1);
+    --ease-spring: cubic-bezier(.34,1.56,.64,1);
+    --ease-standard: cubic-bezier(.4,0,.2,1);
+    --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  }
+  [data-theme="light"]{
+    --bg: #FFFFFF;
+    --bg-grad: radial-gradient(900px 480px at 8% -10%, #eef9f580 0%, transparent 58%),
+                radial-gradient(760px 420px at 108% 4%, #fff3e080 0%, transparent 55%),
+                #FFFFFF;
+    --surface: #F2F2F7;
+    --surface-2: #FFFFFF;
+    --surface-3: #E5E5EA;
+    --surface-4: #D1D1D6;
+    --border: #E5E5EA;
+    --text: #1C1C1E;
+    --text-muted: #8E8E93;
+    --text-faint: #C7C7CC;
+    --amber: #B9701C;
+    --amber-dim: #B9701C22;
+    --teal: #0F8A73;
+    --teal-dim: #0F8A7322;
+    --gold: #9C6E17;
+    --gold-dim: #9C6E171c;
+    --gold-2: #B98526;
+    --shadow-sm: 0 2px 12px #1c1c1e12, 0 1px 2px #1c1c1e18;
+    --shadow-md: 0 24px 60px #1c1c1e1c, 0 6px 16px #1c1c1e16;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ height: 100%; }
+  body{
+    margin:0;
+    background: var(--bg-grad);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    transition: background .2s, color .2s;
+  }
+  ::selection{ background: var(--amber-dim); color: var(--text); }
+  ::-webkit-scrollbar{ width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb{ background: var(--surface-3); border-radius: 8px; }
+  ::-webkit-scrollbar-track{ background: transparent; }
+
+  button{ font-family: inherit; transition: background-color .18s var(--ease-ios), border-color .18s var(--ease-ios), color .18s var(--ease-ios), transform .32s var(--ease-spring), box-shadow .18s var(--ease-ios), opacity .16s ease; }
+  button:active:not(:disabled){ transform: scale(.96); transition-duration: .1s; }
+  input, textarea{ font-family: inherit; }
+  code{ font-family: var(--font-mono); }
+
+  #messages, #channel-list, #dm-list, .online-panel, .admin-panel-body, .modal-scrim{
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  }
+  #messages{ transition: opacity .16s var(--ease-ios); }
+
+  /* テーマ切替時に主要パーツがふわっとクロスフェードするための共通トランジション */
+  #sidebar, #main, #topbar, #composer, #messages, .modal-card, .modal-scrim, .bubble,
+  .channel-item, .self-card, .online-chip, .admin-row, #msg-input, .icon-btn, input,
+  .day-divider, #config-warning, .msg-avatar, .self-avatar, .preview-avatar, .admin-tab,
+  .verify-pending, #onair, .empty-state{
+    transition: background-color .35s ease, border-color .35s ease, color .3s ease, box-shadow .35s ease;
+  }
+
+  button:focus-visible, input:focus-visible, textarea:focus-visible, .channel-item:focus-visible{
+    outline: none; box-shadow: 0 0 0 3.5px var(--amber-dim), 0 0 0 1.5px var(--amber);
+  }
+
+  @keyframes appIn{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform: translateY(0); } }
+
+  /* ===================== App shell ===================== */
+  #app{
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    animation: appIn .5s cubic-bezier(.2,.85,.25,1);
+  }
+  @media (max-width: 760px){
+    #app{ grid-template-columns: 1fr; }
+    #sidebar{
+      position: fixed; inset: 0 20% 0 0; z-index: 40;
+      transform: translateX(-105%);
+      transition: transform .38s var(--ease-ios);
+      box-shadow: 30px 0 60px #00000080;
+    }
+    #sidebar.open{ transform: translateX(0); }
+    #sidebar-scrim{
+      position: fixed; inset:0; background:#000a; z-index: 39;
+      opacity:0; pointer-events:none; transition: opacity .3s var(--ease-ios);
+    }
+    #sidebar-scrim.show{ opacity:1; pointer-events:auto; }
+  }
+
+  /* ===================== Sidebar ===================== */
+  #sidebar{
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display:flex; flex-direction:column;
+    min-width: 0; min-height: 0; height: 100%;
+  }
+  .brand{ display:flex; align-items:center; padding: 20px 18px 14px; flex-shrink: 0; }
+  .brand-text{ display:flex; flex-direction:column; line-height:1.15; }
+  .brand-text b{ font-family: var(--font-display); font-size: 17px; letter-spacing: .04em; }
+  .brand-text span{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: .06em; }
+
+  .self-card{
+    margin: 4px 14px 10px; padding: 10px 12px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md);
+    display:flex; align-items:center; gap:10px; flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .self-avatar, .msg-avatar, .preview-avatar, .online-chip-avatar, .read-chip{ overflow: hidden; }
+  .self-avatar img, .msg-avatar img, .preview-avatar img, .online-chip-avatar img, .read-chip img{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .self-avatar{
+    width: 30px; height: 30px; border-radius: 50%; background: var(--surface-3);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size: 14px; font-weight:600;
+    color: var(--teal); flex-shrink:0; border: 1px solid var(--teal-dim);
+  }
+  .self-meta{ min-width:0; flex:1; }
+  .self-meta .name{ font-size: 13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:4px; }
+  .self-meta .status{ font-family: var(--font-mono); font-size: 10px; color: var(--teal); display:flex; align-items:center; gap:5px; margin-top:1px;}
+  .self-meta .status .dot{ width:6px; height:6px; border-radius:50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: blink 2s infinite; }
+  .icon-actions{ display:flex; gap:2px; flex-shrink:0; }
+  .edit-name-btn{ background:none; border:none; color: var(--text-faint); cursor:pointer; font-size: 13px; padding: 4px; display:inline-flex; border-radius: var(--radius-xs); transition: color .18s var(--ease-ios), background-color .18s var(--ease-ios), transform .28s var(--ease-spring); }
+  .edit-name-btn:hover{ color: var(--amber); background: var(--amber-dim); transform: translateY(-1px) scale(1.08); }
+  .edit-name-btn:active{ transform: scale(.88); transition-duration: .1s; }
+  #theme-toggle{ transition: transform .5s var(--ease-spring), color .18s var(--ease-ios), background-color .18s var(--ease-ios); }
+  #theme-toggle.spin{ transform: rotate(360deg) scale(1.15); }
+
+  .admin-btn{
+    margin: 0 14px 10px; padding: 9px 10px; border-radius: var(--radius-md);
+    background: var(--surface-2); border: 1px solid var(--amber-dim); color: var(--amber);
+    font-size: 12.5px; font-weight:600; cursor:pointer;
+    display:none; align-items:center; justify-content:center; gap:6px; flex-shrink:0;
+    transition: background-color .18s var(--ease-ios), box-shadow .18s var(--ease-ios), transform .28s var(--ease-spring);
+  }
+  .admin-btn:hover{ background: var(--amber-dim); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+  .admin-btn:active{ transform: scale(.97); transition-duration: .1s; }
+
+  .section-label{
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em;
+    color: var(--text-faint); text-transform: uppercase; padding: 10px 18px 6px;
+    display:flex; align-items:center; justify-content:space-between; flex-shrink: 0;
+  }
+  .add-channel-btn{
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    width: 22px; height: 22px; border-radius: var(--radius-pill); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size: 13px; line-height:1;
+    transition: border-color .18s var(--ease-ios), color .18s var(--ease-ios), transform .28s var(--ease-spring), background-color .18s var(--ease-ios);
+  }
+  .add-channel-btn:hover{ border-color: var(--amber); color: var(--amber); background: var(--amber-dim); transform: rotate(90deg) scale(1.1); }
+  .add-channel-btn:active{ transform: rotate(90deg) scale(.85); transition-duration: .1s; }
+  .edit-mode-btn{
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    width: 22px; height: 22px; border-radius: var(--radius-pill); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size: 11px; line-height:1; margin-right:4px;
+    transition: border-color .18s var(--ease-ios), color .18s var(--ease-ios), transform .28s var(--ease-spring), background-color .18s var(--ease-ios);
+  }
+  .edit-mode-btn:hover{ border-color: var(--amber); color: var(--amber); transform: scale(1.1); }
+  .edit-mode-btn:active{ transform: scale(.85); transition-duration: .1s; }
+  .edit-mode-btn.active{ background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+  .scope-switch{
+    display:none; align-items:center; gap:0; margin: 2px 18px 6px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 3px; font-family: var(--font-mono);
+    position: relative;
+  }
+  .scope-switch.show{ display:flex; }
+  .scope-switch .tab-thumb{
+    position:absolute; top:3px; bottom:3px; left:3px; width: 40px;
+    background: var(--amber); border-radius: var(--radius-pill);
+    transition: transform .42s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
+  }
+  .scope-switch button{
+    position:relative; z-index:1; flex:1; border:none; background:none; color: var(--text-muted); font-size: 10.5px; padding: 6px 4px;
+    border-radius: var(--radius-pill); cursor:pointer; transition: color .25s var(--ease-ios);
+  }
+  .scope-switch button.active{ color:#14100a; font-weight:700; }
+
+  /* ===================== チャンネル/DM 切り替えタブ ===================== */
+  .sidebar-tabs{
+    display:flex; align-items:center; gap:0; margin: 2px 14px 8px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 3px;
+    position: relative; flex-shrink:0;
+  }
+  .sidebar-tabs .tab-thumb{
+    position:absolute; top:3px; bottom:3px; left:3px; width: calc(50% - 3px);
+    background: var(--amber); border-radius: var(--radius-pill);
+    transition: transform .42s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
+  }
+  .sidebar-tabs button{
+    position:relative; z-index:1; flex:1; border:none; background:none; color: var(--text-muted);
+    font-size: 12px; font-weight:600; padding: 8px 6px; border-radius: var(--radius-pill); cursor:pointer;
+    transition: color .25s var(--ease-ios); display:flex; align-items:center; justify-content:center; gap:5px;
+  }
+  .sidebar-tabs button.active{ color:#14100a; }
+  .sidebar-tabs .req-dot{
+    min-width:16px; height:16px; padding:0 3px; border-radius: var(--radius-pill); background: var(--danger); color:#fff;
+    font-family: var(--font-mono); font-size: 9.5px; line-height:16px; text-align:center; display:none;
+  }
+  .sidebar-tabs .req-dot.show{ display:inline-block; }
+
+  #channel-section{ display:flex; flex-direction:column; flex:1; min-height:0; }
+  #dm-section{ display:flex; flex-direction:column; flex:1; min-height:0; }
+  .channel-edit-controls{ display:flex; align-items:center; gap:2px; flex-shrink:0; }
+  .ch-arrow-btn, .ch-rename-btn{
+    background:none; border:none; color: var(--text-faint); cursor:pointer; font-size:12px; padding: 3px 4px; line-height:1;
+    border-radius: var(--radius-xs);
+  }
+  .ch-arrow-btn:hover, .ch-rename-btn:hover{ color: var(--amber); background: var(--amber-dim); }
+  .ch-arrow-btn:disabled{ opacity:.25; cursor:default; }
+  .ch-arrow-btn:disabled:hover{ background:none; color: var(--text-faint); }
+
+  #channel-list{ list-style:none; margin:0; padding: 2px 10px 10px; overflow-y:auto; flex:1; min-height: 0; }  .channel-item{
+    display:flex; align-items:center; gap:10px; padding: 9px 10px; border-radius: var(--radius-sm);
+    cursor:pointer; margin-bottom: 2px; border: 1px solid transparent;
+    transition: background-color .15s var(--ease-ios), border-color .15s var(--ease-ios), transform .28s var(--ease-spring), box-shadow .15s var(--ease-ios);
+  }
+  .channel-item:hover{ background: var(--surface-2); transform: translateX(1px); }
+  .channel-item:active{ transform: scale(.97); transition: transform .1s var(--ease-ios); }
+  .channel-item.active{ background: var(--surface-2); border-color: var(--amber-dim); box-shadow: var(--shadow-sm); }
+  .channel-freq{
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--amber);
+    background: var(--amber-dim); padding: 2px 5px; border-radius: var(--radius-pill);
+    flex-shrink:0; min-width: 40px; text-align:center;
+  }
+  .channel-name{ font-size: 13.5px; color: var(--text); font-weight: 500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
+  .channel-unread{
+    min-width:18px; height:18px; padding:0 5px; border-radius:10px; background: var(--amber); color:#14100a;
+    font-family: var(--font-mono); font-size: 10px; font-weight:700; line-height:18px; text-align:center;
+    flex-shrink:0; margin-left:4px; animation: chipIn .42s var(--ease-spring);
+  }
+  .channel-item.active .channel-unread{ display:none; }
+  .channel-del-btn{ background:none; border:none; color: var(--text-faint); font-size:15px; cursor:pointer; padding: 2px 6px; margin-left:auto; flex-shrink:0; }
+  .channel-del-btn:hover{ color: var(--danger); }
+
+  .online-panel{ border-top: 1px solid var(--border); padding: 12px 18px 16px; flex-shrink: 0; max-height: 30%; overflow-y: auto; }
+  #online-list{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .online-chip{
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted);
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 3px 8px 3px 3px; border-radius: 20px; display:flex; align-items:center; gap:5px;
+    animation: chipIn .42s var(--ease-spring);
+  }
+  .online-chip-avatar{
+    width:16px; height:16px; border-radius:50%; background:var(--surface-3);
+    display:flex; align-items:center; justify-content:center; font-size:9px; flex-shrink:0;
+  }
+
+  /* ===================== Main pane ===================== */
+  #main{ display:flex; flex-direction:column; min-width:0; min-height: 0; height:100%; position:relative; }
+
+  #topbar{
+    display:flex; align-items:center; gap:14px; padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 72%, transparent), color-mix(in srgb, var(--surface) 20%, transparent));
+    backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+    flex-shrink:0;
+  }
+  #menu-btn{ display:none; background:none; border:1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: var(--radius-md); cursor:pointer; font-size:16px; }
+  @media (max-width:760px){ #menu-btn{ display:block; } }
+
+  #topbar .titles{ min-width:0; flex-shrink:0; }
+  #topbar .titles .freq{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing: .1em; }
+  #topbar .titles h1{ font-family: var(--font-display); font-size: 17px; margin: 1px 0 0; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 40vw; }
+
+  #waveform{ flex:1; height: 34px; min-width: 60px; opacity:.85; }
+
+  #notif-toggle{
+    position:relative;
+    background:none; border:1px solid var(--border); color: var(--text-muted);
+    width: 34px; height: 34px; border-radius: var(--radius-md); cursor:pointer; font-size:15px; flex-shrink:0;
+    transition: border-color .18s var(--ease-ios), color .18s var(--ease-ios), background-color .18s var(--ease-ios), transform .28s var(--ease-spring);
+  }
+  #notif-toggle:hover{ border-color: var(--amber); color: var(--amber); transform: translateY(-1px) scale(1.05); }
+  #notif-toggle:active{ transform: scale(.9); transition-duration: .1s; }
+  #notif-toggle.on{ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
+  #notif-toggle.denied{ color: var(--text-faint); opacity:.55; cursor:not-allowed; }
+  #notif-toggle .unread-dot{
+    position:absolute; top:-3px; right:-3px; min-width:15px; height:15px; padding:0 3px;
+    border-radius:10px; background: var(--danger); color:#fff; font-family: var(--font-mono);
+    font-size: 9px; line-height:15px; text-align:center; display:none; box-shadow: 0 0 0 2px var(--surface);
+    animation: chipIn .42s var(--ease-spring);
+  }
+  #notif-toggle .unread-dot.show{ display:block; }
+
+  #onair{
+    font-family: var(--font-mono); font-size: 10px; letter-spacing:.1em; color: var(--teal);
+    display:flex; align-items:center; gap:6px; flex-shrink:0;
+    border: 1px solid var(--teal-dim); padding: 5px 10px; border-radius: 20px;
+  }
+  #onair .dot{ width:6px; height:6px; border-radius:50%; background: var(--teal); box-shadow:0 0 8px var(--teal); animation: blink 1.6s infinite; }
+  #onair.off{ color: var(--text-faint); border-color: var(--border); }
+  #onair.off .dot{ background: var(--text-faint); box-shadow:none; animation:none; }
+
+  #messages{ flex:1; min-height: 0; overflow-y:auto; padding: 22px 24px 10px; display:flex; flex-direction:column; scroll-behavior: smooth; }
+  .empty-state{ margin:auto; text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 12px; max-width: 280px; line-height:1.7; }
+
+  .day-divider{
+    align-self:center; font-family: var(--font-mono); font-size: 10px; color: var(--text-faint);
+    background: var(--surface); border: 1px solid var(--border); padding: 3px 12px; border-radius: 20px; margin: 14px 0 10px;
+  }
+
+  .msg-row{ display:flex; gap: 10px; max-width: 76%; margin: 7px 0 0; align-items: flex-end; }
+  .msg-row.mine{ align-self:flex-end; flex-direction:row-reverse; }
+  .msg-row.grouped{ margin-top: 2px; }
+
+  .msg-avatar{
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink:0; background: var(--surface-3);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size: 13px; font-weight:600; color: var(--text-muted);
+  }
+  .msg-row.chained .msg-avatar{ visibility:hidden; }
+  .msg-body{ min-width:0; }
+  .msg-meta{ display:flex; gap:8px; align-items:baseline; margin-bottom:4px; padding: 0 3px; }
+  .msg-row.mine .msg-meta{ flex-direction:row-reverse; }
+  .msg-meta .who{ font-size: 12px; font-weight:600; color: var(--text); display:inline-flex; align-items:center; gap:3px; }
+  .msg-meta .time{ font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); }
+
+  .bubble{
+    background: var(--surface-2); border: 1px solid var(--border); padding: 9px 13px;
+    border-radius: 8px 22px 22px 22px; font-size: 14px; line-height: 1.55;
+    word-break: break-word; white-space: pre-wrap; color: var(--text);
+    box-shadow: var(--shadow-sm);
+    transition: background-color .35s ease, border-color .35s ease, color .3s ease, transform .3s var(--ease-spring), box-shadow .2s var(--ease-ios);
+  }
+  .msg-row:hover .bubble{ transform: translateY(-1px); box-shadow: var(--shadow-md); }  .msg-row.chained .bubble{ border-radius: 8px 22px 22px 8px; }
+  .msg-row.mine .bubble{
+    background: linear-gradient(155deg, #2a2115, #1c1712); border: 1px solid var(--amber-dim);
+    border-radius: 22px 8px 22px 22px; color: #F1E6D2;
+  }
+  [data-theme="light"] .msg-row.mine .bubble{
+    background: linear-gradient(155deg, #FBEAC9, #F5DAA0); border: 1px solid var(--amber-dim); color: #2B2410;
+  }
+  .msg-row.mine.chained .bubble{ border-radius: 22px 8px 8px 22px; }
+
+  @keyframes msgIn{
+    0%{ opacity:0; transform: translateY(46px) scale(.82); }
+    55%{ opacity:1; transform: translateY(-5px) scale(1.03); }
+    78%{ transform: translateY(2px) scale(.99); }
+    100%{ transform: translateY(0) scale(1); }
+  }
+  .msg-row.msg-enter{ animation: msgIn .72s cubic-bezier(.21,.98,.3,1.22) both; transform-origin: bottom center; }
+  @keyframes avatarPop{ from{ opacity:0; transform: scale(.35); } to{ opacity:1; transform: scale(1); } }
+  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .55s cubic-bezier(.22,1.3,.36,1) .08s both; }
+  @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
+  .day-divider{ animation: dayIn .3s ease; }
+
+  .msg-actions{
+    margin-top:3px; padding: 0 3px; position: relative;
+    display:flex; gap:10px; align-items:center;
+    max-height:0; opacity:0; overflow:visible; pointer-events:none;
+    transition: max-height .2s ease, opacity .15s ease, margin-top .2s ease;
+  }
+  .msg-row.menu-open .msg-actions{ max-height:28px; opacity:1; pointer-events:auto; }
+  .msg-row.mine .msg-actions{ flex-direction:row-reverse; }
+  .msg-row.has-actions .bubble{ cursor:pointer; }
+  .msg-del-btn, .msg-reply-btn, .msg-react-btn{
+    background:none; border:none; font-family: var(--font-mono); font-size: 9.5px;
+    color: var(--text-faint); cursor:pointer; padding: 2px 3px; opacity:.7;
+  }
+  .msg-del-btn:hover{ color: var(--danger); opacity:1; }
+  .msg-reply-btn:hover, .msg-react-btn:hover{ color: var(--amber); opacity:1; }
+
+  /* ---- 返信の引用表示（バブル内） ---- */
+  .reply-quote{
+    display:flex; flex-direction:column; gap:1px;
+    border-left: 2.5px solid var(--amber); background: #ffffff0d;
+    border-radius: 6px; padding: 4px 8px; margin-bottom: 6px;
+    cursor:pointer; transition: background-color .15s ease, transform .15s ease;
+  }
+  .reply-quote:hover{ background: #ffffff1a; transform: translateX(1px); }
+  [data-theme="light"] .reply-quote{ background: #0000000a; }
+  [data-theme="light"] .reply-quote:hover{ background: #00000014; }
+  .reply-quote .rq-name{ font-size: 10.5px; font-weight:700; color: var(--amber); }
+  .reply-quote .rq-text{
+    font-size: 11.5px; color: var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 230px;
+  }
+  @keyframes flashHighlight{
+    0%, 100%{ box-shadow: var(--shadow-sm); }
+    30%{ box-shadow: 0 0 0 2.5px var(--amber), var(--shadow-md); }
+  }
+  .msg-row.flash-highlight .bubble{ animation: flashHighlight 1.1s var(--ease-ios); }
+
+  /* ---- リアクションチップ ---- */
+  .reactions-row{ display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; padding: 0 3px; }
+  .msg-row.mine .reactions-row{ justify-content:flex-end; }
+  .reaction-chip{
+    display:inline-flex; align-items:center; gap:4px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-pill); padding: 2px 8px 2px 7px; font-size: 12px; cursor:pointer;
+    box-shadow: var(--shadow-sm); animation: chipIn .32s var(--ease-spring);
+  }
+  .reaction-chip .cnt{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+  .reaction-chip:hover{ transform: translateY(-1px); }
+  .reaction-chip.mine{ border-color: var(--amber); background: var(--amber-dim); }
+  .reaction-chip.mine .cnt{ color: var(--amber); }
+
+  /* ---- 絵文字ピッカー（リアクション追加用ポップオーバー） ---- */
+  .emoji-picker{
+    position:absolute; bottom: calc(100% + 6px); left:0; z-index: 5;
+    display:flex; gap:3px; background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-pill);
+    padding: 5px 7px; box-shadow: var(--shadow-md);
+    animation: chipIn .22s var(--ease-spring);
+  }
+  .msg-row.mine .emoji-picker{ left:auto; right:0; }
+  .emoji-picker button{
+    background:none; border:none; font-size: 17px; cursor:pointer; padding: 2px 3px; line-height:1;
+    border-radius: 8px; transition: transform .15s var(--ease-spring), background-color .15s;
+  }
+  .emoji-picker button:hover{ background: var(--surface-3); transform: scale(1.22); }
+
+  /* ---- 返信プレビューバー（コンポーザー上部） ---- */
+  #reply-preview-strip{ padding: 8px 20px 0; background: var(--surface); flex-shrink:0; }
+  .reply-preview-item{
+    position:relative; display:flex; align-items:center; gap:9px; background: var(--surface-2);
+    border:1px solid var(--border); border-radius: var(--radius-md); padding:8px 34px 8px 12px;
+    animation: chipIn .3s var(--ease-spring);
+  }
+  .reply-preview-item .rp-bar{ width:3px; align-self:stretch; border-radius:3px; background: var(--amber); flex-shrink:0; }
+  .reply-preview-item .rp-body{ min-width:0; flex:1; }
+  #reply-preview-name{ font-size: 11.5px; font-weight:700; color: var(--amber); }
+  #reply-preview-text{ font-size: 12px; color: var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #reply-preview-clear{
+    position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%;
+    background: var(--danger); color:#fff; border:2px solid var(--surface); cursor:pointer;
+    font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+
+  .read-chips{ display:flex; gap:3px; margin-top:4px; padding: 0 3px; cursor:pointer; }
+  .msg-row.mine .read-chips{ justify-content:flex-end; }
+  .read-chip{ width:15px; height:15px; border-radius:50%; background: var(--surface-3); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; animation: chipIn .42s var(--ease-spring); }
+  .read-names{ display:none; font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); padding: 2px 3px 0; }
+  .read-chips.expanded + .read-names{ display:block; }
+
+  .verify-badge{ flex-shrink:0; filter: drop-shadow(0 1px 1px #00000030); vertical-align: -2px; }
+  .verify-badge.gold{ animation: goldPulse 2.6s ease-in-out infinite; }
+  @keyframes goldPulse{ 0%,100%{ filter: drop-shadow(0 1px 1px #00000030) drop-shadow(0 0 0 transparent); } 50%{ filter: drop-shadow(0 1px 1px #00000030) drop-shadow(0 0 3px var(--gold)); } }
+
+  #typing-indicator{ min-height: 22px; padding: 0 26px; font-family: var(--font-mono); font-size: 11px; color: var(--teal); display:flex; align-items:center; gap:6px; flex-shrink: 0; }
+  #typing-indicator .bars{ display:flex; gap:2px; align-items:flex-end; height:10px; }
+  #typing-indicator .bars span{ width:2px; background: var(--teal); animation: bounce 1s infinite ease-in-out; }
+  #typing-indicator .bars span:nth-child(2){ animation-delay:.15s; }
+  #typing-indicator .bars span:nth-child(3){ animation-delay:.3s; }
+
+  .msg-image{
+    display:block; max-width: 240px; max-height: 320px; width:auto; height:auto;
+    border-radius: 14px; cursor:zoom-in; box-shadow: var(--shadow-sm);
+  }
+  .bubble.has-image{ padding: 5px !important; background: transparent !important; border: none !important; box-shadow:none !important; }
+  .bubble.has-image.has-text{ padding: 5px 5px 9px !important; background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-sm) !important; }
+  [data-theme="light"] .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, #FBEAC9, #F5DAA0) !important; border-color: var(--amber-dim) !important; }
+  .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, #2a2115, #1c1712) !important; border-color: var(--amber-dim) !important; }
+  .bubble.has-image.has-text .msg-image{ margin-bottom: 6px; }
+  .bubble.has-image .msg-image-expired{
+    display:flex; align-items:center; justify-content:center; width:180px; height:110px;
+    border-radius:14px; background: var(--surface-2); border:1px dashed var(--border);
+    color: var(--text-faint); font-size:11.5px; font-family: var(--font-mono);
+  }
+
+  #image-preview-strip{ padding: 8px 20px 0; background: var(--surface); flex-shrink:0; }
+  .image-preview-item{ position:relative; display:inline-flex; align-items:center; gap:8px; background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-md); padding:6px; animation: chipIn .3s var(--ease-spring); }
+  .image-preview-item img{ width:52px; height:52px; object-fit:cover; border-radius:8px; }
+  #image-preview-meta{ font-family: var(--font-mono); font-size:10px; color: var(--text-faint); padding-right:22px; }
+  #image-preview-clear{
+    position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%;
+    background: var(--danger); color:#fff; border:2px solid var(--surface); cursor:pointer;
+    font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+
+  #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); flex-shrink:0; }
+  #attach-btn{
+    background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
+    width:42px; height:42px; border-radius: var(--radius-pill); cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; transition: transform .12s, color .15s, border-color .15s;
+  }
+  #attach-btn:hover{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); transform: translateY(-1px) rotate(-8deg) scale(1.06); }
+  #attach-btn:active{ transform: scale(.9) rotate(0deg); transition-duration: .1s; }
+
+  #lightbox-modal{ background:#04060acc; cursor:zoom-out; }
+  #lightbox-inner{ max-width:92vw; max-height:88vh; animation: modalCardIn .25s var(--ease-spring); }
+  #lightbox-img{ max-width:92vw; max-height:88vh; width:auto; height:auto; border-radius:10px; box-shadow: 0 20px 60px #000000a0; display:block; }
+  #msg-input{
+    flex:1; resize:none; max-height: 120px; min-height: 42px;
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius-md); padding: 11px 14px; font-size: 14px; line-height:1.4;
+    outline:none; transition: border-color .15s;
+  }
+  #msg-input:focus{ border-color: var(--amber); box-shadow: 0 0 0 3.5px var(--amber-dim); }
+  #msg-input::placeholder{ color: var(--text-faint); }
+  #send-btn{
+    background: linear-gradient(150deg, var(--amber), #c97f22); border:none; color: #14100a;
+    width: 42px; height: 42px; border-radius: var(--radius-pill); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition: transform .12s, box-shadow .18s;
+  }
+  #send-btn:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 6px 18px #E8A33D40; }
+  #send-btn:active:not(:disabled){ transform: scale(.94); }
+  #send-btn:disabled{ opacity:.4; cursor:default; transform:none; box-shadow:none; }
+  @keyframes sendPulse{ 0%{ transform: scale(1); } 40%{ transform: scale(.86); } 100%{ transform: scale(1); } }
+  #send-btn.sent{ animation: sendPulse .32s cubic-bezier(.3,1.6,.4,1); }
+
+  /* ===================== Modals ===================== */
+  @keyframes modalScrimIn{ from{ opacity:0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); } to{ opacity:1; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); } }
+  @keyframes modalCardIn{ from{ opacity:0; transform: translateY(28px) scale(.92); } to{ opacity:1; transform: translateY(0) scale(1); } }
+  .modal-scrim{
+    position:fixed; inset:0; background:#060a0ecc; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    display:flex; align-items:center; justify-content:center; z-index:100; padding: 20px; overflow-y: auto;
+    animation: modalScrimIn .32s var(--ease-ios);
+  }
+  .modal-card{
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 26px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow-md); margin: auto;
+    animation: modalCardIn .46s var(--ease-spring);
+  }
+  .modal-card .eyebrow{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing:.14em; }
+  .modal-card h2{ font-family: var(--font-display); font-size: 21px; margin: 6px 0 4px; }
+  .modal-card p{ font-size: 12.5px; color: var(--text-muted); line-height:1.6; margin: 0 0 16px; }
+  .modal-card input{
+    width:100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius-sm); padding: 11px 13px; font-size: 14px; outline:none; margin-bottom: 12px;
+    transition: border-color .18s var(--ease-ios), box-shadow .18s var(--ease-ios);
+  }
+  .modal-card input:focus{ border-color: var(--amber); box-shadow: 0 0 0 3.5px var(--amber-dim); }
+  .modal-card button.primary{
+    width:100%; background: linear-gradient(150deg, var(--amber), #c97f22); border:none; color:#14100a;
+    font-weight:600; font-size: 14px; padding: 12px; border-radius: var(--radius-pill); cursor:pointer; margin-top: 4px;
+    transition: transform .28s var(--ease-spring), box-shadow .18s var(--ease-ios), opacity .16s ease;
+  }
+  .modal-card button.primary:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 8px 20px #E8A33D40; }
+  .modal-card button.primary:active:not(:disabled){ transform: scale(.97); transition-duration: .1s; }
+  .modal-card button.primary:disabled{ opacity:.4; cursor:default; }
+  .modal-card .cancel{
+    display:block; width:100%; text-align:center; margin-top:10px; background:none; border:none;
+    color: var(--text-faint); font-size: 12.5px; cursor:pointer; padding: 6px; border-radius: var(--radius-xs);
+    transition: color .18s var(--ease-ios), background-color .18s var(--ease-ios);
+  }
+  .modal-card .cancel:hover{ color: var(--text-muted); background: var(--surface-2); }
+  .field-error{ color: var(--danger); font-size: 11.5px; margin: -6px 0 12px; display:none; }
+
+  .profile-preview{ display:flex; justify-content:center; margin-bottom: 16px; }
+  .preview-avatar{
+    width: 60px; height: 60px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-family: var(--font-display); font-size: 22px; font-weight: 700;
+    transition: transform .3s var(--ease-spring);
+  }
+  .field-label{ font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); letter-spacing: .08em; margin: 0 0 6px; text-transform: uppercase; }
+  .icon-picker{ display:grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 10px; }
+  .icon-btn{
+    width: 100%; aspect-ratio: 1; border-radius: var(--radius-xs); border: 1px solid var(--border); background: var(--surface-2);
+    font-size: 16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition: border-color .16s var(--ease-ios), background-color .16s var(--ease-ios), transform .25s var(--ease-spring);
+  }
+  .icon-btn:hover{ transform: translateY(-1px) scale(1.06); }
+  .icon-btn:active{ transform: scale(.9); transition-duration: .1s; }
+  .icon-btn.selected{ border-color: var(--amber); background: var(--amber-dim); transform: scale(1.05); }
+
+  .image-pick-row{ display:flex; gap:8px; margin-bottom: 14px; }
+  .image-pick-btn{
+    flex:1; text-align:center; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius-sm); padding: 10px; font-size: 12.5px; cursor:pointer;
+    transition: transform .25s var(--ease-spring), box-shadow .16s var(--ease-ios), border-color .16s var(--ease-ios);
+  }
+  .image-pick-btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); border-color: var(--amber-dim); }
+  .image-pick-btn:active{ transform: scale(.96); transition-duration: .1s; }
+  .mini-btn, .mini-btn-outline, .mini-btn-danger, .mini-btn-gold{
+    border-radius: var(--radius-pill); padding: 6px 12px; font-size: 11px; cursor:pointer; flex-shrink:0; white-space:nowrap;
+    transition: transform .25s var(--ease-spring), box-shadow .16s var(--ease-ios), background-color .16s var(--ease-ios);
+  }
+  .mini-btn{ background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-dim); }
+  .mini-btn-outline{ background:none; border: 1px solid var(--border); color: var(--text-muted); }
+  .mini-btn-danger{ background:#4a1f1a; color:#ff9d8a; border:1px solid #6b2f26; }
+  [data-theme="light"] .mini-btn-danger{ background:#FBE2DC; color:#B23A22; border:1px solid #EBC1B6; }
+  .mini-btn-gold{ background: var(--gold-dim); color: var(--gold-2); border: 1px solid var(--gold-dim); }
+  .mini-btn:hover, .mini-btn-outline:hover, .mini-btn-gold:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+  .mini-btn:active, .mini-btn-outline:active, .mini-btn-gold:active, .mini-btn-danger:active{ transform: scale(.94); transition-duration: .1s; }
+  .mini-btn-danger:hover{ transform: translateY(-1px); }
+
+  .uid-row{ display:flex; align-items:center; gap:8px; margin-bottom: 14px; }
+  .uid-row code{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 10.5px; color: var(--text-muted); background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-xs); padding:6px 8px; }
+
+  .verify-row{ margin-bottom: 16px; }
+  .verify-badge-lg{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color: var(--teal); font-weight:600; }
+  .verify-badge-lg.gold{ color: var(--gold-2); }
+  .verify-pending{ font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); }
+
+  /* Admin panel */
+  .admin-card{ max-width: 430px; }
+  .admin-tabs{ position:relative; display:flex; gap:4px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 4px; }
+  .admin-tabs .tab-thumb{
+    position:absolute; top:4px; bottom:4px; left:4px; width: 40px;
+    background: linear-gradient(150deg, var(--amber), #c97f22); border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm); transition: transform .45s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
+  }
+  .admin-tab{ position:relative; z-index:1; flex:1; background:none; border:none; color: var(--text-muted); padding: 8px; border-radius: var(--radius-pill); font-size: 12px; cursor:pointer; transition: color .25s var(--ease-ios); }
+  .admin-tab.active{ border-color: transparent; color: #14100a; font-weight:600; }
+  .admin-panel-body{ max-height: 48vh; overflow-y:auto; }
+  .admin-row{ display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .admin-row:last-child{ border-bottom:none; }
+  .admin-row .avatar-sm{ width:26px; height:26px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; overflow:hidden; }
+  .admin-row .avatar-sm img{ width:100%; height:100%; object-fit:cover; }
+  .admin-row .info{ flex:1; min-width:0; font-size: 12.5px; display:flex; align-items:center; gap:4px; }
+  .admin-row .actions{ display:flex; gap:5px; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+  .admin-empty{ text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 11.5px; padding: 20px 0; }
+
+  /* DM / Friends */
+  .friends-btn{
+    margin: 0 14px 10px; padding: 9px 10px; border-radius: var(--radius-md);
+    background: var(--surface-2); border: 1px solid var(--teal-dim); color: var(--teal);
+    font-size: 12.5px; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:6px; flex-shrink:0; position:relative;
+    transition: background-color .18s var(--ease-ios), box-shadow .18s var(--ease-ios), transform .28s var(--ease-spring);
+  }
+  .friends-btn:hover{ background: var(--teal-dim); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+  .friends-btn:active{ transform: scale(.97); transition-duration: .1s; }
+  .friends-btn .req-dot{
+    position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; padding:0 3px;
+    border-radius: var(--radius-pill); background: var(--danger); color:#fff; font-family: var(--font-mono);
+    font-size: 9.5px; line-height:16px; text-align:center; display:none; box-shadow: 0 0 0 2px var(--surface);
+  }
+  .friends-btn .req-dot.show{ display:block; }
+  #dm-list{ list-style:none; margin:0; padding: 4px 10px 14px; overflow-y:auto; flex:1; min-height: 0; }
+  .dm-item{
+    display:flex; align-items:center; gap:10px; padding: 9px 10px; border-radius: var(--radius-sm);
+    cursor:pointer; margin-bottom: 3px; border: 1px solid transparent;
+    transition: background-color .15s var(--ease-ios), border-color .15s var(--ease-ios), transform .28s var(--ease-spring), box-shadow .15s var(--ease-ios);
+  }
+  .dm-item:hover{ background: var(--surface-2); transform: translateX(1px); }
+  .dm-item:active{ transform: scale(.97); transition-duration: .1s; }
+  .dm-item.active{ background: var(--surface-2); border-color: var(--teal-dim); box-shadow: var(--shadow-sm); }
+  .dm-avatar{
+    width: 32px; height: 32px; border-radius: 50%; background: var(--surface-3); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:14px; overflow:hidden;
+    border: 1px solid var(--border);
+  }
+  .dm-name{ font-size: 13.5px; color: var(--text); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dm-empty{ font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); padding: 4px 8px; }
+
+  .friend-search-row{ display:flex; gap:8px; margin-bottom:10px; }
+  .friend-search-row input{ margin-bottom:0; }
+  .friend-list-row{ display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .friend-list-row:last-child{ border-bottom:none; }
+  .friend-list-row .avatar-sm{ width:26px; height:26px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; overflow:hidden; }
+  .friend-list-row .info{ flex:1; min-width:0; font-size: 12.5px; }
+  .friend-list-row .actions{ display:flex; gap:5px; flex-shrink:0; }
+
+  #config-warning{
+    position:fixed; left:16px; right:16px; bottom:16px; z-index: 90;
+    background: #2b1a12; border: 1px solid #6b3f1c; color: #f0c896;
+    font-family: var(--font-mono); font-size: 11.5px; line-height:1.6;
+    padding: 12px 14px; border-radius: var(--radius-md); max-width: 480px; box-shadow: 0 20px 50px #0008;
+  }
+  #config-warning b{ color: var(--amber); }
+
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.25;} }
+  @keyframes bounce{ 0%,60%,100%{ height:3px; } 30%{ height:10px; } }
+  @keyframes chipIn{ from{ opacity:0; transform: scale(.5); } to{ opacity:1; transform: scale(1); } }
+
+  /* ===================== 起動画面（スプラッシュ） ===================== */
+  html.show-splash #app{ opacity:0; }
+  #splash-screen{
+    position:fixed; inset:0; z-index:600;
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+    background:#ffffff; gap: 0;
+    opacity:1; transition: opacity .5s var(--ease-ios);
+  }
+  html.show-splash #splash-screen{ display:flex; }
+  #splash-screen.splash-out{ opacity:0; pointer-events:none; }
+  .splash-mark{ width:140px; height:140px; border-radius: 32px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom: 2px; }
+  .splash-mark img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .splash-sub{ font-family: var(--font-mono); font-size: 10px; color:#8E8E93; letter-spacing:.14em; margin-top: 0; }
+  .splash-spinner{
+    width:28px; height:28px; margin-top: 14px; border-radius:50%;
+    background: conic-gradient(from 0deg, transparent 0%, #C7C7CC 35%, #1C1C1E 100%);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+    animation: splashSpin 1s cubic-bezier(.45,.05,.55,.95) infinite;
+  }
+  @keyframes splashSpin{ from{ transform: rotate(0deg); } to{ transform: rotate(360deg); } }
+
+  /* ===================== メンテナンスモード ===================== */
+  #maintenance-screen{
+    position:fixed; inset:0; z-index:500;
+    display:none; align-items:center; justify-content:center;
+    background: var(--bg-grad); padding: 20px;
+  }
+  .maintenance-card{
+    max-width: 380px; width:100%; text-align:center;
+    background: var(--surface-2); border: 1px solid var(--gold-dim); border-radius: var(--radius-lg);
+    padding: 36px 26px; box-shadow: var(--shadow-md);
+  }
+  .maintenance-icon{
+    width:56px; height:56px; margin: 0 auto 16px; border-radius: 50%;
+    background: var(--gold-dim); color: var(--gold); font-size: 24px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .maintenance-card h2{ margin: 0 0 10px; font-family: var(--font-display); font-size: 19px; letter-spacing:.02em; }
+  .maintenance-card p{ margin: 0 0 6px; font-size: 13px; color: var(--text-muted); line-height:1.7; }
+  .maintenance-sub{ margin-top: 14px; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); letter-spacing:.04em; }
+  .maintenance-admin-status{ display:inline-flex; align-items:center; gap:7px; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); padding: 6px 12px; border-radius: var(--radius-pill); background: var(--surface-3); margin-bottom:10px; }
+  .maintenance-admin-status .dot{ width:7px; height:7px; border-radius:50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+  .maintenance-admin-status.on{ color: var(--gold); }
+  .maintenance-admin-status.on .dot{ background: var(--gold); box-shadow: 0 0 6px var(--gold); animation: blink 1.4s infinite; }
+  .maintenance-admin-desc{ font-size: 12px; color: var(--text-muted); line-height:1.6; margin-bottom: 14px; }
+
+  @media (prefers-reduced-motion: reduce){ * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<script>
+  // 起動画面: 初回起動時は表示せず、2回目以降の起動時のみ表示する
+  (function(){
+    try {
+      var LAUNCH_KEY = 'signal_launched_before';
+      var launchedBefore = localStorage.getItem(LAUNCH_KEY) === '1';
+      localStorage.setItem(LAUNCH_KEY, '1');
+      if (launchedBefore) document.documentElement.classList.add('show-splash');
+    } catch(_) {}
+  })();
+</script>
+
+<div id="splash-screen">
+  <div class="splash-mark"><img src="icon-192.png" alt="SIGNAL"></div>
+  <div class="splash-sub">REALTIME・CHAT</div>
+  <div class="splash-spinner"></div>
+</div>
+
+<div id="maintenance-screen">
+  <div class="maintenance-card">
+    <div class="maintenance-icon">🛠</div>
+    <h2>ただいまメンテナンス中です</h2>
+    <p>現在SIGNALはメンテナンスのため一時的にご利用いただけません。</p>
+    <p>金認証バッジをお持ちの方のみログインできます。</p>
+    <div class="maintenance-sub">しばらくしてから再度アクセスしてください</div>
+  </div>
+</div>
+
+<div id="app">
+
+  <div id="sidebar-scrim"></div>
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-text">
+        <b>SIGNAL</b>
+        <span>REALTIME · MULTI-CHANNEL</span>
+      </div>
+    </div>
+
+    <div class="self-card">
+      <div class="self-avatar" id="self-avatar">–</div>
+      <div class="self-meta">
+        <div class="name" id="self-name">–</div>
+        <div class="status"><span class="dot"></span><span id="self-status-text">送信可能</span></div>
+      </div>
+      <div class="icon-actions">
+        <button class="edit-name-btn" id="theme-toggle" title="テーマ切替">🌙</button>
+        <button class="edit-name-btn" id="edit-name-btn" title="プロフィールを編集">✎</button>
+      </div>
+    </div>
+
+    <button class="admin-btn" id="admin-panel-btn">管理者パネル</button>
+    <button class="friends-btn" id="friends-panel-btn">フレンド<span class="req-dot" id="friend-req-dot">0</span></button>
+
+    <div class="sidebar-tabs" id="sidebar-tabs">
+      <div class="tab-thumb"></div>
+      <button type="button" data-tab="channels" class="active">チャンネル</button>
+      <button type="button" data-tab="dms">DM<span class="req-dot" id="dm-tab-dot">0</span></button>
+    </div>
+
+    <div id="channel-section" class="sidebar-section">
+      <div class="section-label">
+        <span>チャンネル</span>
+        <span class="channel-edit-controls">
+          <button class="edit-mode-btn" id="edit-mode-btn" title="並び替え・名前変更">✎</button>
+          <button class="add-channel-btn" id="add-channel-btn" title="チャンネルを追加">+</button>
+        </span>
+      </div>
+      <div class="scope-switch" id="scope-switch">
+        <div class="tab-thumb"></div>
+        <button type="button" data-scope="personal" class="active">自分だけ</button>
+        <button type="button" data-scope="global">全体(管理者)</button>
+      </div>
+      <ul id="channel-list"></ul>
+    </div>
+
+    <div class="dm-section" id="dm-section" style="display:none;">
+      <ul id="dm-list"></ul>
+    </div>
+
+    <div class="online-panel">
+      <div class="section-label" style="padding:0;">オンライン — <span id="online-count">0</span>人</div>
+      <div id="online-list"></div>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header id="topbar">
+      <button id="menu-btn">☰</button>
+      <div class="titles">
+        <div class="freq" id="topbar-freq">—</div>
+        <h1 id="topbar-name">読み込み中…</h1>
+      </div>
+      <canvas id="waveform"></canvas>
+      <button id="notif-toggle" title="通知を有効化">🔔<span class="unread-dot" id="notif-unread-dot">0</span></button>
+      <div id="onair" class="off"><span class="dot"></span><span id="onair-text">接続中</span></div>
+    </header>
+
+    <div id="messages">
+      <div class="empty-state" id="empty-state">まだメッセージがありません。<br>最初の一言を送信してみましょう。</div>
+    </div>
+
+    <div id="typing-indicator"></div>
+
+    <div id="image-preview-strip" style="display:none;">
+      <div class="image-preview-item">
+        <img id="image-preview-thumb" src="" alt="">
+        <button type="button" id="image-preview-clear" title="画像を取り消す">✕</button>
+        <div id="image-preview-meta"></div>
+      </div>
+    </div>
+    <div id="reply-preview-strip" style="display:none;">
+      <div class="reply-preview-item">
+        <div class="rp-bar"></div>
+        <div class="rp-body">
+          <div id="reply-preview-name"></div>
+          <div id="reply-preview-text"></div>
+        </div>
+        <button type="button" id="reply-preview-clear" title="返信を取り消す">✕</button>
+      </div>
+    </div>
+    <div id="composer">
+      <input type="file" id="image-file-input" accept="image/*" style="display:none;">
+      <button id="attach-btn" type="button" title="画像を送信">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <textarea id="msg-input" rows="1" placeholder="メッセージを入力…"></textarea>
+      <button id="send-btn" disabled title="送信">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11L21 3L13 21L11 13L3 11Z" stroke="#14100a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </main>
+
+</div>
+
+<!-- ===================== 画像ライトボックス ===================== -->
+<div class="modal-scrim" id="lightbox-modal" style="display:none;">
+  <div id="lightbox-inner">
+    <img id="lightbox-img" src="" alt="">
+  </div>
+</div>
+
+<!-- ===================== プロフィール設定モーダル ===================== -->
+<div class="modal-scrim" id="nick-modal">
+  <div class="modal-card">
+    <div class="eyebrow">PROFILE</div>
+    <h2>周波数に接続</h2>
+    <p>チャットで表示される名前とアイコンを設定してください。あとから変更できます。</p>
+
+    <div class="profile-preview"><div class="preview-avatar" id="preview-avatar">–</div></div>
+
+    <div class="field-label">名前(他の人と重複できません)</div>
+    <input type="text" id="nick-input" maxlength="20" placeholder="太郎" autocomplete="off">
+    <div class="field-error" id="nick-error">その名前はすでに使われています</div>
+
+    <div class="field-label">画像アイコン(任意・自動で圧縮されます)</div>
+    <div class="image-pick-row">
+      <label class="image-pick-btn" for="icon-file">📷 画像を選択</label>
+      <input type="file" id="icon-file" accept="image/*" style="display:none;">
+      <button type="button" id="icon-img-clear" class="mini-btn-outline">画像を削除</button>
+    </div>
+
+    <div class="field-label">絵文字アイコン(画像が無いときに使われます)</div>
+    <div class="icon-picker" id="icon-picker">
+      <button type="button" class="icon-btn" data-icon="">Aa</button>
+      <button type="button" class="icon-btn" data-icon="🔥">🔥</button>
+      <button type="button" class="icon-btn" data-icon="🌙">🌙</button>
+      <button type="button" class="icon-btn" data-icon="⚡">⚡</button>
+      <button type="button" class="icon-btn" data-icon="🌊">🌊</button>
+      <button type="button" class="icon-btn" data-icon="🦊">🦊</button>
+      <button type="button" class="icon-btn" data-icon="🐼">🐼</button>
+      <button type="button" class="icon-btn" data-icon="🎮">🎮</button>
+      <button type="button" class="icon-btn" data-icon="🍀">🍀</button>
+      <button type="button" class="icon-btn" data-icon="⭐">⭐</button>
+      <button type="button" class="icon-btn" data-icon="🍉">🍉</button>
+      <button type="button" class="icon-btn" data-icon="🎵">🎵</button>
+      <button type="button" class="icon-btn" data-icon="🧊">🧊</button>
+      <button type="button" class="icon-btn" data-icon="🚀">🚀</button>
+    </div>
+    <input type="text" id="icon-input" maxlength="4" placeholder="自由入力も可(例: 🐧)" autocomplete="off">
+
+    <div class="field-label">認証バッジ</div>
+    <div class="verify-row" id="verify-status"></div>
+
+    <div class="field-label">UID(管理者設定に使います)</div>
+    <div class="uid-row"><code id="my-uid-display">読み込み中…</code><button type="button" id="copy-uid-btn" class="mini-btn-outline">コピー</button></div>
+
+    <button class="primary" id="nick-confirm" disabled>チャットを開始</button>
+  </div>
+</div>
+
+<!-- ===================== チャンネル追加モーダル ===================== -->
+<div class="modal-scrim" id="channel-modal" style="display:none;">
+  <div class="modal-card">
+    <div class="eyebrow">NEW CHANNEL</div>
+    <h2>チャンネルを作成</h2>
+    <p>新しい話題用のチャンネルを作ります。</p>
+    <input type="text" id="channel-input" maxlength="24" placeholder="例: 雑談" autocomplete="off">
+    <button class="primary" id="channel-confirm" disabled>作成する</button>
+    <button class="cancel" id="channel-cancel">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===================== チャンネル名編集モーダル ===================== -->
+<div class="modal-scrim" id="channel-rename-modal" style="display:none;">
+  <div class="modal-card">
+    <div class="eyebrow">RENAME CHANNEL</div>
+    <h2>チャンネル名を変更</h2>
+    <p id="channel-rename-desc">この変更を誰に適用しますか？</p>
+    <input type="text" id="channel-rename-input" maxlength="24" placeholder="新しいチャンネル名" autocomplete="off">
+    <button class="primary" id="channel-rename-personal">自分だけに適用(このブラウザのみ)</button>
+    <button class="primary" id="channel-rename-global" style="display:none; margin-top:8px; background:linear-gradient(150deg, var(--teal), #1c9c80);">全員に適用(管理者)</button>
+    <button class="cancel" id="channel-rename-cancel">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===================== フレンドパネル ===================== -->
+<div class="modal-scrim" id="friends-modal" style="display:none;">
+  <div class="modal-card admin-card">
+    <div class="eyebrow">FRIENDS</div>
+    <h2>フレンド</h2>
+    <div class="admin-tabs" id="friends-tabs">
+      <div class="tab-thumb"></div>
+      <button class="admin-tab active" data-ftab="list">友達</button>
+      <button class="admin-tab" data-ftab="requests">申請<span id="friend-tab-dot"></span></button>
+      <button class="admin-tab" data-ftab="add">追加</button>
+    </div>
+    <div class="admin-panel-body" id="friends-panel-body"></div>
+    <button class="cancel" id="friends-close">閉じる</button>
+  </div>
+</div>
+
+<!-- ===================== 管理者パネル ===================== -->
+<div class="modal-scrim" id="admin-modal" style="display:none;">
+  <div class="modal-card admin-card">
+    <div class="eyebrow">ADMIN</div>
+    <h2>管理者パネル</h2>
+    <div class="admin-tabs" id="admin-tabs">
+      <div class="tab-thumb"></div>
+      <button class="admin-tab active" data-tab="requests">認証申請</button>
+      <button class="admin-tab" data-tab="users">ユーザー</button>
+      <button class="admin-tab" data-tab="channels">チャンネル</button>
+      <button class="admin-tab" data-tab="maintenance">メンテナンス</button>
+    </div>
+    <div class="admin-panel-body" id="admin-panel-body"></div>
+    <button class="cancel" id="admin-close">閉じる</button>
+  </div>
+</div>
+
+<!-- ===================== 設定未完了 / エラーの警告 ===================== -->
+<div id="config-warning" style="display:none;">
+  <b>⚠ Firebase未設定</b><br>
+  このファイル内の <b>firebaseConfig</b> がプレースホルダのままです。
+</div>
+
+<script type="module">
+/* =========================================================================
+   SIGNAL — realtime multi-user chat (Firebase Firestore + Anonymous Auth)
+   ========================================================================= */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc, deleteField,
+  onSnapshot, query, orderBy, limit, where, serverTimestamp, runTransaction, arrayUnion, arrayRemove
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ ここにFirebaseの設定を貼り付け ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+const firebaseConfig = {
+  apiKey: "AIzaSyCLq37f-Dvak943qHOSvTjgrJoD-1Xovm0",
+  authDomain: "signalchat-d2112.firebaseapp.com",
+  projectId: "signalchat-d2112",
+  storageBucket: "signalchat-d2112.firebasestorage.app",
+  messagingSenderId: "30027633420",
+  appId: "1:30027633420:web:1b07b6b00af7eb38dbef29"
+};
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+// ▼ 管理者にしたい人のUIDをここに追加(プロフィール編集モーダルの下部で確認できます) ▼
+const ADMIN_UIDS = [
+  "p1h9p2bdxDO3lce6dPkhxM7fhui1",
+];
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+let db = null, auth = null;
+
+if (isConfigured) {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+  auth = getAuth(app);
+} else {
+  document.getElementById('config-warning').style.display = 'block';
+  document.getElementById('onair-text').textContent = '未接続';
+}
+
+const CHECK_SVG = '<svg class="verify-badge" viewBox="0 0 20 20" width="13" height="13" fill="none"><defs><radialGradient id="vbBlueGrad" cx="35%" cy="28%" r="80%"><stop offset="0%" stop-color="#8FC3FF"/><stop offset="55%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#1D4ED8"/></radialGradient></defs><circle cx="10" cy="10" r="9" fill="url(#vbBlueGrad)"/><path d="M6 10.5l2.5 2.5L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const GOLD_CHECK_SVG = '<svg class="verify-badge gold" viewBox="0 0 20 20" width="13" height="13" fill="none"><defs><radialGradient id="vbGoldGrad" cx="35%" cy="28%" r="80%"><stop offset="0%" stop-color="#FDEFC0"/><stop offset="50%" stop-color="#E8B94D"/><stop offset="100%" stop-color="#9C6E17"/></radialGradient></defs><circle cx="10" cy="10" r="9" fill="url(#vbGoldGrad)"/><path d="M6 10.5l2.5 2.5L14 7.5" stroke="#3B2607" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* ------------------------------------------------------------------ */
+/* ローカルキャッシュ（初回描画を速くするため。正はFirestore側）          */
+/* ------------------------------------------------------------------ */
+const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img', THEME_KEY = 'signal_theme', NOTIF_KEY = 'signal_notif';
+const LOCAL_CH_NAMES_KEY = 'signal_ch_names', LOCAL_CH_ORDER_KEY = 'signal_ch_order';
+let localChannelNames = {};
+let localChannelOrder = [];
+try { localChannelNames = JSON.parse(localStorage.getItem(LOCAL_CH_NAMES_KEY) || '{}'); } catch(_) { localChannelNames = {}; }
+try { localChannelOrder = JSON.parse(localStorage.getItem(LOCAL_CH_ORDER_KEY) || '[]'); } catch(_) { localChannelOrder = []; }
+let editMode = false;
+let scopeMode = 'personal'; // 'personal' | 'global'（管理者のみ切替可）
+let currentKind = 'channel'; // 'channel' | 'dm'
+let currentDmId = null, currentDmOtherUid = null, currentDmOtherName = null;
+let friendsCache = {};          // { friendUid: {name, icon, iconImg} }
+let friendRequestsCache = [];   // 自分宛の pending 申請
+let sentRequestsCache = [];     // 自分が送った pending 申請
+let currentFriendTab = 'list';
+let dmMetaCache = {};           // { dmId: {participants, lastText, updatedAt} }
+let unreadByDm = {};
+const dmNotifWatchers = {};
+let myUid = null;
+let myName = localStorage.getItem(NAME_KEY) || '';
+let myIcon = localStorage.getItem(ICON_KEY) || '';
+let myIconImg = localStorage.getItem(ICONIMG_KEY) || '';
+let isAdmin = false;
+let pendingIconImg = '';
+// 早期に使う変数はここでまとめて宣言（Temporal Dead Zone 回避）
+let usersCache = {};
+let myVerifyStatus = null;
+let knownIds = new Set();
+let lastDocsSnapshot = [];
+let readsMap = {};
+let lastOnline = [];
+let currentChannelId = null;
+let currentChannelName = '';
+let unsubMessages = null, unsubTyping = null, unsubReads = null;
+let channelsCache = [];
+let typingTimeout = null;
+let lastMarkReadAt = 0;
+let hbTimer = null;
+let adminModalOpen = false;
+let currentAdminTab = 'requests';
+let pendingVerifyRequests = [];
+let notifEnabled = false;
+let unreadByChannel = {};
+let channelNameCache = {};
+const notifWatchers = {};
+let maintenanceEnabled = false; // メンテナンスモード（金認証ユーザー以外はログイン不可）
+
+/* ------------------------------------------------------------------ */
+/* DOM refs                                                            */
+/* ------------------------------------------------------------------ */
+const $ = (id) => document.getElementById(id);
+const els = {
+  sidebar: $('sidebar'), scrim: $('sidebar-scrim'), menuBtn: $('menu-btn'),
+  selfName: $('self-name'), selfAvatar: $('self-avatar'), editNameBtn: $('edit-name-btn'),
+  themeToggle: $('theme-toggle'),
+  adminPanelBtn: $('admin-panel-btn'),
+  channelList: $('channel-list'), addChannelBtn: $('add-channel-btn'),
+  onlineList: $('online-list'), onlineCount: $('online-count'),
+  topbarFreq: $('topbar-freq'), topbarName: $('topbar-name'),
+  onair: $('onair'), onairText: $('onair-text'),
+  messages: $('messages'), emptyState: $('empty-state'),
+  typing: $('typing-indicator'),
+  input: $('msg-input'), sendBtn: $('send-btn'),
+  attachBtn: $('attach-btn'), imageFileInput: $('image-file-input'),
+  imagePreviewStrip: $('image-preview-strip'), imagePreviewThumb: $('image-preview-thumb'),
+  imagePreviewClear: $('image-preview-clear'), imagePreviewMeta: $('image-preview-meta'),
+  replyPreviewStrip: $('reply-preview-strip'), replyPreviewName: $('reply-preview-name'),
+  replyPreviewText: $('reply-preview-text'), replyPreviewClear: $('reply-preview-clear'),
+  lightboxModal: $('lightbox-modal'), lightboxImg: $('lightbox-img'),
+  nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
+  iconPicker: $('icon-picker'), iconInput: $('icon-input'), previewAvatar: $('preview-avatar'),
+  iconFile: $('icon-file'), iconImgClear: $('icon-img-clear'),
+  verifyStatus: $('verify-status'), myUidDisplay: $('my-uid-display'), copyUidBtn: $('copy-uid-btn'),
+  channelModal: $('channel-modal'), channelInput: $('channel-input'),
+  channelConfirm: $('channel-confirm'), channelCancel: $('channel-cancel'),
+  adminModal: $('admin-modal'), adminPanelBody: $('admin-panel-body'), adminClose: $('admin-close'),
+  maintenanceScreen: $('maintenance-screen'), splashScreen: $('splash-screen'),
+  waveform: $('waveform'),
+  notifToggle: $('notif-toggle'), notifUnreadDot: $('notif-unread-dot'),
+  editModeBtn: $('edit-mode-btn'), scopeSwitch: $('scope-switch'),
+  sidebarTabs: $('sidebar-tabs'), channelSection: $('channel-section'), dmSection: $('dm-section'), dmTabDot: $('dm-tab-dot'),
+  channelRenameModal: $('channel-rename-modal'), channelRenameInput: $('channel-rename-input'),
+  channelRenameDesc: $('channel-rename-desc'), channelRenamePersonal: $('channel-rename-personal'),
+  channelRenameGlobal: $('channel-rename-global'), channelRenameCancel: $('channel-rename-cancel'),
+  dmList: $('dm-list'),
+  friendsPanelBtn: $('friends-panel-btn'), friendReqDot: $('friend-req-dot'),
+  friendsModal: $('friends-modal'), friendsPanelBody: $('friends-panel-body'), friendsClose: $('friends-close'),
+  friendTabDot: $('friend-tab-dot'),
+};
+
+// スクリプトが動いている証拠として即座に表示を変える
+// （ここが「読み込み中…」のままなら、JSが読み込めていないかデプロイが古い）
+if (els.myUidDisplay) {
+  els.myUidDisplay.textContent = '認証準備中…';
+}
+if (els.onairText) {
+  els.onairText.textContent = '初期化中';
+}
+
+const avatarColor = (seed) => {
+  let h = 0; for (const c of String(seed)) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return `hsl(${h}, 55%, 62%)`;
+};
+const initials = (name) => (name || '?').trim().slice(0, 1).toUpperCase();
+const pseudoFreq = (id) => {
+  let h = 0; for (const c of id) h = (h * 17 + c.charCodeAt(0)) % 999;
+  return (80 + (h % 40) + (h % 100) / 100).toFixed(1);
+};
+function escapeHtml(str){
+  return (str || '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+/** 画像 > 絵文字 > イニシャル の優先順でアバターのHTMLを返す */
+function avatarInner(p){
+  if (p && p.iconImg) return `<img src="${p.iconImg}" alt="">`;
+  if (p && p.icon) return `<span style="font-size:1.15em;line-height:1;">${escapeHtml(p.icon)}</span>`;
+  return escapeHtml(initials(p && p.name));
+}
+function nameWithBadge(name, verified, gold){
+  const badge = gold ? GOLD_CHECK_SVG : (verified ? CHECK_SVG : '');
+  return escapeHtml(name) + (badge ? ' ' + badge : '');
+}
+function normalizeName(n){ return (n || '').trim().toLowerCase(); }
+
+/** iOS風セグメントコントロールのスライド式ハイライトを、アクティブなボタンの実測位置・幅に合わせて動かす */
+function positionTabThumb(container){
+  if (!container) return;
+  const thumb = container.querySelector(':scope > .tab-thumb');
+  const buttons = [...container.children].filter((el) => el.tagName === 'BUTTON');
+  if (!thumb || !buttons.length) return;
+  const active = buttons.find((b) => b.classList.contains('active')) || buttons[0];
+  const base = buttons[0].offsetLeft;
+  thumb.style.width = active.offsetWidth + 'px';
+  thumb.style.transform = `translateX(${active.offsetLeft - base}px)`;
+}
+window.addEventListener('resize', () => {
+  positionTabThumb(els.scopeSwitch);
+  positionTabThumb(document.getElementById('admin-tabs'));
+  positionTabThumb(document.getElementById('friends-tabs'));
+});
+
+/** アップロードされた画像ファイルを 128x128 の正方形JPEGに圧縮してdata URLで返す */
+function fileToCompressedDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode failed'));
+      img.onload = () => {
+        const size = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const cctx = canvas.getContext('2d');
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale, h = img.height * scale;
+        cctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* チャット画像送信（Firestoreの1ドキュメント1MiB上限に収めるため、        */
+/* 認証バッジ(金/青/なし)に応じた長辺サイズ+JPEG圧縮率で縮小する）        */
+/* ------------------------------------------------------------------ */
+const IMAGE_RETENTION_DAYS = 7; // この日数を過ぎた画像はテキストを残して自動削除
+const CHAT_IMAGE_DATAURL_BUDGET = 700000; // base64文字数の目安（Firestore上限に対する安全マージン）
+
+/** 自分の認証バッジから「長辺サイズ / 初期JPEG品質」を決める */
+function chatImageSpecForSelf(){
+  const prof = usersCache[myUid] || {};
+  if (prof.goldVerified === true) return { maxSide: 2048, quality: 0.85, label: '金認証(2048px)' };
+  if (prof.verified === true) return { maxSide: 1536, quality: 0.8, label: '青認証(1536px)' };
+  return { maxSide: 1024, quality: 0.75, label: '未認証(1024px)' };
+}
+
+/** 画像ファイルを認証バッジ相当の長辺サイズへ縮小しJPEGへ圧縮。
+ *  品質→サイズの順に段階的に下げ、Firestoreの1ドキュメント上限内に収まるようにする。 */
+function fileToChatImageDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode failed'));
+      img.onload = () => {
+        const spec = chatImageSpecForSelf();
+        let side = spec.maxSide;
+        const drawAt = (maxSide) => {
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          const w = Math.max(1, Math.round(img.width * scale));
+          const h = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          return canvas;
+        };
+        let canvas = drawAt(side);
+        let quality = spec.quality;
+        let url = canvas.toDataURL('image/jpeg', quality);
+        while (url.length > CHAT_IMAGE_DATAURL_BUDGET && quality > 0.4) {
+          quality -= 0.1;
+          url = canvas.toDataURL('image/jpeg', quality);
+        }
+        while (url.length > CHAT_IMAGE_DATAURL_BUDGET && side > 480) {
+          side = Math.round(side * 0.8);
+          canvas = drawAt(side);
+          quality = spec.quality;
+          url = canvas.toDataURL('image/jpeg', quality);
+          while (url.length > CHAT_IMAGE_DATAURL_BUDGET && quality > 0.4) {
+            quality -= 0.1;
+            url = canvas.toDataURL('image/jpeg', quality);
+          }
+        }
+        resolve({ dataUrl: url, w: canvas.width, h: canvas.height, bytes: Math.round(url.length * 0.75) });
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+let pendingImage = null; // { dataUrl, w, h, bytes } | null
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
+/* ------------------------------------------------------------------ */
+/* 返信（リプライ）機能                                                 */
+/* ------------------------------------------------------------------ */
+let replyingTo = null; // { id, name, text, img } | null
+function replySnippet(m){
+  if (m.text && m.text.trim()) return m.text.trim().slice(0, 60);
+  if (m.img) return '📷 画像';
+  return '';
+}
+function setReplyTarget(id, m){
+  const prof = usersCache[m.uid] || {};
+  const name = prof.name || m.name || '名無し';
+  replyingTo = { id, name, text: replySnippet(m), img: !!m.img };
+  els.replyPreviewName.textContent = name;
+  els.replyPreviewText.textContent = replyingTo.text;
+  els.replyPreviewStrip.style.display = 'block';
+  els.input.focus();
+}
+function clearReplyTarget(){
+  replyingTo = null;
+  els.replyPreviewStrip.style.display = 'none';
+}
+els.replyPreviewClear.addEventListener('click', clearReplyTarget);
+
+/** 返信元メッセージの表示行が今見えていればスクロールしてハイライトする */
+function jumpToMessage(id){
+  const row = rowElsById.get(id);
+  if (!row) return;
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.classList.remove('flash-highlight');
+  void row.offsetWidth;
+  row.classList.add('flash-highlight');
+}
+
+/* ------------------------------------------------------------------ */
+/* リアクション機能                                                     */
+/* ------------------------------------------------------------------ */
+let openReactionPickerId = null;
+function closeReactionPicker(){
+  openReactionPickerId = null;
+  document.querySelectorAll('.emoji-picker').forEach((el) => el.remove());
+}
+function toggleReactionPicker(msgId, anchorRow){
+  if (openReactionPickerId === msgId) { closeReactionPicker(); return; }
+  closeReactionPicker();
+  openReactionPickerId = msgId;
+  const picker = document.createElement('div');
+  picker.className = 'emoji-picker';
+  picker.innerHTML = REACTION_EMOJIS.map((em) => `<button type="button" data-emoji="${em}">${em}</button>`).join('');
+  picker.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-emoji]');
+    if (!btn) return;
+    toggleReaction(msgId, btn.dataset.emoji);
+    closeReactionPicker();
+  });
+  const actions = anchorRow.querySelector('.msg-actions');
+  if (actions) actions.appendChild(picker);
+}
+document.addEventListener('click', (e) => {
+  if (openReactionPickerId && !e.target.closest('.emoji-picker') && !e.target.closest('.msg-react-btn')) closeReactionPicker();
+});
+
+async function toggleReaction(msgId, emoji){
+  const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
+  if (!db || !targetId || !myUid) return;
+  const [coll, id] = activeBasePath();
+  const docSnap = (lastDocsSnapshot || []).find((d) => d.id === msgId);
+  const current = docSnap ? (docSnap.data().reactions || {})[emoji] || [] : [];
+  const mineReacted = current.includes(myUid);
+  const field = `reactions.${emoji}`;
+  try {
+    await updateDoc(doc(db, coll, id, 'messages', msgId), {
+      [field]: mineReacted ? arrayRemove(myUid) : arrayUnion(myUid)
+    });
+  } catch (e) { console.error('リアクションに失敗しました', e); }
+}
+
+function formatBytes(n){
+  if (n < 1024) return n + 'B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(0) + 'KB';
+  return (n / (1024 * 1024)).toFixed(1) + 'MB';
+}
+
+function showImagePreview(){
+  if (!pendingImage) { els.imagePreviewStrip.style.display = 'none'; return; }
+  els.imagePreviewThumb.src = pendingImage.dataUrl;
+  els.imagePreviewMeta.textContent = `${pendingImage.w}×${pendingImage.h} ・ ${formatBytes(pendingImage.bytes)}`;
+  els.imagePreviewStrip.style.display = 'block';
+  els.sendBtn.disabled = false;
+}
+function clearImagePreview(){
+  pendingImage = null;
+  els.imageFileInput.value = '';
+  els.imagePreviewStrip.style.display = 'none';
+  els.sendBtn.disabled = !els.input.value.trim();
+}
+
+els.attachBtn.addEventListener('click', () => els.imageFileInput.click());
+els.imageFileInput.addEventListener('change', async () => {
+  const file = els.imageFileInput.files && els.imageFileInput.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('画像ファイルを選択してください'); clearImagePreview(); return; }
+  try {
+    pendingImage = await fileToChatImageDataUrl(file);
+    showImagePreview();
+  } catch (e) {
+    console.error('画像の圧縮に失敗しました', e);
+    alert('画像の読み込みに失敗しました');
+    clearImagePreview();
+  }
+});
+els.imagePreviewClear.addEventListener('click', clearImagePreview);
+
+els.lightboxModal.addEventListener('click', () => { els.lightboxModal.style.display = 'none'; });
+function openLightbox(src){
+  els.lightboxImg.src = src;
+  els.lightboxModal.style.display = 'flex';
+}
+
+/** 期限切れ画像の自動削除（クライアント側の遅延掃除）。1メッセージにつき1回だけ試みる。 */
+const imageCleanupAttempted = new Set();
+function sweepExpiredImage(docId, coll, baseId, m){
+  if (!m.img || imageCleanupAttempted.has(docId)) return;
+  const ms = m.ts && m.ts.toMillis ? m.ts.toMillis() : null;
+  if (ms === null) return;
+  const ageDays = (Date.now() - ms) / 86400000;
+  if (ageDays < IMAGE_RETENTION_DAYS) return;
+  imageCleanupAttempted.add(docId);
+  updateDoc(doc(db, coll, baseId, 'messages', docId), { img: deleteField(), imgW: deleteField(), imgH: deleteField() }).catch(() => {});
+}
+
+/* ------------------------------------------------------------------ */
+/* テーマ（ライト/ダーク）                                              */
+/* ------------------------------------------------------------------ */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  const icon = t === 'light' ? '☀️' : '🌙';
+  els.themeToggle.textContent = icon;
+  localStorage.setItem(THEME_KEY, t);
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.setAttribute('content', t === 'light' ? '#FFFFFF' : '#000000');
+}
+applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+els.themeToggle.addEventListener('click', () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  els.themeToggle.classList.remove('spin');
+  void els.themeToggle.offsetWidth;
+  els.themeToggle.classList.add('spin');
+});
+
+/* ------------------------------------------------------------------ */
+/* 波形ビジュアライザ（signature element）                              */
+/* ------------------------------------------------------------------ */
+const canvas = els.waveform;
+const ctx = canvas.getContext('2d');
+let barsAmp = new Array(28).fill(0.08);
+let pulseBoost = 0;
+let lastSize = '';
+
+function resizeCanvasIfNeeded(){
+  const rect = canvas.getBoundingClientRect();
+  const key = rect.width + 'x' + rect.height;
+  if (key !== lastSize) {
+    canvas.width = rect.width * devicePixelRatio;
+    canvas.height = rect.height * devicePixelRatio;
+    lastSize = key;
+  }
+}
+function drawWave(){
+  resizeCanvasIfNeeded();
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  const n = barsAmp.length;
+  const gap = w / n;
+  for (let i = 0; i < n; i++) {
+    const target = 0.06 + Math.random() * 0.10 + pulseBoost * (0.4 + Math.random() * 0.6);
+    barsAmp[i] += (target - barsAmp[i]) * 0.18;
+    const barH = Math.max(2, barsAmp[i] * h);
+    const x = i * gap + gap * 0.3;
+    const y = (h - barH) / 2;
+    ctx.fillStyle = i % 3 === 0 ? '#37D6B0' : '#E8A33D';
+    ctx.globalAlpha = 0.55;
+    ctx.fillRect(x, y, gap * 0.4, barH);
+  }
+  pulseBoost *= 0.90;
+  requestAnimationFrame(drawWave);
+}
+requestAnimationFrame(drawWave);
+
+/* ------------------------------------------------------------------ */
+/* プロフィール（名前・アイコン・認証）                                   */
+/* ------------------------------------------------------------------ */
+function refreshSelfCard(){
+  const selfProf = usersCache[myUid] || {};
+  const verified = selfProf.verified === true;
+  const gold = selfProf.goldVerified === true;
+  els.selfName.innerHTML = nameWithBadge(myName || '未設定', verified, gold);
+  els.selfAvatar.innerHTML = avatarInner({ icon: myIcon, iconImg: myIconImg, name: myName || myUid });
+  const c = avatarColor(myUid || myName);
+  els.selfAvatar.style.color = c;
+  els.selfAvatar.style.borderColor = c + '55';
+}
+refreshSelfCard();
+
+function updatePreview(){
+  const nameVal = els.nickInput.value.trim();
+  const iconVal = els.iconInput.value.trim();
+  els.previewAvatar.innerHTML = avatarInner({ icon: iconVal, iconImg: pendingIconImg, name: nameVal || myUid });
+}
+function selectIconBtn(iconVal){
+  [...els.iconPicker.children].forEach(btn => btn.classList.toggle('selected', btn.dataset.icon === iconVal));
+}
+els.iconPicker.addEventListener('click', (e) => {
+  const btn = e.target.closest('.icon-btn');
+  if (!btn) return;
+  els.iconInput.value = btn.dataset.icon;
+  selectIconBtn(btn.dataset.icon);
+  updatePreview();
+});
+els.iconInput.addEventListener('input', () => { selectIconBtn(els.iconInput.value.trim()); updatePreview(); });
+els.nickInput.addEventListener('input', () => {
+  els.nickConfirm.disabled = !els.nickInput.value.trim();
+  els.nickError.style.display = 'none';
+  updatePreview();
+});
+els.iconFile.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // まず選択した画像を即座にプレビュー（ObjectURLで確実に表示）
+  try {
+    const tempUrl = URL.createObjectURL(file);
+    els.previewAvatar.innerHTML = `<img src="${tempUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;">`;
+    // 後で revoke するために保持
+    if (els.previewAvatar._tempUrl) URL.revokeObjectURL(els.previewAvatar._tempUrl);
+    els.previewAvatar._tempUrl = tempUrl;
+  } catch (_) {
+    els.previewAvatar.innerHTML = '<span style="font-size:11px;color:var(--text-faint);">読み込み中…</span>';
+  }
+
+  // 裏で圧縮して保存用のdata URLを作る
+  try {
+    pendingIconImg = await fileToCompressedDataUrl(file);
+    updatePreview(); // 圧縮版に差し替え
+  } catch (err) {
+    console.error('画像の圧縮に失敗しました', err);
+    // プレビューは残すが、保存用データはクリア
+    pendingIconImg = '';
+    alert('画像の圧縮に失敗しました。\nJPEG / PNG / WebP などの一般的な形式を試してください。\n（プレビューは出ていますが、このまま保存すると画像は付きません）');
+  }
+});
+els.iconImgClear.addEventListener('click', () => {
+  pendingIconImg = '';
+  els.iconFile.value = '';
+  if (els.previewAvatar._tempUrl) {
+    URL.revokeObjectURL(els.previewAvatar._tempUrl);
+    els.previewAvatar._tempUrl = null;
+  }
+  updatePreview();
+});
+els.copyUidBtn.addEventListener('click', () => {
+  if (!myUid) return;
+  navigator.clipboard?.writeText(myUid).catch(() => {});
+  els.copyUidBtn.textContent = 'コピー済み';
+  setTimeout(() => { els.copyUidBtn.textContent = 'コピー'; }, 1500);
+});
+
+function renderVerifyRow(){
+  const selfProf = usersCache[myUid] || {};
+  const verified = selfProf.verified === true;
+  const gold = selfProf.goldVerified === true;
+  if (gold) {
+    els.verifyStatus.innerHTML = `<span class="verify-badge-lg gold">${GOLD_CHECK_SVG}ゴールド認証アカウントです</span>`;
+  } else if (verified) {
+    els.verifyStatus.innerHTML = `<span class="verify-badge-lg">${CHECK_SVG}認証済みアカウントです</span>`;
+  } else if (myVerifyStatus && myVerifyStatus.status === 'pending') {
+    els.verifyStatus.innerHTML = `<span class="verify-pending">審査中です…</span>`;
+  } else if (myVerifyStatus && myVerifyStatus.status === 'rejected') {
+    els.verifyStatus.innerHTML = `<span class="verify-pending">前回の申請は却下されました</span><br><button type="button" class="mini-btn" id="apply-verify-btn" style="margin-top:6px;">✓ 再度申請する</button>`;
+  } else {
+    els.verifyStatus.innerHTML = `<button type="button" class="mini-btn" id="apply-verify-btn">✓ 認証を申請する</button>`;
+  }
+}
+els.verifyStatus.addEventListener('click', (e) => {
+  if (e.target.closest('#apply-verify-btn')) applyForVerification();
+});
+async function applyForVerification(){
+  if (!db || !myUid || !myName) return;
+  await setDoc(doc(db, 'verifyRequests', myUid), { name: myName, ts: serverTimestamp(), status: 'pending' }).catch(() => {});
+}
+
+function openNickModal(prefillName, prefillIcon, prefillImg){
+  els.nickInput.value = prefillName || '';
+  els.iconInput.value = prefillIcon || '';
+  pendingIconImg = prefillImg || '';
+  els.iconFile.value = '';
+  selectIconBtn(prefillIcon || '');
+  updatePreview();
+  els.nickError.style.display = 'none';
+  els.nickConfirm.disabled = !els.nickInput.value.trim();
+  els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
+  if (myUid) {
+    els.myUidDisplay.textContent = myUid;
+  } else if (!els.myUidDisplay.textContent || els.myUidDisplay.textContent.includes('読み込み') || els.myUidDisplay.textContent.includes('準備')) {
+    els.myUidDisplay.textContent = '認証中…';
+  }
+  renderVerifyRow();
+  els.nickModal.style.display = 'flex';
+  setTimeout(() => els.nickInput.focus(), 50);
+}
+els.nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !els.nickConfirm.disabled) els.nickConfirm.click(); });
+
+async function claimUsername(newName, uid){
+  const key = normalizeName(newName);
+  if (!key) throw new Error('EMPTY');
+  await runTransaction(db, async (tx) => {
+    const newRef = doc(db, 'usernames', key);
+    const newSnap = await tx.get(newRef);
+    if (newSnap.exists() && newSnap.data().uid !== uid) throw new Error('TAKEN');
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await tx.get(userRef);
+    const oldName = userSnap.exists() ? userSnap.data().name : null;
+    if (oldName && normalizeName(oldName) !== key) {
+      tx.delete(doc(db, 'usernames', normalizeName(oldName)));
+    }
+    tx.set(newRef, { uid });
+  });
+}
+
+els.nickConfirm.addEventListener('click', async () => {
+  const v = els.nickInput.value.trim();
+  if (!v || !db || !myUid) return;
+  els.nickConfirm.disabled = true;
+  els.nickConfirm.textContent = '確認中…';
+  els.nickError.style.display = 'none';
+  try {
+    await claimUsername(v, myUid);
+    myName = v.slice(0, 20);
+    myIcon = els.iconInput.value.trim().slice(0, 4);
+    myIconImg = pendingIconImg;
+    localStorage.setItem(NAME_KEY, myName);
+    localStorage.setItem(ICON_KEY, myIcon);
+    localStorage.setItem(ICONIMG_KEY, myIconImg);
+    await setDoc(doc(db, 'users', myUid), {
+      name: myName, icon: myIcon, iconImg: myIconImg, updatedAt: serverTimestamp()
+    }, { merge: true });
+    refreshSelfCard();
+    els.nickModal.style.display = 'none';
+    startHeartbeat();
+    if (currentChannelId) markRead(currentChannelId);
+  } catch (e) {
+    els.nickError.textContent = (e && e.message === 'TAKEN') ? 'その名前はすでに使われています' : '保存に失敗しました。もう一度お試しください';
+    els.nickError.style.display = 'block';
+  } finally {
+    els.nickConfirm.disabled = !els.nickInput.value.trim();
+    els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
+  }
+});
+els.editNameBtn.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg));
+
+/* ------------------------------------------------------------------ */
+/* サイドバー（モバイル開閉）                                            */
+/* ------------------------------------------------------------------ */
+els.menuBtn.addEventListener('click', () => { els.sidebar.classList.add('open'); els.scrim.classList.add('show'); });
+els.scrim.addEventListener('click', () => { els.sidebar.classList.remove('open'); els.scrim.classList.remove('show'); });
+
+/* ------------------------------------------------------------------ */
+/* チャンネル                                                          */
+/* ------------------------------------------------------------------ */
+async function ensureDefaultChannels(){
+  if (!db) return;
+  const snap = await getDocs(collection(db, 'channels'));
+  if (snap.empty) {
+    await addDoc(collection(db, 'channels'), { name: '雑談', createdAt: serverTimestamp(), order: 0 });
+    await addDoc(collection(db, 'channels'), { name: 'お知らせ', createdAt: serverTimestamp(), order: 1 });
+  }
+}
+
+function saveLocalChannelNames(){ localStorage.setItem(LOCAL_CH_NAMES_KEY, JSON.stringify(localChannelNames)); }
+function saveLocalChannelOrder(){ localStorage.setItem(LOCAL_CH_ORDER_KEY, JSON.stringify(localChannelOrder)); }
+function displayChannelName(id, realName){ return localChannelNames[id] || realName; }
+
+/** Firestoreの order（無ければ createdAt）でソートし、さらに個人の並び替え設定を上に重ねる */
+function getOrderedChannelDocs(docs){
+  const base = [...docs].sort((a, b) => {
+    const da = a.data(), db_ = b.data();
+    const oa = typeof da.order === 'number' ? da.order : 999999;
+    const ob = typeof db_.order === 'number' ? db_.order : 999999;
+    if (oa !== ob) return oa - ob;
+    const ca = da.createdAt && da.createdAt.toMillis ? da.createdAt.toMillis() : 0;
+    const cb = db_.createdAt && db_.createdAt.toMillis ? db_.createdAt.toMillis() : 0;
+    return ca - cb;
+  });
+  if (!localChannelOrder.length) return base;
+  const byId = new Map(base.map(d => [d.id, d]));
+  const ordered = [];
+  localChannelOrder.forEach((id) => { if (byId.has(id)) { ordered.push(byId.get(id)); byId.delete(id); } });
+  byId.forEach((d) => ordered.push(d)); // ローカル順に無い(新規)チャンネルは末尾に追加
+  return ordered;
+}
+
+function renderChannelList(docs){
+  const ordered = getOrderedChannelDocs(docs);
+  els.channelList.innerHTML = '';
+  ordered.forEach((d, idx) => {
+    const data = d.data();
+    const realName = data.name || '無題';
+    channelNameCache[d.id] = realName;
+    const shownName = displayChannelName(d.id, realName);
+    const li = document.createElement('li');
+    li.className = 'channel-item' + (currentKind === 'channel' && d.id === currentChannelId ? ' active' : '');
+    li.dataset.id = d.id;
+    const unread = unreadByChannel[d.id] || 0;
+    let controls = '';
+    if (editMode) {
+      controls = `<span class="channel-edit-controls">
+        <button type="button" class="ch-arrow-btn" data-act="up" ${idx === 0 ? 'disabled' : ''} title="上へ">▲</button>
+        <button type="button" class="ch-arrow-btn" data-act="down" ${idx === ordered.length - 1 ? 'disabled' : ''} title="下へ">▼</button>
+        <button type="button" class="ch-rename-btn" data-act="rename" title="名前を変更">✎</button>
+      </span>`;
+    }
+    li.innerHTML = `<span class="channel-freq">${pseudoFreq(d.id)}</span><span class="channel-name">${escapeHtml(shownName)}</span>`
+      + (unread > 0 && !editMode ? `<span class="channel-unread">${unread > 99 ? '99+' : unread}</span>` : '')
+      + controls
+      + (isAdmin && !editMode ? `<button type="button" class="channel-del-btn" title="削除">×</button>` : '');
+    if (!editMode) {
+      li.addEventListener('click', () => selectChannel(d.id, realName));
+    }
+    if (isAdmin && !editMode) {
+      const delBtn = li.querySelector('.channel-del-btn');
+      if (delBtn) delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteChannel(d.id, realName); });
+    }
+    if (editMode) {
+      const upBtn = li.querySelector('[data-act="up"]');
+      const downBtn = li.querySelector('[data-act="down"]');
+      const renameBtn = li.querySelector('[data-act="rename"]');
+      if (upBtn) upBtn.addEventListener('click', (e) => { e.stopPropagation(); moveChannel(d.id, -1, ordered); });
+      if (downBtn) downBtn.addEventListener('click', (e) => { e.stopPropagation(); moveChannel(d.id, 1, ordered); });
+      if (renameBtn) renameBtn.addEventListener('click', (e) => { e.stopPropagation(); openChannelRenameModal(d.id, realName); });
+    }
+    els.channelList.appendChild(li);
+    watchChannelForNotif(d.id);
+  });
+  const currentIds = new Set(docs.map((d) => d.id));
+  Object.keys(notifWatchers).forEach((id) => { if (!currentIds.has(id)) unwatchChannelForNotif(id); });
+  if (currentKind === 'channel' && !currentChannelId && ordered.length) {
+    const first = ordered[0];
+    selectChannel(first.id, first.data().name || '無題');
+  }
+}
+
+function listenChannels(){
+  if (!db) return;
+  onSnapshot(collection(db, 'channels'), (snap) => {
+    channelsCache = snap.docs;
+    renderChannelList(snap.docs);
+    if (adminModalOpen && currentAdminTab === 'channels') renderAdminPanel();
+  });
+}
+
+/** チャンネルの並び替え。scopeMode==='global' なら管理者としてFirestoreのorderを更新（全員に反映）、
+ *  それ以外は自分のブラウザのlocalStorageのみに並び順を保存する。 */
+async function moveChannel(id, dir, orderedDocs){
+  const idx = orderedDocs.findIndex((d) => d.id === id);
+  const otherIdx = idx + dir;
+  if (idx < 0 || otherIdx < 0 || otherIdx >= orderedDocs.length) return;
+  if (scopeMode === 'global' && isAdmin) {
+    const a = orderedDocs[idx], b = orderedDocs[otherIdx];
+    const aOrder = typeof a.data().order === 'number' ? a.data().order : idx;
+    const bOrder = typeof b.data().order === 'number' ? b.data().order : otherIdx;
+    try {
+      await setDoc(doc(db, 'channels', a.id), { order: bOrder }, { merge: true });
+      await setDoc(doc(db, 'channels', b.id), { order: aOrder }, { merge: true });
+    } catch (e) { console.error(e); alert('並び替えに失敗しました'); }
+  } else {
+    const ids = orderedDocs.map((d) => d.id);
+    const tmp = ids[idx]; ids[idx] = ids[otherIdx]; ids[otherIdx] = tmp;
+    localChannelOrder = ids;
+    saveLocalChannelOrder();
+    renderChannelList(channelsCache);
+  }
+}
+
+let renamingChannelId = null;
+function openChannelRenameModal(id, realName){
+  renamingChannelId = id;
+  els.channelRenameInput.value = displayChannelName(id, realName);
+  els.channelRenameGlobal.style.display = isAdmin ? 'block' : 'none';
+  els.channelRenameDesc.textContent = isAdmin
+    ? 'この変更を誰に適用しますか？「全員に適用」はチャンネル名そのものを変更します。'
+    : 'この変更はあなたのブラウザにのみ保存され、他の人には表示されません。';
+  els.channelRenameModal.style.display = 'flex';
+  setTimeout(() => els.channelRenameInput.focus(), 50);
+}
+els.channelRenameCancel.addEventListener('click', () => { els.channelRenameModal.style.display = 'none'; renamingChannelId = null; });
+els.channelRenamePersonal.addEventListener('click', () => {
+  const v = els.channelRenameInput.value.trim().slice(0, 24);
+  if (!v || !renamingChannelId) return;
+  localChannelNames[renamingChannelId] = v;
+  saveLocalChannelNames();
+  els.channelRenameModal.style.display = 'none';
+  renderChannelList(channelsCache);
+  if (currentKind === 'channel' && currentChannelId === renamingChannelId) els.topbarName.textContent = v;
+  renamingChannelId = null;
+});
+els.channelRenameGlobal.addEventListener('click', async () => {
+  const v = els.channelRenameInput.value.trim().slice(0, 24);
+  if (!v || !renamingChannelId || !isAdmin || !db) return;
+  try {
+    await setDoc(doc(db, 'channels', renamingChannelId), { name: v }, { merge: true });
+    delete localChannelNames[renamingChannelId];
+    saveLocalChannelNames();
+    els.channelRenameModal.style.display = 'none';
+  } catch (e) { console.error(e); alert('変更に失敗しました'); }
+  renamingChannelId = null;
+});
+
+els.editModeBtn.addEventListener('click', () => {
+  editMode = !editMode;
+  els.editModeBtn.classList.toggle('active', editMode);
+  els.scopeSwitch.classList.toggle('show', editMode && isAdmin);
+  renderChannelList(channelsCache);
+  if (editMode && isAdmin) requestAnimationFrame(() => positionTabThumb(els.scopeSwitch));
+});
+els.scopeSwitch.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-scope]');
+  if (!btn) return;
+  scopeMode = btn.dataset.scope;
+  [...els.scopeSwitch.children].forEach((b) => { if (b.tagName === 'BUTTON') b.classList.toggle('active', b === btn); });
+  positionTabThumb(els.scopeSwitch);
+});
+
+/* ------------------------------------------------------------------ */
+/* サイドバー: チャンネル/DM 切り替えタブ                                  */
+/* ------------------------------------------------------------------ */
+let sidebarTab = 'channels'; // 'channels' | 'dms'
+function setSidebarTab(tab){
+  sidebarTab = tab;
+  [...els.sidebarTabs.children].forEach((b) => { if (b.tagName === 'BUTTON') b.classList.toggle('active', b.dataset.tab === tab); });
+  els.channelSection.style.display = tab === 'channels' ? 'flex' : 'none';
+  els.dmSection.style.display = tab === 'dms' ? 'flex' : 'none';
+  positionTabThumb(els.sidebarTabs);
+}
+els.sidebarTabs.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-tab]');
+  if (!btn) return;
+  setSidebarTab(btn.dataset.tab);
+});
+requestAnimationFrame(() => positionTabThumb(els.sidebarTabs));
+window.addEventListener('resize', () => positionTabThumb(els.sidebarTabs));
+
+
+function selectChannel(id, name){
+  flashConversationSwitch();
+  setSidebarTab('channels');
+  currentKind = 'channel';
+  currentDmId = null; currentDmOtherUid = null; currentDmOtherName = null;
+  currentChannelId = id;
+  currentChannelName = displayChannelName(id, name);
+  els.topbarName.textContent = currentChannelName;
+  els.topbarFreq.textContent = pseudoFreq(id) + ' MHz';
+  els.input.placeholder = 'メッセージを入力…';
+  [...els.channelList.children].forEach((li) => li.classList.toggle('active', li.dataset.id === id));
+  renderDmList();
+  els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
+  knownIds = new Set();
+  lastDocsSnapshot = [];
+  rowElsById.clear();
+  unreadByChannel[id] = 0;
+  updateChannelUnreadBadge(id);
+  updateGlobalUnreadUI();
+  listenMessages(id);
+  listenTyping(id);
+  listenReads(id);
+  markRead(id);
+}
+
+/* ------------------------------------------------------------------ */
+/* フレンド / ダイレクトメッセージ                                        */
+/* ------------------------------------------------------------------ */
+function dmIdFor(uidA, uidB){ return [uidA, uidB].sort().join('__'); }
+
+/** チャンネル/DM切り替え時にメッセージ欄をふわっとクロスフェードさせる */
+function flashConversationSwitch(){
+  els.messages.style.opacity = '0';
+  requestAnimationFrame(() => { setTimeout(() => { els.messages.style.opacity = '1'; }, 90); });
+}
+
+function selectDm(otherUid, otherName){
+  if (!myUid) return;
+  flashConversationSwitch();
+  setSidebarTab('dms');
+  currentKind = 'dm';
+  currentChannelId = null;
+  currentDmId = dmIdFor(myUid, otherUid);
+  currentDmOtherUid = otherUid;
+  currentDmOtherName = otherName;
+  els.topbarName.textContent = otherName;
+  els.topbarFreq.textContent = 'DM';
+  els.input.placeholder = `${otherName} さんにメッセージを送信…`;
+  [...els.channelList.children].forEach((li) => li.classList.remove('active'));
+  renderDmList();
+  els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
+  knownIds = new Set();
+  lastDocsSnapshot = [];
+  rowElsById.clear();
+  unreadByDm[currentDmId] = 0;
+  updateGlobalUnreadUI();
+  setDoc(doc(db, 'dms', currentDmId), { participants: [myUid, otherUid] }, { merge: true }).catch(() => {});
+  listenMessages(null, currentDmId);
+  listenTyping(null, currentDmId);
+  listenReads(null, currentDmId);
+  markRead(null, currentDmId);
+  watchDmForNotif(currentDmId, otherUid);
+}
+
+function renderDmList(){
+  const ids = Object.keys(friendsCache);
+  if (!ids.length) {
+    els.dmList.innerHTML = `<li class="dm-empty">まだフレンドがいません。「🤝 フレンド」から追加できます。</li>`;
+    return;
+  }
+  ids.sort((a, b) => (friendsCache[a].name || '').localeCompare(friendsCache[b].name || ''));
+  els.dmList.innerHTML = '';
+  ids.forEach((uid) => {
+    const f = usersCache[uid] || friendsCache[uid];
+    const dmId = dmIdFor(myUid, uid);
+    const unread = unreadByDm[dmId] || 0;
+    const li = document.createElement('li');
+    li.className = 'dm-item' + (currentKind === 'dm' && currentDmOtherUid === uid ? ' active' : '');
+    li.innerHTML = `<span class="dm-avatar">${avatarInner(f)}</span><span class="dm-name">${nameWithBadge(f.name || friendsCache[uid].name, !!f.verified, !!f.goldVerified)}</span>`
+      + (unread > 0 ? `<span class="channel-unread">${unread > 99 ? '99+' : unread}</span>` : '');
+    li.addEventListener('click', () => selectDm(uid, f.name || friendsCache[uid].name));
+    els.dmList.appendChild(li);
+  });
+}
+
+async function deleteChannel(channelId, name){
+  if (!isAdmin || !db) return;
+  if (!confirm(`チャンネル「${name}」を削除しますか？中のメッセージも全て消えます。`)) return;
+  try {
+    for (const sub of ['messages', 'typing', 'reads']) {
+      const snap = await getDocs(collection(db, 'channels', channelId, sub));
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+    }
+    await deleteDoc(doc(db, 'channels', channelId));
+    if (currentChannelId === channelId) currentChannelId = null;
+  } catch (e) { console.error(e); alert('削除に失敗しました'); }
+}
+
+els.addChannelBtn.addEventListener('click', () => {
+  els.channelInput.value = '';
+  els.channelConfirm.disabled = true;
+  els.channelModal.style.display = 'flex';
+  setTimeout(() => els.channelInput.focus(), 50);
+});
+els.channelCancel.addEventListener('click', () => { els.channelModal.style.display = 'none'; });
+els.channelInput.addEventListener('input', () => { els.channelConfirm.disabled = !els.channelInput.value.trim(); });
+els.channelInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !els.channelConfirm.disabled) els.channelConfirm.click(); });
+els.channelConfirm.addEventListener('click', async () => {
+  const name = els.channelInput.value.trim().slice(0, 24);
+  if (!name || !db) return;
+  els.channelConfirm.disabled = true;
+  const ref = await addDoc(collection(db, 'channels'), { name, createdAt: serverTimestamp() });
+  els.channelModal.style.display = 'none';
+  selectChannel(ref.id, name);
+});
+
+/* ------------------------------------------------------------------ */
+/* メッセージ                                                          */
+/* ------------------------------------------------------------------ */
+function formatTime(ts){
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date();
+  return d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+}
+function formatDay(ts){
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date();
+  return d.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+}
+
+function computeReceiptsByMsgId(docsArr){
+  const map = {};
+  if (!docsArr.length) return map;
+  Object.keys(readsMap).forEach((uid) => {
+    if (uid === myUid) return;
+    const r = readsMap[uid];
+    if (!r || !r.ts || !r.ts.toMillis) return;
+    const readMs = r.ts.toMillis();
+    let lastId = null;
+    for (const d of docsArr) {
+      const m = d.data();
+      const ms = m.ts && m.ts.toMillis ? m.ts.toMillis() : null;
+      if (ms !== null && ms <= readMs) lastId = d.id; else break;
+    }
+    if (lastId) {
+      const prof = usersCache[uid] || {};
+      if (!map[lastId]) map[lastId] = [];
+      map[lastId].push({ name: prof.name || r.name, icon: prof.icon || r.icon, iconImg: prof.iconImg || '' });
+    }
+  });
+  return map;
+}
+
+const rowElsById = new Map();
+
+function renderMessages(docs){
+  // FIX(バグ): 送信直後は ts が確定するまで一時的に null になり、並び順が
+  // 崩れて先頭にジャンプ→確定後に末尾へ移動…という現象(アニメーションが
+  // 効いてないように見える/連結表示が崩れる原因)が起きていた。
+  // ここでクライアント側で確実に時系列へ再ソートする。
+  const sorted = [...docs].sort((a, b) => {
+    const ma = a.data().ts && a.data().ts.toMillis ? a.data().ts.toMillis() : Date.now();
+    const mb = b.data().ts && b.data().ts.toMillis ? b.data().ts.toMillis() : Date.now();
+    return ma - mb;
+  });
+
+  const receiptsByMsgId = computeReceiptsByMsgId(sorted);
+  const nearBottom = els.messages.scrollHeight - els.messages.scrollTop - els.messages.clientHeight < 120;
+  const wasEmpty = !!els.messages.querySelector('.empty-state');
+
+  if (!sorted.length) {
+    els.messages.replaceChildren(els.emptyState);
+    knownIds = new Set();
+    rowElsById.clear();
+    return;
+  }
+
+  const newKnown = new Set();
+  const orderedNodes = [];
+  let lastDay = null;
+  const sameDay = (a, b) => a && b && formatDay(a.ts) === formatDay(b.ts);
+
+  // FIX: 送信直後(ローカル反映)→サーバー確定 で同じメッセージが2回描画されると、
+  // 毎回 innerHTML を全消去して作り直していたせいで「下からスッと出る」入場アニメーションが
+  // 再生の途中で打ち切られ、体感的にアニメーションなしに見えていた。
+  // 既存の行DOM要素を id ごとに使い回すことで、アニメーション中の要素を壊さずに更新する。
+  sorted.forEach((d, i) => {
+    const m = d.data();
+    const day = formatDay(m.ts);
+    if (day && day !== lastDay) {
+      const div = document.createElement('div');
+      div.className = 'day-divider';
+      div.textContent = day;
+      orderedNodes.push(div);
+      lastDay = day;
+    }
+    const mine = m.uid === myUid;
+    const prev = sorted[i - 1] ? sorted[i - 1].data() : null;
+    const next = sorted[i + 1] ? sorted[i + 1].data() : null;
+    const groupedWithPrev = !!(prev && prev.uid === m.uid && sameDay(prev, m));
+    const groupedWithNext = !!(next && next.uid === m.uid && sameDay(next, m));
+
+    const prof = usersCache[m.uid] || {};
+    const dispName = prof.name || m.name || '名無し';
+    const dispIcon = prof.icon !== undefined ? prof.icon : (m.icon || '');
+    const dispImg = prof.iconImg || '';
+    const verified = prof.verified === true;
+    const gold = prof.goldVerified === true;
+
+    const isNew = !knownIds.has(d.id);
+    let row = rowElsById.get(d.id);
+    if (!row) {
+      row = document.createElement('div');
+      row.className = 'msg-row';
+      rowElsById.set(d.id, row);
+    }
+    row.dataset.id = d.id;
+    row.classList.toggle('mine', mine);
+    row.classList.toggle('grouped', groupedWithPrev);
+    row.classList.toggle('chained', groupedWithNext);
+    const canDelete = mine || (isAdmin && currentKind === 'channel');
+    row.classList.toggle('has-actions', true);
+    if (isNew) row.classList.add('msg-enter'); // 一度だけ付与。以後は消さないので再生が途中で切れない
+
+    const color = avatarColor(m.uid);
+    const hasText = !!(m.text && m.text.trim());
+    const hasImage = !!m.img;
+    const imageHtml = hasImage
+      ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}">`
+      : (m.imgExpired ? `<div class="msg-image-expired">画像は期限切れです</div>` : '');
+    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasText ? ' has-text' : '');
+
+    // 返信元の引用プレビュー（あれば）
+    const replyHtml = m.replyTo
+      ? `<div class="reply-quote" data-jump-id="${m.replyTo.id}">
+           <div class="rq-name">${escapeHtml(m.replyTo.name)}</div>
+           <div class="rq-text">${escapeHtml(m.replyTo.text || '')}</div>
+         </div>`
+      : '';
+
+    // リアクション集計
+    const reactions = m.reactions || {};
+    const reactionEntries = Object.entries(reactions).filter(([, uids]) => Array.isArray(uids) && uids.length);
+
+    // 名前は連続投稿の先頭だけ表示。時刻は先頭、または直前と「分」が変わったタイミングだけ表示
+    // （例: LINE等と同様、同じ人の連投でも1分経てば時刻を出す）
+    const timeStr = formatTime(m.ts);
+    const prevTimeStr = groupedWithPrev && prev ? formatTime(prev.ts) : null;
+    const showName = !groupedWithPrev;
+    const showTime = !groupedWithPrev || prevTimeStr !== timeStr;
+    const metaHtml = (showName || showTime)
+      ? `<div class="msg-meta">${showName ? `<span class="who">${nameWithBadge(dispName, verified, gold)}</span>` : ''}${showTime ? `<span class="time">${timeStr}</span>` : ''}</div>`
+      : '';
+
+    // 自分が送ったメッセージにだけ既読を表示する（相手のメッセージには出さない）
+    const receipts = mine ? receiptsByMsgId[d.id] : null;
+
+    // FIX(バグ): 内容が変わっていない行まで毎回 innerHTML を作り直していたせいで、
+    // メッセージ送信のたびに全アバター画像(<img>)が再生成され、読み込み直しで
+    // 一瞬ちらつく不具合があった。実際に見た目へ影響する値のシグネチャを保持し、
+    // 変化がない行は innerHTML の再構築を丸ごとスキップする。
+    const sig = JSON.stringify([
+      mine, groupedWithPrev, groupedWithNext, canDelete,
+      dispName, dispIcon, dispImg, verified, gold,
+      hasText, m.text || '', hasImage, m.img || '', !!m.imgExpired,
+      metaHtml, receipts, replyHtml, reactionEntries
+    ]);
+
+    if (row.dataset.sig !== sig) {
+      row.dataset.sig = sig;
+      row.innerHTML = `
+        <div class="msg-avatar" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
+        <div class="msg-body">
+          ${metaHtml}
+          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${escapeHtml(m.text)}</div>` : ''}</div>
+        </div>`;
+
+      const body = row.querySelector('.msg-body');
+      if (receipts && receipts.length) {
+        const chipWrap = document.createElement('div');
+        chipWrap.className = 'read-chips';
+        chipWrap.innerHTML = receipts.map(r =>
+          `<span class="read-chip" title="${escapeHtml(r.name)}">${avatarInner(r)}</span>`
+        ).join('');
+        const names = document.createElement('div');
+        names.className = 'read-names';
+        names.textContent = '既読: ' + receipts.map(r => r.name).join('、');
+        body.appendChild(chipWrap);
+        body.appendChild(names);
+      }
+      if (reactionEntries.length) {
+        const reactRow = document.createElement('div');
+        reactRow.className = 'reactions-row';
+        reactRow.innerHTML = reactionEntries.map(([emoji, uids]) =>
+          `<span class="reaction-chip${uids.includes(myUid) ? ' mine' : ''}" data-emoji="${emoji}">${emoji}<span class="cnt">${uids.length}</span></span>`
+        ).join('');
+        body.appendChild(reactRow);
+      }
+      const actions = document.createElement('div');
+      actions.className = 'msg-actions';
+      actions.innerHTML = `
+        <button type="button" class="msg-reply-btn" data-id="${d.id}">↩ 返信</button>
+        <button type="button" class="msg-react-btn" data-id="${d.id}">😊 リアクション</button>
+        ${canDelete ? `<button type="button" class="msg-del-btn" data-id="${d.id}">${mine ? '取り消し' : '削除(管理者)'} 🗑</button>` : ''}
+      `;
+      body.appendChild(actions);
+    }
+
+    const [sweepColl, sweepId] = activeBasePath();
+    sweepExpiredImage(d.id, sweepColl, sweepId, m);
+
+    orderedNodes.push(row);
+    newKnown.add(d.id);
+  });
+
+  // 表示されなくなった(削除された)メッセージの行キャッシュを掃除
+  for (const id of rowElsById.keys()) {
+    if (!newKnown.has(id)) rowElsById.delete(id);
+  }
+
+  // FIX(バグ): replaceChildren() は毎回「全行を取り外して並べ直す」ため、
+  // 内容が変わっていない既存の行までDOMから瞬間的に外れて戻ることになり、
+  // ①一瞬非表示になる ②msg-enterの入場アニメーションが再発火して二重に見える
+  // という不具合が起きていた。位置が変わっていない行には一切触れず、
+  // 本当に位置がずれた行だけ insertBefore で動かす最小差分パッチに変更。
+  patchMessageList(els.messages, orderedNodes);
+  knownIds = newKnown;
+  // FIX: 新規チャンネルを開いた直後(wasEmpty)は過去ログの末尾までスムーズスクロールすると
+  // 長い距離をゆっくり流れて不自然なので瞬時にジャンプ。既に最下部にいる状態での新着更新
+  // (nearBottom)だけ、他のメッセージが上に押し上げられるようにスムーズスクロールさせる。
+  if (wasEmpty) {
+    els.messages.scrollTop = els.messages.scrollHeight;
+  } else if (nearBottom) {
+    els.messages.scrollTo({ top: els.messages.scrollHeight, behavior: 'smooth' });
+  }
+}
+
+/** 子要素リストを最小限のDOM操作で orderedNodes の並びに一致させる（既存要素は動かさない） */
+function patchMessageList(container, orderedNodes){
+  const current = Array.from(container.children);
+  let identical = current.length === orderedNodes.length;
+  if (identical) {
+    for (let i = 0; i < current.length; i++) {
+      if (current[i] !== orderedNodes[i]) { identical = false; break; }
+    }
+  }
+  if (identical) return; // 並びが変わっていなければ何もしない（＝アニメーション再発火なし）
+
+  const wanted = new Set(orderedNodes);
+  current.forEach((node) => { if (!wanted.has(node)) node.remove(); });
+
+  let ref = container.firstChild;
+  for (const node of orderedNodes) {
+    if (ref === node) {
+      ref = ref.nextSibling;
+    } else {
+      container.insertBefore(node, ref);
+    }
+  }
+}
+
+els.messages.addEventListener('click', (e) => {
+  const delBtn = e.target.closest('.msg-del-btn');
+  const activeTargetId = currentKind === 'dm' ? currentDmId : currentChannelId;
+  if (delBtn && activeTargetId && db) {
+    if (confirm('このメッセージを削除しますか？')) {
+      const [coll, id] = activeBasePath();
+      deleteDoc(doc(db, coll, id, 'messages', delBtn.dataset.id)).catch(() => alert('削除に失敗しました'));
+    }
+    return;
+  }
+  const replyBtn = e.target.closest('.msg-reply-btn');
+  if (replyBtn) {
+    const docSnap = (lastDocsSnapshot || []).find((d) => d.id === replyBtn.dataset.id);
+    if (docSnap) setReplyTarget(docSnap.id, docSnap.data());
+    return;
+  }
+  const reactBtn = e.target.closest('.msg-react-btn');
+  if (reactBtn) {
+    const row = reactBtn.closest('.msg-row');
+    if (row) toggleReactionPicker(reactBtn.dataset.id, row);
+    return;
+  }
+  const reactChip = e.target.closest('.reaction-chip');
+  if (reactChip && activeTargetId && db) {
+    const row = reactChip.closest('.msg-row');
+    if (row && row.dataset.id) toggleReaction(row.dataset.id, reactChip.dataset.emoji);
+    return;
+  }
+  const rq = e.target.closest('.reply-quote');
+  if (rq) { jumpToMessage(rq.dataset.jumpId); return; }
+  const img = e.target.closest('.msg-image');
+  if (img) { openLightbox(img.dataset.full || img.src); return; }
+  const chipWrap = e.target.closest('.read-chips');
+  if (chipWrap) { chipWrap.classList.toggle('expanded'); return; }
+  const bubble = e.target.closest('.bubble');
+  if (bubble) {
+    const row = bubble.closest('.msg-row');
+    if (row && row.classList.contains('has-actions')) row.classList.toggle('menu-open');
+  }
+});
+
+/** 現在の会話（チャンネル or DM）のFirestoreパスを ['channels', id] / ['dms', id] の形で返す */
+function activeBasePath(){
+  return currentKind === 'dm' ? ['dms', currentDmId] : ['channels', currentChannelId];
+}
+
+function listenMessages(channelId, dmId){
+  if (unsubMessages) unsubMessages();
+  if (!db) return;
+  const [coll, id] = dmId ? ['dms', dmId] : ['channels', channelId];
+  const q = query(collection(db, coll, id, 'messages'), orderBy('ts', 'asc'), limit(200));
+  unsubMessages = onSnapshot(q, (snap) => {
+    lastDocsSnapshot = snap.docs;
+    renderMessages(lastDocsSnapshot);
+    if ((coll === 'channels' && id === currentChannelId) || (coll === 'dms' && id === currentDmId)) markRead(channelId, dmId);
+  });
+}
+
+async function sendMessage(){
+  const text = els.input.value.trim();
+  const image = pendingImage;
+  const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
+  if ((!text && !image) || !targetId || !db || !myName || !myUid) return;
+  const replySnapshot = replyingTo;
+  els.input.value = '';
+  els.input.style.height = 'auto';
+  clearImagePreview();
+  clearReplyTarget();
+  els.sendBtn.disabled = true;
+  els.sendBtn.classList.remove('sent');
+  void els.sendBtn.offsetWidth;
+  els.sendBtn.classList.add('sent');
+  pulseBoost = 1;
+  const [coll, id] = activeBasePath();
+  try {
+    const payload = { text, uid: myUid, name: myName, icon: myIcon || '', ts: serverTimestamp() };
+    if (image) { payload.img = image.dataUrl; payload.imgW = image.w; payload.imgH = image.h; }
+    if (replySnapshot) {
+      payload.replyTo = { id: replySnapshot.id, name: replySnapshot.name, text: replySnapshot.text || '', img: !!replySnapshot.img };
+    }
+    await addDoc(collection(db, coll, id, 'messages'), payload);
+    if (coll === 'dms') {
+      await setDoc(doc(db, 'dms', id), { participants: [myUid, currentDmOtherUid], lastText: text ? text.slice(0, 80) : '📷 画像', updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+    }
+  } catch (e) { console.error('送信に失敗しました', e); }
+  clearTyping();
+}
+els.input.addEventListener('input', () => {
+  els.sendBtn.disabled = !els.input.value.trim() && !pendingImage;
+  els.input.style.height = 'auto';
+  els.input.style.height = Math.min(120, els.input.scrollHeight) + 'px';
+  pushTyping();
+});
+els.input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!els.sendBtn.disabled) sendMessage(); }
+});
+els.sendBtn.addEventListener('click', sendMessage);
+
+/* ------------------------------------------------------------------ */
+/* 入力中インジケータ                                                   */
+/* ------------------------------------------------------------------ */
+async function pushTyping(){
+  const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
+  if (!db || !targetId || !myName || !myUid) return;
+  const [coll, id] = activeBasePath();
+  await setDoc(doc(db, coll, id, 'typing', myUid), { name: myName, ts: serverTimestamp() }).catch(() => {});
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(clearTyping, 2500);
+}
+async function clearTyping(){
+  const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
+  if (!db || !targetId || !myUid) return;
+  const [coll, id] = activeBasePath();
+  await setDoc(doc(db, coll, id, 'typing', myUid), { name: myName, ts: null }).catch(() => {});
+}
+function listenTyping(channelId, dmId){
+  if (unsubTyping) unsubTyping();
+  if (!db) return;
+  const [coll, id] = dmId ? ['dms', dmId] : ['channels', channelId];
+  unsubTyping = onSnapshot(collection(db, coll, id, 'typing'), (snap) => {
+    const now = Date.now();
+    const names = [];
+    snap.forEach((d) => {
+      const t = d.data();
+      if (d.id === myUid || !t.ts) return;
+      const ms = t.ts.toMillis ? t.ts.toMillis() : 0;
+      if (now - ms < 3000) names.push((usersCache[d.id] && usersCache[d.id].name) || t.name);
+    });
+    els.typing.innerHTML = names.length
+      ? `<div class="bars"><span></span><span></span><span></span></div>${escapeHtml(names.join('、'))}さんが入力中…`
+      : '';
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* 既読機能                                                            */
+/* ------------------------------------------------------------------ */
+async function markRead(channelId, dmId){
+  const targetId = dmId || channelId;
+  if (!db || !targetId || !myName || !myUid || document.hidden) return;
+  const now = Date.now();
+  if (now - lastMarkReadAt < 1200) return;
+  lastMarkReadAt = now;
+  const [coll, id] = dmId ? ['dms', dmId] : ['channels', channelId];
+  await setDoc(doc(db, coll, id, 'reads', myUid), { name: myName, icon: myIcon || '', ts: serverTimestamp() }).catch(() => {});
+}
+function listenReads(channelId, dmId){
+  if (unsubReads) unsubReads();
+  if (!db) return;
+  const [coll, id] = dmId ? ['dms', dmId] : ['channels', channelId];
+  unsubReads = onSnapshot(collection(db, coll, id, 'reads'), (snap) => {
+    const map = {};
+    snap.forEach((d) => { map[d.id] = d.data(); });
+    readsMap = map;
+    if (lastDocsSnapshot.length) renderMessages(lastDocsSnapshot);
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* 通知（ブラウザ通知 + 未読バッジ）                                      */
+/* ------------------------------------------------------------------ */
+function updateChannelUnreadBadge(channelId){
+  const li = els.channelList.querySelector(`.channel-item[data-id="${channelId}"]`);
+  if (!li) return;
+  let badge = li.querySelector('.channel-unread');
+  const unread = unreadByChannel[channelId] || 0;
+  if (unread > 0) {
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'channel-unread';
+      const delBtn = li.querySelector('.channel-del-btn');
+      if (delBtn) li.insertBefore(badge, delBtn); else li.appendChild(badge);
+    }
+    badge.textContent = unread > 99 ? '99+' : String(unread);
+  } else if (badge) {
+    badge.remove();
+  }
+}
+function updateGlobalUnreadUI(){
+  const dmTotal = Object.values(unreadByDm).reduce((a, b) => a + b, 0);
+  const total = Object.values(unreadByChannel).reduce((a, b) => a + b, 0) + dmTotal;
+  if (els.notifUnreadDot) {
+    els.notifUnreadDot.textContent = total > 99 ? '99+' : String(total);
+    els.notifUnreadDot.classList.toggle('show', total > 0);
+  }
+  if (els.dmTabDot) {
+    els.dmTabDot.textContent = dmTotal > 99 ? '99+' : String(dmTotal);
+    els.dmTabDot.classList.toggle('show', dmTotal > 0);
+  }
+  document.title = total > 0 ? `(${total > 99 ? '99+' : total}) SIGNAL` : 'SIGNAL — リアルタイムチャット';
+}
+function updateNotifBtnUI(){
+  if (!els.notifToggle) return;
+  const supported = 'Notification' in window;
+  if (!supported) { els.notifToggle.style.display = 'none'; return; }
+  const denied = Notification.permission === 'denied';
+  els.notifToggle.classList.toggle('on', notifEnabled && Notification.permission === 'granted');
+  els.notifToggle.classList.toggle('denied', denied);
+  els.notifToggle.title = denied
+    ? '通知がブロックされています(ブラウザのサイト設定から許可してください)'
+    : (notifEnabled ? '通知：オン（クリックでオフ）' : '通知：オフ（クリックでオン）');
+}
+function handleIncomingMessageForNotif(channelId, m){
+  const isOpenAndVisible = channelId === currentChannelId && !document.hidden;
+  if (!isOpenAndVisible) {
+    unreadByChannel[channelId] = (unreadByChannel[channelId] || 0) + 1;
+    updateChannelUnreadBadge(channelId);
+    updateGlobalUnreadUI();
+  }
+  const shouldNotify = notifEnabled && ('Notification' in window) && Notification.permission === 'granted'
+    && (document.hidden || channelId !== currentChannelId);
+  if (!shouldNotify) return;
+  const senderProf = usersCache[m.uid] || {};
+  const senderName = senderProf.name || m.name || '誰か';
+  const chName = channelNameCache[channelId] || 'SIGNAL';
+  try {
+    const n = new Notification(`${senderName} — ${chName}`, {
+      body: (m.text || '').slice(0, 120),
+      icon: 'icon-192.png',
+      tag: 'signal-' + channelId,
+    });
+    n.onclick = () => {
+      window.focus();
+      if (channelId !== currentChannelId) selectChannel(channelId, channelNameCache[channelId] || '');
+      n.close();
+    };
+  } catch (_) { /* 通知の生成に失敗しても本編には影響させない */ }
+}
+function watchChannelForNotif(channelId){
+  if (!db || notifWatchers[channelId]) return;
+  const q = query(collection(db, 'channels', channelId, 'messages'), orderBy('ts', 'desc'), limit(1));
+  let first = true;
+  notifWatchers[channelId] = onSnapshot(q, (snap) => {
+    if (first) { first = false; return; } // 接続直後の既存メッセージでは通知しない
+    snap.docChanges().forEach((change) => {
+      if (change.type !== 'added') return;
+      const m = change.doc.data();
+      if (!m || m.uid === myUid) return;
+      handleIncomingMessageForNotif(channelId, m);
+    });
+  });
+}
+function unwatchChannelForNotif(channelId){
+  if (notifWatchers[channelId]) { notifWatchers[channelId](); delete notifWatchers[channelId]; }
+}
+
+function handleIncomingDmForNotif(dmId, otherUid, otherName, m){
+  const isOpenAndVisible = currentKind === 'dm' && currentDmId === dmId && !document.hidden;
+  if (!isOpenAndVisible) {
+    unreadByDm[dmId] = (unreadByDm[dmId] || 0) + 1;
+    updateGlobalUnreadUI();
+    renderDmList();
+  }
+  const shouldNotify = notifEnabled && ('Notification' in window) && Notification.permission === 'granted' && !isOpenAndVisible;
+  if (!shouldNotify) return;
+  try {
+    const n = new Notification(`${otherName} — DM`, { body: (m.text || '').slice(0, 120), icon: 'icon-192.png', tag: 'signal-dm-' + dmId });
+    n.onclick = () => { window.focus(); selectDm(otherUid, otherName); n.close(); };
+  } catch (_) {}
+}
+function watchDmForNotif(dmId, otherUid){
+  if (!db || dmNotifWatchers[dmId]) return;
+  const q = query(collection(db, 'dms', dmId, 'messages'), orderBy('ts', 'desc'), limit(1));
+  let first = true;
+  dmNotifWatchers[dmId] = onSnapshot(q, (snap) => {
+    if (first) { first = false; return; }
+    snap.docChanges().forEach((change) => {
+      if (change.type !== 'added') return;
+      const m = change.doc.data();
+      if (!m || m.uid === myUid) return;
+      const otherName = (usersCache[otherUid] && usersCache[otherUid].name) || friendsCache[otherUid]?.name || 'フレンド';
+      handleIncomingDmForNotif(dmId, otherUid, otherName, m);
+    });
+  });
+}
+function watchAllFriendDms(){
+  Object.keys(friendsCache).forEach((uid) => watchDmForNotif(dmIdFor(myUid, uid), uid));
+}
+if (els.notifToggle) {
+  if (localStorage.getItem(NOTIF_KEY) === '1' && 'Notification' in window && Notification.permission === 'granted') {
+    notifEnabled = true;
+  }
+  updateNotifBtnUI();
+  els.notifToggle.addEventListener('click', async () => {
+    if (!('Notification' in window)) { alert('このブラウザ・環境は通知に対応していません'); return; }
+    if (Notification.permission === 'denied') {
+      alert('通知がブロックされています。ブラウザのサイト設定から通知を許可してください。');
+      return;
+    }
+    if (Notification.permission !== 'granted') {
+      const perm = await Notification.requestPermission().catch(() => 'denied');
+      if (perm === 'granted') notifEnabled = true;
+    } else {
+      notifEnabled = !notifEnabled;
+    }
+    localStorage.setItem(NOTIF_KEY, notifEnabled ? '1' : '0');
+    updateNotifBtnUI();
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* ユーザー一覧（名前/アイコン/認証バッジをリアルタイム反映するため）        */
+/* ------------------------------------------------------------------ */
+function listenUsers(){
+  if (!db) return;
+  onSnapshot(collection(db, 'users'), (snap) => {
+    const map = {};
+    snap.forEach((d) => { map[d.id] = d.data(); });
+    usersCache = map;
+    refreshSelfCard();
+    renderVerifyRow();
+    applyMaintenanceGate();
+    if (lastDocsSnapshot.length) renderMessages(lastDocsSnapshot);
+    if (lastOnline.length) renderOnlineList(lastOnline);
+    if (adminModalOpen && currentAdminTab === 'users') renderAdminPanel();
+  });
+}
+function listenOwnVerifyRequest(){
+  if (!db || !myUid) return;
+  onSnapshot(doc(db, 'verifyRequests', myUid), (snap) => {
+    myVerifyStatus = snap.exists() ? snap.data() : null;
+    renderVerifyRow();
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* メンテナンスモード（config/maintenance をリアルタイム監視）               */
+/* 有効時は「金認証バッジ」を持つユーザー(と管理者)以外はログインできない       */
+/* ------------------------------------------------------------------ */
+function listenMaintenance(){
+  if (!db) return;
+  onSnapshot(doc(db, 'config', 'maintenance'), (snap) => {
+    maintenanceEnabled = !!(snap.exists() && snap.data().enabled === true);
+    applyMaintenanceGate();
+    if (adminModalOpen && currentAdminTab === 'maintenance') renderAdminPanel();
+  }, () => { /* 権限エラー等は無視（未メンテナンス扱い） */ });
+}
+function applyMaintenanceGate(){
+  if (!els.maintenanceScreen) return;
+  const myProf = usersCache[myUid] || {};
+  const bypass = myProf.goldVerified === true || isAdmin;
+  const blocked = maintenanceEnabled && !!myUid && !bypass;
+  els.maintenanceScreen.style.display = blocked ? 'flex' : 'none';
+}
+async function toggleMaintenance(){
+  if (!db || !isAdmin) return;
+  try {
+    await setDoc(doc(db, 'config', 'maintenance'), { enabled: !maintenanceEnabled, updatedAt: serverTimestamp() }, { merge: true });
+  } catch (e) { console.error(e); alert('メンテナンスモードの切り替えに失敗しました'); }
+}
+
+/* ------------------------------------------------------------------ */
+/* フレンド機能                                                         */
+/* ------------------------------------------------------------------ */
+function listenFriends(){
+  if (!db || !myUid) return;
+  onSnapshot(collection(db, 'users', myUid, 'friends'), (snap) => {
+    const map = {};
+    snap.forEach((d) => { map[d.id] = d.data(); });
+    friendsCache = map;
+    renderDmList();
+    watchAllFriendDms();
+    if (els.friendsModal.style.display !== 'none' && currentFriendTab === 'list') renderFriendsPanel();
+  });
+}
+function listenFriendRequests(){
+  if (!db || !myUid) return;
+  onSnapshot(query(collection(db, 'friendRequests'), where('to', '==', myUid), where('status', '==', 'pending')), (snap) => {
+    friendRequestsCache = snap.docs;
+    updateFriendReqUI();
+    if (els.friendsModal.style.display !== 'none' && currentFriendTab === 'requests') renderFriendsPanel();
+  });
+}
+function listenSentFriendRequests(){
+  if (!db || !myUid) return;
+  onSnapshot(query(collection(db, 'friendRequests'), where('from', '==', myUid), where('status', '==', 'pending')), (snap) => {
+    sentRequestsCache = snap.docs;
+    if (els.friendsModal.style.display !== 'none' && currentFriendTab === 'add') renderFriendsPanel();
+  });
+}
+function updateFriendReqUI(){
+  const n = friendRequestsCache.length;
+  els.friendReqDot.textContent = n > 99 ? '99+' : String(n);
+  els.friendReqDot.classList.toggle('show', n > 0);
+  els.friendTabDot.textContent = n > 0 ? ` (${n})` : '';
+}
+
+async function sendFriendRequest(toUid, toName){
+  if (!db || !myUid || toUid === myUid) return;
+  if (friendsCache[toUid]) { alert('すでにフレンドです'); return; }
+  const already = sentRequestsCache.find((d) => d.data().to === toUid) || friendRequestsCache.find((d) => d.data().from === toUid);
+  if (already) { alert('すでに申請済みです'); return; }
+  try {
+    await addDoc(collection(db, 'friendRequests'), { from: myUid, fromName: myName, to: toUid, toName, status: 'pending', ts: serverTimestamp() });
+    renderFriendsPanel();
+  } catch (e) { console.error(e); alert('申請の送信に失敗しました'); }
+}
+async function acceptFriendRequest(reqId, fromUid, fromName){
+  if (!db || !myUid) return;
+  try {
+    await setDoc(doc(db, 'users', myUid, 'friends', fromUid), { name: fromName, ts: serverTimestamp() });
+    await setDoc(doc(db, 'users', fromUid, 'friends', myUid), { name: myName, ts: serverTimestamp() });
+    await setDoc(doc(db, 'friendRequests', reqId), { status: 'accepted' }, { merge: true });
+  } catch (e) { console.error(e); alert('承認に失敗しました'); }
+}
+async function rejectFriendRequest(reqId){
+  if (!db) return;
+  await setDoc(doc(db, 'friendRequests', reqId), { status: 'rejected' }, { merge: true }).catch(() => {});
+}
+async function removeFriend(uid){
+  if (!db || !myUid) return;
+  if (!confirm('フレンドを解除しますか？')) return;
+  await deleteDoc(doc(db, 'users', myUid, 'friends', uid)).catch(() => {});
+  await deleteDoc(doc(db, 'users', uid, 'friends', myUid)).catch(() => {});
+  if (currentKind === 'dm' && currentDmOtherUid === uid) { currentKind = 'channel'; currentDmId = null; currentDmOtherUid = null; }
+  renderFriendsPanel();
+}
+
+function renderFriendsPanel(){
+  const body = els.friendsPanelBody;
+  if (currentFriendTab === 'list') {
+    const ids = Object.keys(friendsCache);
+    if (!ids.length) { body.innerHTML = `<div class="admin-empty">まだフレンドがいません</div>`; return; }
+    ids.sort((a, b) => (friendsCache[a].name || '').localeCompare(friendsCache[b].name || ''));
+    body.innerHTML = '';
+    ids.forEach((uid) => {
+      const prof = usersCache[uid] || friendsCache[uid];
+      const row = document.createElement('div');
+      row.className = 'friend-list-row';
+      row.innerHTML = `<div class="avatar-sm">${avatarInner(prof)}</div>
+        <div class="info">${nameWithBadge(prof.name || friendsCache[uid].name, !!prof.verified, !!prof.goldVerified)}</div>
+        <div class="actions">
+          <button type="button" class="mini-btn" data-act="dm">DM</button>
+          <button type="button" class="mini-btn-danger" data-act="remove">解除</button>
+        </div>`;
+      row.querySelector('[data-act="dm"]').addEventListener('click', () => { els.friendsModal.style.display = 'none'; selectDm(uid, prof.name || friendsCache[uid].name); });
+      row.querySelector('[data-act="remove"]').addEventListener('click', () => removeFriend(uid));
+      body.appendChild(row);
+    });
+  } else if (currentFriendTab === 'requests') {
+    if (!friendRequestsCache.length) { body.innerHTML = `<div class="admin-empty">保留中の申請はありません</div>`; return; }
+    body.innerHTML = '';
+    friendRequestsCache.forEach((d) => {
+      const r = d.data();
+      const row = document.createElement('div');
+      row.className = 'friend-list-row';
+      row.innerHTML = `<div class="info">${escapeHtml(r.fromName || '(無名)')}</div>
+        <div class="actions">
+          <button type="button" class="mini-btn" data-act="accept">承認</button>
+          <button type="button" class="mini-btn-outline" data-act="reject">却下</button>
+        </div>`;
+      row.querySelector('[data-act="accept"]').addEventListener('click', () => acceptFriendRequest(d.id, r.from, r.fromName));
+      row.querySelector('[data-act="reject"]').addEventListener('click', () => rejectFriendRequest(d.id));
+      body.appendChild(row);
+    });
+  } else if (currentFriendTab === 'add') {
+    body.innerHTML = `<div class="friend-search-row">
+        <input type="text" id="friend-search-input" placeholder="名前で検索…" autocomplete="off">
+      </div><div id="friend-search-results"></div>`;
+    const input = document.getElementById('friend-search-input');
+    const results = document.getElementById('friend-search-results');
+    const runSearch = () => {
+      const q = input.value.trim().toLowerCase();
+      if (!q) { results.innerHTML = ''; return; }
+      const matches = Object.keys(usersCache).filter((uid) =>
+        uid !== myUid && (usersCache[uid].name || '').toLowerCase().includes(q)
+      ).slice(0, 20);
+      if (!matches.length) { results.innerHTML = `<div class="admin-empty">見つかりませんでした</div>`; return; }
+      results.innerHTML = '';
+      matches.forEach((uid) => {
+        const prof = usersCache[uid];
+        const row = document.createElement('div');
+        row.className = 'friend-list-row';
+        const isFriend = !!friendsCache[uid];
+        const isSent = sentRequestsCache.some((d) => d.data().to === uid);
+        const isIncoming = friendRequestsCache.some((d) => d.data().from === uid);
+        let actionHtml = `<button type="button" class="mini-btn" data-act="add">申請</button>`;
+        if (isFriend) actionHtml = `<span class="admin-empty" style="padding:0;">フレンド済み</span>`;
+        else if (isSent) actionHtml = `<span class="admin-empty" style="padding:0;">申請済み</span>`;
+        else if (isIncoming) actionHtml = `<span class="admin-empty" style="padding:0;">申請が届いています</span>`;
+        row.innerHTML = `<div class="avatar-sm">${avatarInner(prof)}</div>
+          <div class="info">${nameWithBadge(prof.name || '(無名)', !!prof.verified, !!prof.goldVerified)}</div>
+          <div class="actions">${actionHtml}</div>`;
+        const addBtn = row.querySelector('[data-act="add"]');
+        if (addBtn) addBtn.addEventListener('click', () => sendFriendRequest(uid, prof.name || '(無名)'));
+        results.appendChild(row);
+      });
+    };
+    input.addEventListener('input', runSearch);
+    setTimeout(() => input.focus(), 50);
+  }
+}
+function updateFriendTabsUI(){
+  document.querySelectorAll('#friends-modal .admin-tab').forEach((btn) => btn.classList.toggle('active', btn.dataset.ftab === currentFriendTab));
+  positionTabThumb(document.getElementById('friends-tabs'));
+}
+document.querySelectorAll('#friends-modal .admin-tab').forEach((btn) => {
+  btn.addEventListener('click', () => { currentFriendTab = btn.dataset.ftab; updateFriendTabsUI(); renderFriendsPanel(); });
+});
+els.friendsPanelBtn.addEventListener('click', () => {
+  currentFriendTab = 'list';
+  updateFriendTabsUI();
+  renderFriendsPanel();
+  els.friendsModal.style.display = 'flex';
+  requestAnimationFrame(() => positionTabThumb(document.getElementById('friends-tabs')));
+});
+els.friendsClose.addEventListener('click', () => { els.friendsModal.style.display = 'none'; });
+
+/* ------------------------------------------------------------------ */
+/* プレゼンス（オンライン表示）                                          */
+/* ------------------------------------------------------------------ */
+async function heartbeat(){
+  if (!db || !myName || !myUid || document.hidden) return;
+  await setDoc(doc(db, 'presence', myUid), { name: myName, icon: myIcon || '', ts: serverTimestamp() }).catch(() => {});
+}
+function startHeartbeat(){ stopHeartbeat(); heartbeat(); hbTimer = setInterval(heartbeat, 10000); }
+function stopHeartbeat(){ if (hbTimer) clearInterval(hbTimer); hbTimer = null; }
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { stopHeartbeat(); }
+  else {
+    if (myName) startHeartbeat();
+    if (currentChannelId) {
+      markRead(currentChannelId);
+      unreadByChannel[currentChannelId] = 0;
+      updateChannelUnreadBadge(currentChannelId);
+      updateGlobalUnreadUI();
+    }
+  }
+});
+window.addEventListener('pagehide', () => {
+  if (db && myUid) deleteDoc(doc(db, 'presence', myUid)).catch(() => {});
+});
+function renderOnlineList(online){
+  lastOnline = online || [];
+  els.onlineCount.textContent = lastOnline.length;
+  els.onlineList.innerHTML = lastOnline.map((p) => {
+    const prof = usersCache[p.uid] || p;
+    return `<span class="online-chip"><span class="online-chip-avatar">${avatarInner(prof)}</span>${nameWithBadge(prof.name || p.name, !!prof.verified, !!prof.goldVerified)}</span>`;
+  }).join('');
+}
+function listenPresence(){
+  if (!db) return;
+  onSnapshot(collection(db, 'presence'), (snap) => {
+    const now = Date.now();
+    const online = [];
+    snap.forEach((d) => {
+      const p = d.data();
+      const ms = p.ts && p.ts.toMillis ? p.ts.toMillis() : 0;
+      if (now - ms < 25000) online.push({ uid: d.id, name: p.name, icon: p.icon, iconImg: '' });
+    });
+    renderOnlineList(online);
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* 管理者パネル                                                        */
+/* ------------------------------------------------------------------ */
+function listenPendingVerifyRequests(){
+  if (!isAdmin || !db) return;
+  onSnapshot(query(collection(db, 'verifyRequests'), where('status', '==', 'pending')), (snap) => {
+    pendingVerifyRequests = snap.docs;
+    if (adminModalOpen && currentAdminTab === 'requests') renderAdminPanel();
+  });
+}
+
+async function approveVerify(uid){
+  await setDoc(doc(db, 'users', uid), { verified: true }, { merge: true }).catch(() => {});
+  await setDoc(doc(db, 'verifyRequests', uid), { status: 'approved' }, { merge: true }).catch(() => {});
+}
+async function rejectVerify(uid){
+  await setDoc(doc(db, 'verifyRequests', uid), { status: 'rejected' }, { merge: true }).catch(() => {});
+}
+async function setVerified(uid, val){
+  await setDoc(doc(db, 'users', uid), { verified: val }, { merge: true }).catch(() => {});
+}
+async function setGoldVerified(uid, val){
+  await setDoc(doc(db, 'users', uid), { goldVerified: val }, { merge: true }).catch(() => {});
+}
+async function forceDeleteAccount(uid, name){
+  if (!isAdmin || !db) return;
+  if (!confirm(`${name} さんのアカウントを削除しますか？(過去のメッセージ自体は残ります)`)) return;
+  try {
+    await deleteDoc(doc(db, 'users', uid)).catch(() => {});
+    await deleteDoc(doc(db, 'presence', uid)).catch(() => {});
+    await deleteDoc(doc(db, 'verifyRequests', uid)).catch(() => {});
+    const key = normalizeName(name);
+    const claimSnap = await getDoc(doc(db, 'usernames', key)).catch(() => null);
+    if (claimSnap && claimSnap.exists() && claimSnap.data().uid === uid) {
+      await deleteDoc(doc(db, 'usernames', key)).catch(() => {});
+    }
+  } catch (e) { console.error(e); alert('削除に失敗しました'); }
+}
+
+function renderAdminPanel(){
+  const body = els.adminPanelBody;
+  if (currentAdminTab === 'requests') {
+    if (!pendingVerifyRequests.length) {
+      body.innerHTML = `<div class="admin-empty">保留中の申請はありません</div>`;
+      return;
+    }
+    body.innerHTML = '';
+    pendingVerifyRequests.forEach((d) => {
+      const r = d.data();
+      const row = document.createElement('div');
+      row.className = 'admin-row';
+      row.innerHTML = `<div class="info">${escapeHtml(r.name)}</div>
+        <div class="actions">
+          <button type="button" class="mini-btn" data-act="approve">承認</button>
+          <button type="button" class="mini-btn-outline" data-act="reject">却下</button>
+        </div>`;
+      row.querySelector('[data-act="approve"]').addEventListener('click', () => approveVerify(d.id));
+      row.querySelector('[data-act="reject"]').addEventListener('click', () => rejectVerify(d.id));
+      body.appendChild(row);
+    });
+  } else if (currentAdminTab === 'users') {
+    const uids = Object.keys(usersCache);
+    if (!uids.length) { body.innerHTML = `<div class="admin-empty">ユーザーがいません</div>`; return; }
+    body.innerHTML = '';
+    uids.sort((a, b) => (usersCache[a].name || '').localeCompare(usersCache[b].name || ''));
+    uids.forEach((uid) => {
+      const u = usersCache[uid];
+      const verified = u.verified === true;
+      const gold = u.goldVerified === true;
+      const row = document.createElement('div');
+      row.className = 'admin-row';
+      row.innerHTML = `<div class="avatar-sm">${avatarInner(u)}</div>
+        <div class="info">${nameWithBadge(u.name || '(無名)', verified, gold)}</div>
+        <div class="actions">
+          <button type="button" class="mini-btn-outline" data-act="toggle">${verified ? '認証解除' : '認証付与'}</button>
+          <button type="button" class="mini-btn-gold" data-act="toggle-gold">${gold ? '金解除' : '金付与'}</button>
+          <button type="button" class="mini-btn-danger" data-act="del">削除</button>
+        </div>`;
+      row.querySelector('[data-act="toggle"]').addEventListener('click', () => setVerified(uid, !verified));
+      row.querySelector('[data-act="toggle-gold"]').addEventListener('click', () => setGoldVerified(uid, !gold));
+      row.querySelector('[data-act="del"]').addEventListener('click', () => forceDeleteAccount(uid, u.name || '(無名)'));
+      body.appendChild(row);
+    });
+  } else if (currentAdminTab === 'channels') {
+    if (!channelsCache.length) { body.innerHTML = `<div class="admin-empty">チャンネルがありません</div>`; return; }
+    body.innerHTML = '';
+    channelsCache.forEach((d) => {
+      const c = d.data();
+      const row = document.createElement('div');
+      row.className = 'admin-row';
+      row.innerHTML = `<div class="info">${escapeHtml(c.name || '無題')}</div>
+        <div class="actions"><button type="button" class="mini-btn-danger" data-act="del">削除</button></div>`;
+      row.querySelector('[data-act="del"]').addEventListener('click', () => deleteChannel(d.id, c.name || '無題'));
+      body.appendChild(row);
+    });
+  } else if (currentAdminTab === 'maintenance') {
+    body.innerHTML = `
+      <div style="text-align:center; padding: 8px 4px;">
+        <div class="maintenance-admin-status${maintenanceEnabled ? ' on' : ''}"><span class="dot"></span>${maintenanceEnabled ? 'メンテナンス中' : '通常運転中'}</div>
+        <div class="maintenance-admin-desc">ONにすると、金認証バッジを持つユーザー(と管理者)以外はログインできなくなります。</div>
+        <button type="button" class="mini-btn${maintenanceEnabled ? '-danger' : ''}" id="maintenance-toggle-btn">${maintenanceEnabled ? 'メンテナンスを解除する' : 'メンテナンスを開始する'}</button>
+      </div>`;
+    document.getElementById('maintenance-toggle-btn').addEventListener('click', toggleMaintenance);
+  }
+}
+
+function updateAdminTabsUI(){
+  document.querySelectorAll('#admin-modal .admin-tab').forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === currentAdminTab));
+  positionTabThumb(document.getElementById('admin-tabs'));
+}
+document.querySelectorAll('#admin-modal .admin-tab').forEach((btn) => {
+  btn.addEventListener('click', () => { currentAdminTab = btn.dataset.tab; updateAdminTabsUI(); renderAdminPanel(); });
+});
+els.adminPanelBtn.addEventListener('click', () => {
+  currentAdminTab = 'requests';
+  updateAdminTabsUI();
+  renderAdminPanel();
+  adminModalOpen = true;
+  els.adminModal.style.display = 'flex';
+  requestAnimationFrame(() => positionTabThumb(document.getElementById('admin-tabs')));
+});
+els.adminClose.addEventListener('click', () => { adminModalOpen = false; els.adminModal.style.display = 'none'; });
+
+/* ------------------------------------------------------------------ */
+/* 接続状態表示                                                        */
+/* ------------------------------------------------------------------ */
+function setOnAir(on){
+  els.onair.classList.toggle('off', !on);
+  els.onairText.textContent = on ? 'ON AIR' : (db ? '接続中' : '未接続');
+}
+
+/* ------------------------------------------------------------------ */
+/* 初期化（匿名認証 → 各種リスナー起動）                                  */
+/* ------------------------------------------------------------------ */
+async function afterAuthReady(){
+  isAdmin = ADMIN_UIDS.includes(myUid);
+  els.adminPanelBtn.style.display = isAdmin ? 'flex' : 'none';
+  els.myUidDisplay.textContent = myUid || '認証中…';
+  setOnAir(false);
+  listenMaintenance();
+  applyMaintenanceGate();
+
+  try {
+    await ensureDefaultChannels();
+    listenChannels();
+    listenUsers();
+    listenPresence();
+    listenOwnVerifyRequest();
+    listenFriends();
+    listenFriendRequests();
+    listenSentFriendRequests();
+    if (isAdmin) listenPendingVerifyRequests();
+
+    const mySnap = await getDoc(doc(db, 'users', myUid)).catch(() => null);
+    if (mySnap && mySnap.exists()) {
+      const data = mySnap.data();
+      myName = data.name || myName;
+      myIcon = data.icon || '';
+      myIconImg = data.iconImg || '';
+      localStorage.setItem(NAME_KEY, myName);
+      localStorage.setItem(ICON_KEY, myIcon);
+      localStorage.setItem(ICONIMG_KEY, myIconImg);
+      refreshSelfCard();
+      els.nickModal.style.display = 'none';
+      startHeartbeat();
+    } else {
+      openNickModal(myName, myIcon, myIconImg);
+    }
+    setOnAir(true);
+    hideSplash();
+  } catch (err) {
+    console.error('初期化中にエラーが発生しました', err);
+    showFatalError(
+      '初期化エラー',
+      'Firestoreのルールやネットワークを確認してください。UIDは表示できている場合もあります。'
+    );
+    if (myUid) els.myUidDisplay.textContent = myUid;
+    // モーダルが開いている場合はUIDだけでも見せる
+    if (els.nickModal.style.display !== 'none') {
+      openNickModal(myName, myIcon, myIconImg);
+    }
+    hideSplash();
+  }
+}
+
+function showFatalError(title, detail){
+  const box = document.getElementById('config-warning');
+  if (box) {
+    box.style.display = 'block';
+    box.innerHTML = `<b>⚠ ${escapeHtml(title)}</b><br>${escapeHtml(detail)}`;
+  }
+  if (els.myUidDisplay) els.myUidDisplay.textContent = 'エラー';
+  if (els.onairText) els.onairText.textContent = 'エラー';
+  setOnAir(false);
+}
+
+function boot(){
+  if (!auth) {
+    setOnAir(false);
+    els.myUidDisplay.textContent = '未設定';
+    hideSplash();
+    return;
+  }
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      myUid = user.uid;
+      els.myUidDisplay.textContent = myUid;
+      afterAuthReady();
+    }
+  });
+  signInAnonymously(auth).catch((e) => {
+    console.error('匿名認証に失敗しました。Firebaseコンソールで「Authentication → Sign-in method → 匿名」を有効にしてください。', e);
+    showFatalError(
+      '匿名認証に失敗しました',
+      'Firebaseコンソール → Authentication → Sign-in method →「匿名」を有効にしてください。ブラウザのコンソールも確認してください。'
+    );
+    hideSplash();
+  });
+}
+boot();
+
+/* ------------------------------------------------------------------ */
+/* 起動画面（スプラッシュ）: ログイン〜初期データ取得が終わるまで表示を保持   */
+/* ------------------------------------------------------------------ */
+const splashShownAt = document.documentElement.classList.contains('show-splash') ? Date.now() : null;
+let splashHidden = splashShownAt === null;
+function hideSplash(){
+  if (splashHidden) return;
+  splashHidden = true;
+  const elapsed = Date.now() - splashShownAt;
+  const minDelay = Math.max(0, 500 - elapsed); // ちらつき防止の最低表示時間
+  setTimeout(() => {
+    if (els.splashScreen) els.splashScreen.classList.add('splash-out');
+    setTimeout(() => {
+      document.documentElement.classList.remove('show-splash');
+      if (els.splashScreen) els.splashScreen.style.display = 'none';
+    }, 520);
+  }, minDelay);
+}
+// 万一 auth/初期化が固まった場合の保険（最大6秒で強制的に閉じる）
+if (splashShownAt !== null) setTimeout(hideSplash, 6000);
+
+/* ------------------------------------------------------------------ */
+/* PWA: Service Worker 登録（sw.js はご自身で用意してください）           */
+/* ------------------------------------------------------------------ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      console.info('SIGNAL: sw.js が見つかりません（PWAオフライン対応は任意です）');
+    });
+  });
+}
+</script>
+</body>
+</html>
