@@ -580,12 +580,12 @@
   #attach-btn:disabled{ opacity:.35; cursor:not-allowed; }
   #attach-btn:disabled:hover{ transform:none; color: var(--text-muted); border-color: var(--border); background:none; }
   #send-btn{
-    background: linear-gradient(150deg, var(--amber), #c97f22); border:none; color: #14100a;
+    background: linear-gradient(150deg, var(--amber), color-mix(in srgb, var(--amber) 65%, black)); border:none; color: #14100a;
     width: 42px; height: 42px; border-radius: var(--radius-pill); cursor:pointer;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
     transition: transform .12s, box-shadow .18s;
   }
-  #send-btn:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 6px 18px #E8A33D40; }
+  #send-btn:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 6px 18px color-mix(in srgb, var(--amber) 40%, transparent); }
   #send-btn:active:not(:disabled){ transform: scale(.94); }
   #send-btn:disabled{ opacity:.4; cursor:default; transform:none; box-shadow:none; }
   @keyframes sendPulse{ 0%{ transform: scale(1); } 40%{ transform: scale(.86); } 100%{ transform: scale(1); } }
@@ -617,11 +617,11 @@
   }
   .modal-card input:focus{ border-color: var(--amber); box-shadow: 0 0 0 3.5px var(--amber-dim); }
   .modal-card button.primary{
-    width:100%; background: linear-gradient(150deg, var(--amber), #c97f22); border:none; color:#14100a;
+    width:100%; background: linear-gradient(150deg, var(--amber), color-mix(in srgb, var(--amber) 65%, black)); border:none; color:#14100a;
     font-weight:600; font-size: 14px; padding: 12px; border-radius: var(--radius-pill); cursor:pointer; margin-top: 4px;
     transition: transform .28s var(--ease-spring), box-shadow .18s var(--ease-ios), opacity .16s ease;
   }
-  .modal-card button.primary:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 8px 20px #E8A33D40; }
+  .modal-card button.primary:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 8px 20px color-mix(in srgb, var(--amber) 40%, transparent); }
   .modal-card button.primary:active:not(:disabled){ transform: scale(.97); transition-duration: .1s; }
   .modal-card button.primary:disabled{ opacity:.4; cursor:default; }
   .modal-card .cancel{
@@ -3464,7 +3464,7 @@ const UI_PRESETS = {
   default: { colors: {}, opacity: 100, radius: 100 },
   mono:    { colors: { accent: '#9C9CA3', teal: '#9C9CA3', gold: '#B7B7BD' }, opacity: 100, radius: 100 },
   neon:    { colors: { accent: '#00E5FF', teal: '#FF2ED1', gold: '#FFE600', bg: '#05010c', surface: '#0c0420', surface2: '#150a30' }, opacity: 88, radius: 130 },
-  black:   { colors: { accent: '#FFFFFF', bg: '#000000', surface: '#000000', surface2: '#0A0A0A', surface3: '#141414' }, opacity: 100, radius: 100 },
+  black:   { colors: { accent: '#FFFFFF', bg: '#000000', surface: '#000000', surface2: '#0A0A0A', surface3: '#141414', mineBubble: '#0A0A0A' }, opacity: 100, radius: 100 },
 };
 els.presetRow.addEventListener('click', (e) => {
   const btn = e.target.closest('.preset-chip');
