@@ -1254,6 +1254,7 @@
           <button type="button" class="preset-chip" data-preset="default">標準</button>
           <button type="button" class="preset-chip" data-preset="mono">モノクローム</button>
           <button type="button" class="preset-chip" data-preset="neon">ネオン</button>
+          <button type="button" class="preset-chip" data-preset="black">ブラック</button>
         </div>
       </div>
 
@@ -3463,6 +3464,7 @@ const UI_PRESETS = {
   default: { colors: {}, opacity: 100, radius: 100 },
   mono:    { colors: { accent: '#9C9CA3', teal: '#9C9CA3', gold: '#B7B7BD' }, opacity: 100, radius: 100 },
   neon:    { colors: { accent: '#00E5FF', teal: '#FF2ED1', gold: '#FFE600', bg: '#05010c', surface: '#0c0420', surface2: '#150a30' }, opacity: 88, radius: 130 },
+  black:   { colors: { accent: '#FFFFFF', bg: '#000000', surface: '#000000', surface2: '#0A0A0A', surface3: '#141414' }, opacity: 100, radius: 100 },
 };
 els.presetRow.addEventListener('click', (e) => {
   const btn = e.target.closest('.preset-chip');
