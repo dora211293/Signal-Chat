@@ -41,6 +41,9 @@
     --gold: #F2C766;
     --gold-dim: #F2C76630;
     --gold-2: #D9A73C;
+    --mine-bubble-1: #2a2115;
+    --mine-bubble-2: #1c1712;
+    --mine-bubble-text: #F1E6D2;
     --shadow-sm: 0 2px 12px #00000040, 0 1px 2px #00000050;
     --shadow-md: 0 24px 56px #00000070, 0 6px 18px #00000050;
     --radius-lg: calc(30px * var(--ui-radius-scale));
@@ -56,7 +59,6 @@
     --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
     --panel-alpha: 1;
     --ui-radius-scale: 1;
-    --ui-blur: 0px;
   }
   [data-theme="light"]{
     --bg: #FFFFFF;
@@ -78,6 +80,9 @@
     --gold: #9C6E17;
     --gold-dim: #9C6E171c;
     --gold-2: #B98526;
+    --mine-bubble-1: #FBEAC9;
+    --mine-bubble-2: #F5DAA0;
+    --mine-bubble-text: #2B2410;
     --shadow-sm: 0 2px 12px #1c1c1e12, 0 1px 2px #1c1c1e18;
     --shadow-md: 0 24px 60px #1c1c1e1c, 0 6px 16px #1c1c1e16;
   }
@@ -92,26 +97,6 @@
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
     transition: background .2s, color .2s;
-  }
-
-  /* ===================== Liquid Glass モード ===================== */
-  html.liquid-glass #sidebar,
-  html.liquid-glass #topbar,
-  html.liquid-glass #composer,
-  html.liquid-glass .modal-card,
-  html.liquid-glass .bubble,
-  html.liquid-glass .channel-item.active,
-  html.liquid-glass .dm-item.active{
-    box-shadow: inset 0 1px 0 #ffffff2e, inset 0 0 0 1px #ffffff0f, var(--shadow-sm);
-    border-color: color-mix(in srgb, var(--text) 14%, transparent) !important;
-  }
-  html.liquid-glass .channel-item,
-  html.liquid-glass .dm-item,
-  html.liquid-glass .scope-switch,
-  html.liquid-glass .sidebar-tabs,
-  html.liquid-glass .admin-tabs{
-    backdrop-filter: blur(calc(6px + var(--ui-blur))) saturate(180%); -webkit-backdrop-filter: blur(calc(6px + var(--ui-blur))) saturate(180%);
-    background: color-mix(in srgb, var(--surface-2) calc(var(--panel-alpha) * 72%), transparent);
   }
 
   /* ===================== アニメーション控えめ ===================== */
@@ -186,7 +171,6 @@
   /* ===================== Sidebar ===================== */
   #sidebar{
     background: color-mix(in srgb, var(--surface) calc(var(--panel-alpha) * 100%), transparent);
-    backdrop-filter: blur(var(--ui-blur)) saturate(180%); -webkit-backdrop-filter: blur(var(--ui-blur)) saturate(180%);
     border-right: 1px solid var(--border);
     display:flex; flex-direction:column;
     min-width: 0; min-height: 0; height: 100%;
@@ -349,7 +333,7 @@
     display:flex; align-items:center; gap:14px; padding: 14px 20px;
     border-bottom: 1px solid var(--border);
     background: linear-gradient(180deg, color-mix(in srgb, var(--surface) calc(72% * var(--panel-alpha)), transparent), color-mix(in srgb, var(--surface) calc(20% * var(--panel-alpha)), transparent));
-    backdrop-filter: blur(calc(20px + var(--ui-blur))) saturate(180%); -webkit-backdrop-filter: blur(calc(20px + var(--ui-blur))) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
     flex-shrink:0;
   }
   #menu-btn{ display:none; background:none; border:1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: var(--radius-md); cursor:pointer; font-size:16px; }
@@ -414,7 +398,6 @@
 
   .bubble{
     background: color-mix(in srgb, var(--surface-2) calc(var(--panel-alpha) * 100%), transparent);
-    backdrop-filter: blur(var(--ui-blur)) saturate(180%); -webkit-backdrop-filter: blur(var(--ui-blur)) saturate(180%);
     border: 1px solid var(--border); padding: 9px 13px;
     border-radius: 8px 22px 22px 22px; font-size: 14px; line-height: 1.55;
     word-break: break-word; white-space: pre-wrap; color: var(--text);
@@ -423,11 +406,8 @@
   }
   .msg-row:hover .bubble{ transform: translateY(-1px); box-shadow: var(--shadow-md); }  .msg-row.chained .bubble{ border-radius: 8px 22px 22px 8px; }
   .msg-row.mine .bubble{
-    background: linear-gradient(155deg, #2a2115, #1c1712); border: 1px solid var(--amber-dim);
-    border-radius: 22px 8px 22px 22px; color: #F1E6D2;
-  }
-  [data-theme="light"] .msg-row.mine .bubble{
-    background: linear-gradient(155deg, #FBEAC9, #F5DAA0); border: 1px solid var(--amber-dim); color: #2B2410;
+    background: linear-gradient(155deg, var(--mine-bubble-1), var(--mine-bubble-2)); border: 1px solid var(--amber-dim);
+    border-radius: 22px 8px 22px 22px; color: var(--mine-bubble-text);
   }
   .msg-row.mine.chained .bubble{ border-radius: 22px 8px 8px 22px; }
 
@@ -545,8 +525,7 @@
   }
   .bubble.has-image{ padding: 5px !important; background: transparent !important; border: none !important; box-shadow:none !important; }
   .bubble.has-image.has-text{ padding: 5px 5px 9px !important; background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-sm) !important; }
-  [data-theme="light"] .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, #FBEAC9, #F5DAA0) !important; border-color: var(--amber-dim) !important; }
-  .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, #2a2115, #1c1712) !important; border-color: var(--amber-dim) !important; }
+  .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, var(--mine-bubble-1), var(--mine-bubble-2)) !important; border-color: var(--amber-dim) !important; }
   .bubble.has-image.has-text .msg-image{ margin-bottom: 6px; }
   .bubble.has-image .msg-image-expired{
     display:flex; align-items:center; justify-content:center; width:180px; height:110px;
@@ -564,7 +543,7 @@
     font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
   }
 
-  #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) calc(88% * var(--panel-alpha)), transparent); backdrop-filter: blur(calc(20px + var(--ui-blur))) saturate(180%); -webkit-backdrop-filter: blur(calc(20px + var(--ui-blur))) saturate(180%); flex-shrink:0; }
+  #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) calc(88% * var(--panel-alpha)), transparent); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); flex-shrink:0; }
   #attach-btn{
     background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
     width:42px; height:42px; border-radius: var(--radius-pill); cursor:pointer; flex-shrink:0;
@@ -618,7 +597,6 @@
   }
   .modal-card{
     background: color-mix(in srgb, var(--surface) calc(var(--panel-alpha) * 100%), transparent);
-    backdrop-filter: blur(var(--ui-blur)) saturate(180%); -webkit-backdrop-filter: blur(var(--ui-blur)) saturate(180%);
     border: 1px solid var(--border); border-radius: var(--radius-lg);
     padding: 26px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow-md); margin: auto;
     animation: modalCardIn .46s var(--ease-spring);
@@ -1250,13 +1228,6 @@
       <div class="settings-group">
         <div class="settings-toggle-row">
           <div>
-            <div class="settings-group-title" style="margin:0;">🧊 Liquid Glass モード</div>
-            <p class="settings-hint" style="margin:2px 0 0;">Apple風のすりガラス表現。パネル類がぼやけて透けます</p>
-          </div>
-          <label class="settings-switch"><input type="checkbox" id="liquid-glass-toggle"><span></span></label>
-        </div>
-        <div class="settings-toggle-row">
-          <div>
             <div class="settings-group-title" style="margin:0;">🎬 アニメーションを控えめに</div>
             <p class="settings-hint" style="margin:2px 0 0;">演出・揺れ・弾むアニメーションを減らします</p>
           </div>
@@ -1275,7 +1246,6 @@
         <div class="settings-group-title">🎨 プリセット</div>
         <div class="preset-row" id="preset-row">
           <button type="button" class="preset-chip" data-preset="default">標準</button>
-          <button type="button" class="preset-chip" data-preset="glass">Liquid Glass</button>
           <button type="button" class="preset-chip" data-preset="mono">モノクローム</button>
           <button type="button" class="preset-chip" data-preset="neon">ネオン</button>
         </div>
@@ -1428,7 +1398,7 @@ const els = {
   uiScaleSlider: $('ui-scale-slider'), uiScaleVal: $('ui-scale-val'),
   uiOpacitySlider: $('ui-opacity-slider'), uiOpacityVal: $('ui-opacity-val'),
   uiRadiusSlider: $('ui-radius-slider'), uiRadiusVal: $('ui-radius-val'),
-  liquidGlassToggle: $('liquid-glass-toggle'), reduceMotionToggle: $('reduce-motion-toggle'),
+  reduceMotionToggle: $('reduce-motion-toggle'),
   compactToggle: $('compact-toggle'), presetRow: $('preset-row'),
   maintenanceScreen: $('maintenance-screen'), splashScreen: $('splash-screen'),
   waveform: $('waveform'),
@@ -3328,16 +3298,34 @@ els.adminClose.addEventListener('click', () => { adminModalOpen = false; els.adm
 /* ------------------------------------------------------------------ */
 const UI_SETTINGS_KEY = 'signal_ui_settings';
 const COLOR_TARGETS = [
-  { key: 'accent',  cssVar: '--amber',    label: 'アクセントカラー（ボタン・強調）', dark: '#F0A93F', light: '#B9701C' },
-  { key: 'bg',      cssVar: '--bg',       label: '背景色',                         dark: '#000000', light: '#FFFFFF' },
-  { key: 'surface', cssVar: '--surface',  label: 'サイドバー・パネル背景',            dark: '#121214', light: '#F2F2F7' },
-  { key: 'surface2',cssVar: '--surface-2',label: 'カード・吹き出し背景',             dark: '#1C1C1E', light: '#FFFFFF' },
-  { key: 'text',    cssVar: '--text',     label: '文字色',                         dark: '#F2F2F7', light: '#1C1C1E' },
-  { key: 'teal',    cssVar: '--teal',     label: 'サブアクセント（青バッジ等）',       dark: '#3DE0B8', light: '#0F8A73' },
-  { key: 'gold',    cssVar: '--gold',     label: '金バッジカラー',                  dark: '#F2C766', light: '#9C6E17' },
-  { key: 'danger',  cssVar: '--danger',   label: '警告・削除カラー',                dark: '#FF6B5B', light: '#FF6B5B' },
+  { key: 'accent',    cssVar: '--amber',      label: 'アクセントカラー（ボタン・強調）',    dark: '#F0A93F', light: '#B9701C' },
+  { key: 'teal',      cssVar: '--teal',       label: 'サブアクセント（青バッジ等）',       dark: '#3DE0B8', light: '#0F8A73' },
+  { key: 'gold',      cssVar: '--gold',       label: '金バッジカラー',                   dark: '#F2C766', light: '#9C6E17' },
+  { key: 'danger',    cssVar: '--danger',     label: '警告・削除カラー',                 dark: '#FF6B5B', light: '#FF6B5B' },
+  { key: 'mineBubble',special: 'mineBubble',  label: '自分の送信吹き出しの色',            dark: '#2a2115', light: '#FBEAC9' },
+  { key: 'bg',        cssVar: '--bg',         label: '背景色',                          dark: '#000000', light: '#FFFFFF' },
+  { key: 'surface',   cssVar: '--surface',    label: 'サイドバー・パネル背景',             dark: '#121214', light: '#F2F2F7' },
+  { key: 'surface2',  cssVar: '--surface-2',  label: 'カード・受信吹き出し背景',           dark: '#1C1C1E', light: '#FFFFFF' },
+  { key: 'surface3',  cssVar: '--surface-3',  label: 'アバター枠・チップ背景',             dark: '#2C2C2E', light: '#E5E5EA' },
+  { key: 'border',    cssVar: '--border',     label: '枠線の色',                        dark: '#38383A', light: '#E5E5EA' },
+  { key: 'text',      cssVar: '--text',       label: '文字色',                          dark: '#F2F2F7', light: '#1C1C1E' },
+  { key: 'textMuted', cssVar: '--text-muted', label: 'サブテキストの色',                  dark: '#98989D', light: '#8E8E93' },
 ];
-const DEFAULT_UI_SETTINGS = { colors: {}, scale: 100, opacity: 100, radius: 100, liquidGlass: false, reduceMotion: false, compact: false };
+/** hexを指定量だけ明るく/暗くする（percentは-255〜255） */
+function shadeColor(hex, percent){
+  const num = parseInt(hex.replace('#', ''), 16);
+  let r = (num >> 16) + percent, g = ((num >> 8) & 0x00FF) + percent, b = (num & 0x0000FF) + percent;
+  r = Math.max(Math.min(255, r), 0); g = Math.max(Math.min(255, g), 0); b = Math.max(Math.min(255, b), 0);
+  return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+}
+/** 背景色に対して読みやすい文字色（黒or白寄り）を返す */
+function contrastTextFor(hex){
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.6 ? '#2B2410' : '#F1E6D2';
+}
+const DEFAULT_UI_SETTINGS = { colors: {}, scale: 100, opacity: 100, radius: 100, reduceMotion: false, compact: false };
 function loadUiSettings(){
   try {
     const raw = localStorage.getItem(UI_SETTINGS_KEY);
@@ -3357,6 +3345,18 @@ function applyUiSettings(){
   // 配色
   COLOR_TARGETS.forEach((t) => {
     const v = uiSettings.colors[t.key];
+    if (t.special === 'mineBubble') {
+      if (v) {
+        document.documentElement.style.setProperty('--mine-bubble-1', shadeColor(v, 18));
+        document.documentElement.style.setProperty('--mine-bubble-2', shadeColor(v, -18));
+        document.documentElement.style.setProperty('--mine-bubble-text', contrastTextFor(v));
+      } else {
+        document.documentElement.style.removeProperty('--mine-bubble-1');
+        document.documentElement.style.removeProperty('--mine-bubble-2');
+        document.documentElement.style.removeProperty('--mine-bubble-text');
+      }
+      return;
+    }
     if (v) document.documentElement.style.setProperty(t.cssVar, v);
     else document.documentElement.style.removeProperty(t.cssVar);
   });
@@ -3366,9 +3366,6 @@ function applyUiSettings(){
   document.documentElement.style.setProperty('--panel-alpha', String(uiSettings.opacity / 100));
   // 角丸
   document.documentElement.style.setProperty('--ui-radius-scale', String(uiSettings.radius / 100));
-  // Liquid Glass
-  document.documentElement.classList.toggle('liquid-glass', !!uiSettings.liquidGlass);
-  document.documentElement.style.setProperty('--ui-blur', uiSettings.liquidGlass ? '14px' : '0px');
   // アニメーション / コンパクト
   document.documentElement.classList.toggle('reduce-motion', !!uiSettings.reduceMotion);
   document.documentElement.classList.toggle('compact-mode', !!uiSettings.compact);
@@ -3445,16 +3442,6 @@ els.uiRadiusSlider.addEventListener('input', () => {
   applyUiSettings();
   saveUiSettings();
 });
-els.liquidGlassToggle.addEventListener('change', () => {
-  uiSettings.liquidGlass = els.liquidGlassToggle.checked;
-  if (uiSettings.liquidGlass && uiSettings.opacity === 100) {
-    uiSettings.opacity = 68;
-    els.uiOpacitySlider.value = 68;
-    els.uiOpacityVal.textContent = '68%';
-  }
-  applyUiSettings();
-  saveUiSettings();
-});
 els.reduceMotionToggle.addEventListener('change', () => {
   uiSettings.reduceMotion = els.reduceMotionToggle.checked;
   applyUiSettings();
@@ -3467,10 +3454,9 @@ els.compactToggle.addEventListener('change', () => {
 });
 
 const UI_PRESETS = {
-  default: { colors: {}, opacity: 100, radius: 100, liquidGlass: false },
-  glass:   { colors: {}, opacity: 62, radius: 120, liquidGlass: true },
-  mono:    { colors: { accent: '#9C9CA3', teal: '#9C9CA3', gold: '#B7B7BD' }, opacity: 100, radius: 100, liquidGlass: false },
-  neon:    { colors: { accent: '#00E5FF', teal: '#FF2ED1', gold: '#FFE600', bg: '#05010c', surface: '#0c0420', surface2: '#150a30' }, opacity: 88, radius: 130, liquidGlass: true },
+  default: { colors: {}, opacity: 100, radius: 100 },
+  mono:    { colors: { accent: '#9C9CA3', teal: '#9C9CA3', gold: '#B7B7BD' }, opacity: 100, radius: 100 },
+  neon:    { colors: { accent: '#00E5FF', teal: '#FF2ED1', gold: '#FFE600', bg: '#05010c', surface: '#0c0420', surface2: '#150a30' }, opacity: 88, radius: 130 },
 };
 els.presetRow.addEventListener('click', (e) => {
   const btn = e.target.closest('.preset-chip');
@@ -3497,7 +3483,6 @@ function refreshSettingsUI(){
   els.uiScaleSlider.value = uiSettings.scale; els.uiScaleVal.textContent = uiSettings.scale + '%';
   els.uiOpacitySlider.value = uiSettings.opacity; els.uiOpacityVal.textContent = uiSettings.opacity + '%';
   els.uiRadiusSlider.value = uiSettings.radius; els.uiRadiusVal.textContent = uiSettings.radius + '%';
-  els.liquidGlassToggle.checked = !!uiSettings.liquidGlass;
   els.reduceMotionToggle.checked = !!uiSettings.reduceMotion;
   els.compactToggle.checked = !!uiSettings.compact;
 }
