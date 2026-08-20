@@ -232,6 +232,32 @@
     border-radius: var(--radius-pill); cursor:pointer; transition: color .25s var(--ease-ios);
   }
   .scope-switch button.active{ color:#14100a; font-weight:700; }
+
+  /* ===================== チャンネル/DM 切り替えタブ ===================== */
+  .sidebar-tabs{
+    display:flex; align-items:center; gap:0; margin: 2px 14px 8px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 3px;
+    position: relative; flex-shrink:0;
+  }
+  .sidebar-tabs .tab-thumb{
+    position:absolute; top:3px; bottom:3px; left:3px; width: calc(50% - 3px);
+    background: var(--amber); border-radius: var(--radius-pill);
+    transition: transform .42s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
+  }
+  .sidebar-tabs button{
+    position:relative; z-index:1; flex:1; border:none; background:none; color: var(--text-muted);
+    font-size: 12px; font-weight:600; padding: 8px 6px; border-radius: var(--radius-pill); cursor:pointer;
+    transition: color .25s var(--ease-ios); display:flex; align-items:center; justify-content:center; gap:5px;
+  }
+  .sidebar-tabs button.active{ color:#14100a; }
+  .sidebar-tabs .req-dot{
+    min-width:16px; height:16px; padding:0 3px; border-radius: var(--radius-pill); background: var(--danger); color:#fff;
+    font-family: var(--font-mono); font-size: 9.5px; line-height:16px; text-align:center; display:none;
+  }
+  .sidebar-tabs .req-dot.show{ display:inline-block; }
+
+  #channel-section{ display:flex; flex-direction:column; flex:1; min-height:0; }
+  #dm-section{ display:flex; flex-direction:column; flex:1; min-height:0; }
   .channel-edit-controls{ display:flex; align-items:center; gap:2px; flex-shrink:0; }
   .ch-arrow-btn, .ch-rename-btn{
     background:none; border:none; color: var(--text-faint); cursor:pointer; font-size:12px; padding: 3px 4px; line-height:1;
@@ -241,8 +267,7 @@
   .ch-arrow-btn:disabled{ opacity:.25; cursor:default; }
   .ch-arrow-btn:disabled:hover{ background:none; color: var(--text-faint); }
 
-  #channel-list{ list-style:none; margin:0; padding: 2px 10px 10px; overflow-y:auto; flex:1; min-height: 0; }
-  .channel-item{
+  #channel-list{ list-style:none; margin:0; padding: 2px 10px 10px; overflow-y:auto; flex:1; min-height: 0; }  .channel-item{
     display:flex; align-items:center; gap:10px; padding: 9px 10px; border-radius: var(--radius-sm);
     cursor:pointer; margin-bottom: 2px; border: 1px solid transparent;
     transition: background-color .15s var(--ease-ios), border-color .15s var(--ease-ios), transform .28s var(--ease-spring), box-shadow .15s var(--ease-ios);
@@ -255,7 +280,7 @@
     background: var(--amber-dim); padding: 2px 5px; border-radius: var(--radius-pill);
     flex-shrink:0; min-width: 40px; text-align:center;
   }
-  .channel-name{ font-size: 13.5px; color: var(--text); font-weight: 500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+  .channel-name{ font-size: 13.5px; color: var(--text); font-weight: 500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
   .channel-unread{
     min-width:18px; height:18px; padding:0 5px; border-radius:10px; background: var(--amber); color:#14100a;
     font-family: var(--font-mono); font-size: 10px; font-weight:700; line-height:18px; text-align:center;
@@ -634,7 +659,6 @@
   .admin-empty{ text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 11.5px; padding: 20px 0; }
 
   /* DM / Friends */
-  .dm-section{ border-top: 1px solid var(--border); flex-shrink:0; }
   .friends-btn{
     margin: 0 14px 10px; padding: 9px 10px; border-radius: var(--radius-md);
     background: var(--surface-2); border: 1px solid var(--teal-dim); color: var(--teal);
@@ -650,7 +674,7 @@
     font-size: 9.5px; line-height:16px; text-align:center; display:none; box-shadow: 0 0 0 2px var(--surface);
   }
   .friends-btn .req-dot.show{ display:block; }
-  #dm-list{ list-style:none; margin:0; padding: 4px 10px 14px; max-height: 260px; min-height: 64px; overflow-y:auto; flex-shrink:0; }
+  #dm-list{ list-style:none; margin:0; padding: 4px 10px 14px; overflow-y:auto; flex:1; min-height: 0; }
   .dm-item{
     display:flex; align-items:center; gap:10px; padding: 9px 10px; border-radius: var(--radius-sm);
     cursor:pointer; margin-bottom: 3px; border: 1px solid transparent;
@@ -793,22 +817,29 @@
     <button class="admin-btn" id="admin-panel-btn">管理者パネル</button>
     <button class="friends-btn" id="friends-panel-btn">フレンド<span class="req-dot" id="friend-req-dot">0</span></button>
 
-    <div class="section-label">
-      <span>チャンネル</span>
-      <span class="channel-edit-controls">
-        <button class="edit-mode-btn" id="edit-mode-btn" title="並び替え・名前変更">✎</button>
-        <button class="add-channel-btn" id="add-channel-btn" title="チャンネルを追加">+</button>
-      </span>
-    </div>
-    <div class="scope-switch" id="scope-switch">
+    <div class="sidebar-tabs" id="sidebar-tabs">
       <div class="tab-thumb"></div>
-      <button type="button" data-scope="personal" class="active">自分だけ</button>
-      <button type="button" data-scope="global">全体(管理者)</button>
+      <button type="button" data-tab="channels" class="active">チャンネル</button>
+      <button type="button" data-tab="dms">DM<span class="req-dot" id="dm-tab-dot">0</span></button>
     </div>
-    <ul id="channel-list"></ul>
 
-    <div class="dm-section">
-      <div class="section-label"><span>ダイレクトメッセージ</span></div>
+    <div id="channel-section" class="sidebar-section">
+      <div class="section-label">
+        <span>チャンネル</span>
+        <span class="channel-edit-controls">
+          <button class="edit-mode-btn" id="edit-mode-btn" title="並び替え・名前変更">✎</button>
+          <button class="add-channel-btn" id="add-channel-btn" title="チャンネルを追加">+</button>
+        </span>
+      </div>
+      <div class="scope-switch" id="scope-switch">
+        <div class="tab-thumb"></div>
+        <button type="button" data-scope="personal" class="active">自分だけ</button>
+        <button type="button" data-scope="global">全体(管理者)</button>
+      </div>
+      <ul id="channel-list"></ul>
+    </div>
+
+    <div class="dm-section" id="dm-section" style="display:none;">
       <ul id="dm-list"></ul>
     </div>
 
@@ -1115,6 +1146,7 @@ const els = {
   waveform: $('waveform'),
   notifToggle: $('notif-toggle'), notifUnreadDot: $('notif-unread-dot'),
   editModeBtn: $('edit-mode-btn'), scopeSwitch: $('scope-switch'),
+  sidebarTabs: $('sidebar-tabs'), channelSection: $('channel-section'), dmSection: $('dm-section'), dmTabDot: $('dm-tab-dot'),
   channelRenameModal: $('channel-rename-modal'), channelRenameInput: $('channel-rename-input'),
   channelRenameDesc: $('channel-rename-desc'), channelRenamePersonal: $('channel-rename-personal'),
   channelRenameGlobal: $('channel-rename-global'), channelRenameCancel: $('channel-rename-cancel'),
@@ -1794,8 +1826,29 @@ els.scopeSwitch.addEventListener('click', (e) => {
   positionTabThumb(els.scopeSwitch);
 });
 
+/* ------------------------------------------------------------------ */
+/* サイドバー: チャンネル/DM 切り替えタブ                                  */
+/* ------------------------------------------------------------------ */
+let sidebarTab = 'channels'; // 'channels' | 'dms'
+function setSidebarTab(tab){
+  sidebarTab = tab;
+  [...els.sidebarTabs.children].forEach((b) => { if (b.tagName === 'BUTTON') b.classList.toggle('active', b.dataset.tab === tab); });
+  els.channelSection.style.display = tab === 'channels' ? 'flex' : 'none';
+  els.dmSection.style.display = tab === 'dms' ? 'flex' : 'none';
+  positionTabThumb(els.sidebarTabs);
+}
+els.sidebarTabs.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-tab]');
+  if (!btn) return;
+  setSidebarTab(btn.dataset.tab);
+});
+requestAnimationFrame(() => positionTabThumb(els.sidebarTabs));
+window.addEventListener('resize', () => positionTabThumb(els.sidebarTabs));
+
+
 function selectChannel(id, name){
   flashConversationSwitch();
+  setSidebarTab('channels');
   currentKind = 'channel';
   currentDmId = null; currentDmOtherUid = null; currentDmOtherName = null;
   currentChannelId = id;
@@ -1832,6 +1885,7 @@ function flashConversationSwitch(){
 function selectDm(otherUid, otherName){
   if (!myUid) return;
   flashConversationSwitch();
+  setSidebarTab('dms');
   currentKind = 'dm';
   currentChannelId = null;
   currentDmId = dmIdFor(myUid, otherUid);
@@ -2332,10 +2386,15 @@ function updateChannelUnreadBadge(channelId){
   }
 }
 function updateGlobalUnreadUI(){
-  const total = Object.values(unreadByChannel).reduce((a, b) => a + b, 0) + Object.values(unreadByDm).reduce((a, b) => a + b, 0);
+  const dmTotal = Object.values(unreadByDm).reduce((a, b) => a + b, 0);
+  const total = Object.values(unreadByChannel).reduce((a, b) => a + b, 0) + dmTotal;
   if (els.notifUnreadDot) {
     els.notifUnreadDot.textContent = total > 99 ? '99+' : String(total);
     els.notifUnreadDot.classList.toggle('show', total > 0);
+  }
+  if (els.dmTabDot) {
+    els.dmTabDot.textContent = dmTotal > 99 ? '99+' : String(dmTotal);
+    els.dmTabDot.classList.toggle('show', dmTotal > 0);
   }
   document.title = total > 0 ? `(${total > 99 ? '99+' : total}) SIGNAL` : 'SIGNAL — リアルタイムチャット';
 }
