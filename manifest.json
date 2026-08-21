@@ -3,7 +3,7 @@
   "short_name": "SIGNAL",
   "description": "SignalChatapp",
   "start_url": "./index.html",
-  "display": "standalone",
+  "display": "fullscreen",
   "theme_color": "#0C1116",
   "icons": [
     {
