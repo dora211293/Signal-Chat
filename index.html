@@ -403,7 +403,7 @@
     background: var(--surface); border: 1px solid var(--border); padding: 3px 12px; border-radius: 20px; margin: 14px 0 10px;
   }
 
-  .msg-row{ display:flex; gap: 10px; max-width: 76%; margin: 7px 0 0; align-items: flex-end; align-self: flex-start; }
+  .msg-row{ display:flex; gap: 10px; width: fit-content; max-width: 76%; margin: 7px 0 0; align-items: flex-end; align-self: flex-start; }
   .msg-row.mine{ align-self:flex-end; flex-direction:row-reverse; }
   .msg-row.grouped{ margin-top: 2px; }
 
@@ -689,6 +689,7 @@
     position:relative; overflow:hidden; border-radius: var(--radius-sm);
     border: 1px solid var(--border); background: var(--surface-3); cursor:pointer;
     padding: 8px 10px; transition: border-color .15s, transform .15s;
+    width:100%; text-align:left; font-family: inherit; color: inherit;
   }
   .poll-option:hover{ transform: translateX(1px); border-color: var(--amber-dim); }
   .poll-option.mine{ border-color: var(--amber); }
@@ -1708,6 +1709,38 @@ function computePollStats(m){
   return { optionCounts, freeTexts, myResponse, total };
 }
 
+/** 投票メッセージのHTMLを組み立てる（チャットのバブル内に表示する部分） */
+function renderPollHtml(m, msgId){
+  const { optionCounts, freeTexts, myResponse, total } = computePollStats(m);
+  const options = m.poll.options || [];
+  const optionsHtml = options.map((opt, i) => {
+    const count = optionCounts[i] || 0;
+    const pct = total ? Math.round((count / total) * 100) : 0;
+    const mine = !!(myResponse && myResponse.kind === 'option' && myResponse.optionIndex === i);
+    return `<button type="button" class="poll-option${mine ? ' mine' : ''}" data-msg-id="${msgId}" data-option-index="${i}">
+      <span class="poll-option-fill" style="width:${pct}%"></span>
+      <span class="poll-option-text">${escapeHtml(opt)}</span>
+      <span class="poll-option-meta">${count}票・${pct}%</span>
+    </button>`;
+  }).join('');
+  const freeTextInputHtml = m.poll.allowFreeText
+    ? `<div class="poll-freetext-input">
+        <input type="text" class="poll-text-input" data-msg-id="${msgId}" maxlength="200" placeholder="自由記述で回答…" value="${myResponse && myResponse.kind === 'text' ? escapeHtml(myResponse.text) : ''}">
+        <button type="button" class="poll-text-submit" data-msg-id="${msgId}">送信</button>
+      </div>`
+    : '';
+  const freeTextListHtml = freeTexts.length
+    ? `<div class="poll-freetext-list">${freeTexts.map((f) => `<div class="poll-freetext-item"><b>${escapeHtml(f.name)}：</b>${escapeHtml(f.text)}</div>`).join('')}</div>`
+    : '';
+  return `<div class="poll-block">
+    <div class="poll-question">📊 ${escapeHtml(m.poll.question)}</div>
+    <div class="poll-options">${optionsHtml}</div>
+    ${freeTextInputHtml}
+    ${freeTextListHtml}
+    <div class="poll-total">${total}人が回答</div>
+  </div>`;
+}
+
 async function votePollOption(msgId, optionIndex){
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
   if (!db || !targetId || !myUid) return;
@@ -2522,10 +2555,12 @@ function renderMessages(docs){
     const color = avatarColor(m.uid);
     const hasText = !!(m.text && m.text.trim());
     const hasImage = !!m.img;
+    const hasPoll = m.type === 'poll' && !!m.poll;
     const imageHtml = hasImage
       ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}">`
       : (m.imgExpired ? `<div class="msg-image-expired">画像は期限切れです</div>` : '');
-    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasText ? ' has-text' : '');
+    const pollHtml = hasPoll ? renderPollHtml(m, d.id) : '';
+    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '');
 
     // 返信元の引用プレビュー（あれば）
     const replyHtml = m.replyTo
@@ -2560,6 +2595,7 @@ function renderMessages(docs){
       mine, groupedWithPrev, groupedWithNext, canDelete,
       dispName, dispIcon, dispImg, verified, gold,
       hasText, m.text || '', hasImage, m.img || '', !!m.imgExpired,
+      hasPoll, m.poll || null, m.pollResponses || null,
       metaHtml, receipts, replyHtml, reactionEntries
     ]);
 
@@ -2569,7 +2605,7 @@ function renderMessages(docs){
         <div class="msg-avatar" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
         <div class="msg-body">
           ${metaHtml}
-          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${escapeHtml(m.text)}</div>` : ''}</div>
+          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${escapeHtml(m.text)}</div>` : ''}${pollHtml}</div>
         </div>`;
 
       const body = row.querySelector('.msg-body');
@@ -2690,12 +2726,37 @@ els.messages.addEventListener('click', (e) => {
   if (img) { openLightbox(img.dataset.full || img.src); return; }
   const chipWrap = e.target.closest('.read-chips');
   if (chipWrap) { chipWrap.classList.toggle('expanded'); return; }
+  const pollOptBtn = e.target.closest('.poll-option');
+  if (pollOptBtn && activeTargetId && db) {
+    votePollOption(pollOptBtn.dataset.msgId, parseInt(pollOptBtn.dataset.optionIndex, 10));
+    return;
+  }
+  const pollSubmitBtn = e.target.closest('.poll-text-submit');
+  if (pollSubmitBtn && activeTargetId && db) {
+    const wrap = pollSubmitBtn.closest('.poll-freetext-input');
+    const input = wrap ? wrap.querySelector('.poll-text-input') : null;
+    if (input && input.value.trim()) {
+      submitPollFreeText(pollSubmitBtn.dataset.msgId, input.value);
+    }
+    return;
+  }
+  const pollTextInput = e.target.closest('.poll-text-input');
+  if (pollTextInput) { return; }
   const bubble = e.target.closest('.bubble');
   if (bubble) {
     const row = bubble.closest('.msg-row');
     if (row && row.classList.contains('has-actions')) row.classList.toggle('menu-open');
   }
 });
+
+els.messages.addEventListener('keydown', (e) => {
+  const input = e.target.closest('.poll-text-input');
+  if (input && e.key === 'Enter' && activeTargetIdForPoll() && db) {
+    e.preventDefault();
+    if (input.value.trim()) submitPollFreeText(input.dataset.msgId, input.value);
+  }
+});
+function activeTargetIdForPoll(){ return currentKind === 'dm' ? currentDmId : currentChannelId; }
 
 /** 現在の会話（チャンネル or DM）のFirestoreパスを ['channels', id] / ['dms', id] の形で返す */
 function activeBasePath(){
