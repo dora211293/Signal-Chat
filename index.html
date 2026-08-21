@@ -681,9 +681,19 @@
   }
   .poll-freetext-toggle input{ width:16px; height:16px; accent-color: var(--amber); cursor:pointer; }
 
-  /* ---- チャット内のアンケート表示 ---- */
-  .poll-block{ padding: 2px 2px 4px; min-width: 220px; max-width: 280px; }
-  .poll-question{ font-size: 13.5px; font-weight:700; margin-bottom: 9px; line-height:1.4; }
+  /* ---- チャット内のアンケート表示（タップで開閉） ---- */
+  .poll-block{ padding: 2px 2px 4px; }
+  .poll-summary{
+    display:inline-flex; align-items:center; gap:8px; max-width: 260px;
+    background:none; border:none; padding:0; margin:0; cursor:pointer; text-align:left;
+    font-family: inherit; color: inherit;
+  }
+  .poll-summary-icon{ font-size: 14px; flex-shrink:0; }
+  .poll-summary-text{ font-size: 13.5px; font-weight:700; line-height:1.4; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .poll-summary-meta{ font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); flex-shrink:0; white-space:nowrap; }
+  .poll-summary-caret{ font-size: 9px; color: var(--text-faint); flex-shrink:0; transition: transform .2s var(--ease-ios); }
+  .poll-details{ display:none; width: 260px; max-width: 100%; margin-top: 10px; }
+  .poll-block.expanded .poll-details{ display:block; }
   .poll-options{ display:flex; flex-direction:column; gap:6px; }
   .poll-option{
     position:relative; overflow:hidden; border-radius: var(--radius-sm);
@@ -1709,7 +1719,9 @@ function computePollStats(m){
   return { optionCounts, freeTexts, myResponse, total };
 }
 
-/** 投票メッセージのHTMLを組み立てる（チャットのバブル内に表示する部分） */
+const expandedPolls = new Set(); // タップで開いたアンケートのメッセージIDを保持（再描画されても開閉状態を維持する）
+
+/** 投票メッセージのHTMLを組み立てる（普段はタイトルだけのチップ表示、タップで詳細が開く） */
 function renderPollHtml(m, msgId){
   const { optionCounts, freeTexts, myResponse, total } = computePollStats(m);
   const options = m.poll.options || [];
@@ -1732,12 +1744,21 @@ function renderPollHtml(m, msgId){
   const freeTextListHtml = freeTexts.length
     ? `<div class="poll-freetext-list">${freeTexts.map((f) => `<div class="poll-freetext-item"><b>${escapeHtml(f.name)}：</b>${escapeHtml(f.text)}</div>`).join('')}</div>`
     : '';
-  return `<div class="poll-block">
-    <div class="poll-question">📊 ${escapeHtml(m.poll.question)}</div>
-    <div class="poll-options">${optionsHtml}</div>
-    ${freeTextInputHtml}
-    ${freeTextListHtml}
-    <div class="poll-total">${total}人が回答</div>
+  const answered = !!myResponse;
+  const expanded = expandedPolls.has(msgId);
+  return `<div class="poll-block${expanded ? ' expanded' : ''}">
+    <button type="button" class="poll-summary" data-msg-id="${msgId}">
+      <span class="poll-summary-icon">📊</span>
+      <span class="poll-summary-text">${escapeHtml(m.poll.question)}</span>
+      <span class="poll-summary-meta">${answered ? '回答済み' : 'タップで回答'}・${total}人</span>
+      <span class="poll-summary-caret">${expanded ? '▲' : '▼'}</span>
+    </button>
+    <div class="poll-details">
+      <div class="poll-options">${optionsHtml}</div>
+      ${freeTextInputHtml}
+      ${freeTextListHtml}
+      <div class="poll-total">${total}人が回答</div>
+    </div>
   </div>`;
 }
 
@@ -2726,6 +2747,18 @@ els.messages.addEventListener('click', (e) => {
   if (img) { openLightbox(img.dataset.full || img.src); return; }
   const chipWrap = e.target.closest('.read-chips');
   if (chipWrap) { chipWrap.classList.toggle('expanded'); return; }
+  const pollSummary = e.target.closest('.poll-summary');
+  if (pollSummary) {
+    const id = pollSummary.dataset.msgId;
+    const block = pollSummary.closest('.poll-block');
+    if (id && block) {
+      const nowExpanded = block.classList.toggle('expanded');
+      if (nowExpanded) expandedPolls.add(id); else expandedPolls.delete(id);
+      const caret = block.querySelector('.poll-summary-caret');
+      if (caret) caret.textContent = nowExpanded ? '▲' : '▼';
+    }
+    return;
+  }
   const pollOptBtn = e.target.closest('.poll-option');
   if (pollOptBtn && activeTargetId && db) {
     votePollOption(pollOptBtn.dataset.msgId, parseInt(pollOptBtn.dataset.optionIndex, 10));
