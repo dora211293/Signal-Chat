@@ -189,7 +189,7 @@
     display:flex; flex-direction:column;
     min-width: 0; min-height: 0; height: 100%;
   }
-  .brand{ display:flex; align-items:center; padding: 20px 18px 14px; flex-shrink: 0; }
+  .brand{ display:flex; align-items:center; padding: calc(20px + env(safe-area-inset-top)) 18px 14px; flex-shrink: 0; }
   .brand-text{ display:flex; flex-direction:column; line-height:1.15; }
   .brand-text b{ font-family: var(--font-display); font-size: 17px; letter-spacing: .04em; }
   .brand-text span{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: .06em; }
@@ -348,7 +348,7 @@
   #main{ display:flex; flex-direction:column; min-width:0; min-height: 0; height:100%; position:relative; }
 
   #topbar{
-    display:flex; align-items:center; gap:14px; padding: 14px 20px;
+    display:flex; align-items:center; gap:14px; padding: calc(14px + env(safe-area-inset-top)) 20px 14px;
     border-bottom: 1px solid var(--border);
     background: linear-gradient(180deg, color-mix(in srgb, var(--surface) calc(72% * var(--panel-alpha)), transparent), color-mix(in srgb, var(--surface) calc(20% * var(--panel-alpha)), transparent));
     backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
