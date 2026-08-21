@@ -415,7 +415,7 @@
   }
   .msg-avatar:hover{ transform: scale(1.14) rotate(-6deg); }
   .msg-row.chained .msg-avatar{ visibility:hidden; }
-  .msg-body{ min-width:0; }
+  .msg-body{ min-width:0; width: fit-content; max-width: 100%; }
   .msg-row .bubble{ transition: background-color .35s ease, border-color .35s ease, color .3s ease, transform .22s var(--ease-spring), box-shadow .2s var(--ease-ios); }
   .msg-row:hover .bubble{ transform: translateY(-2px); box-shadow: var(--shadow-md); }
   .msg-meta{ display:flex; gap:8px; align-items:baseline; margin-bottom:4px; padding: 0 3px; }
@@ -431,6 +431,7 @@
     border-radius: 8px 22px 22px 22px; font-size: 14px; line-height: 1.55;
     word-break: break-word; white-space: pre-wrap; color: var(--text);
     box-shadow: var(--shadow-sm);
+    width: fit-content; max-width: 100%;
     transition: background-color .35s ease, border-color .35s ease, color .3s ease, transform .3s var(--ease-spring), box-shadow .2s var(--ease-ios);
   }
   .msg-row:hover .bubble{ transform: translateY(-1px); box-shadow: var(--shadow-md); }  .msg-row.chained .bubble{ border-radius: 8px 22px 22px 8px; }
@@ -681,24 +682,25 @@
   }
   .poll-freetext-toggle input{ width:16px; height:16px; accent-color: var(--amber); cursor:pointer; }
 
-  /* ---- チャット内のアンケート表示（タップで開閉） ---- */
+  /* ---- チャット内のアンケート表示（タップでフローティング表示） ---- */
   .poll-block{ padding: 2px 2px 4px; }
   .poll-summary{
     display:inline-flex; align-items:center; gap:8px; max-width: 260px;
     background:none; border:none; padding:0; margin:0; cursor:pointer; text-align:left;
     font-family: inherit; color: inherit;
   }
+  .poll-summary:hover .poll-summary-caret{ transform: translateX(2px); }
   .poll-summary-icon{ font-size: 14px; flex-shrink:0; }
   .poll-summary-text{ font-size: 13.5px; font-weight:700; line-height:1.4; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .poll-summary-meta{ font-family: var(--font-mono); font-size: 9.5px; color: var(--text-faint); flex-shrink:0; white-space:nowrap; }
-  .poll-summary-caret{ font-size: 9px; color: var(--text-faint); flex-shrink:0; transition: transform .2s var(--ease-ios); }
-  .poll-details{ display:none; width: 260px; max-width: 100%; margin-top: 10px; }
-  .poll-block.expanded .poll-details{ display:block; }
-  .poll-options{ display:flex; flex-direction:column; gap:6px; }
+  .poll-summary-caret{ font-size: 14px; color: var(--text-faint); flex-shrink:0; transition: transform .18s var(--ease-ios); }
+
+  /* ---- アンケートのフローティングモーダル（投票UI本体） ---- */
+  #poll-view-modal .poll-options{ display:flex; flex-direction:column; gap:6px; }
   .poll-option{
     position:relative; overflow:hidden; border-radius: var(--radius-sm);
     border: 1px solid var(--border); background: var(--surface-3); cursor:pointer;
-    padding: 8px 10px; transition: border-color .15s, transform .15s;
+    padding: 10px 12px; transition: border-color .15s, transform .15s;
     width:100%; text-align:left; font-family: inherit; color: inherit;
   }
   .poll-option:hover{ transform: translateX(1px); border-color: var(--amber-dim); }
@@ -708,23 +710,23 @@
     transition: width .35s var(--ease-ios);
   }
   .poll-option.mine .poll-option-fill{ background: color-mix(in srgb, var(--amber) 32%, transparent); }
-  .poll-option-text{ position:relative; z-index:1; font-size: 12.5px; font-weight:600; display:block; }
-  .poll-option-meta{ position:relative; z-index:1; font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); display:block; margin-top:2px; }
+  .poll-option-text{ position:relative; z-index:1; font-size: 13px; font-weight:600; display:block; }
+  .poll-option-meta{ position:relative; z-index:1; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); display:block; margin-top:2px; }
   .poll-freetext-input{ display:flex; gap:6px; margin-top: 10px; }
   .poll-text-input{
     flex:1; min-width:0; background: var(--surface-3); border: 1px solid var(--border); color: var(--text);
-    border-radius: var(--radius-sm); padding: 7px 9px; font-size: 12px; outline:none;
+    border-radius: var(--radius-sm); padding: 9px 11px; font-size: 13px; outline:none;
   }
   .poll-text-input:focus{ border-color: var(--amber); }
   .poll-text-submit{
     background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-dim);
-    border-radius: var(--radius-sm); padding: 0 12px; font-size: 11.5px; font-weight:700; cursor:pointer; flex-shrink:0;
+    border-radius: var(--radius-sm); padding: 0 14px; font-size: 12px; font-weight:700; cursor:pointer; flex-shrink:0;
   }
   .poll-text-submit:hover{ transform: translateY(-1px); }
-  .poll-freetext-list{ margin-top: 9px; display:flex; flex-direction:column; gap:5px; max-height: 130px; overflow-y:auto; }
-  .poll-freetext-item{ font-size: 11.5px; line-height:1.4; padding: 5px 8px; background: var(--surface-3); border-radius: 8px; }
+  .poll-freetext-list{ margin-top: 9px; display:flex; flex-direction:column; gap:5px; max-height: 160px; overflow-y:auto; }
+  .poll-freetext-item{ font-size: 12px; line-height:1.4; padding: 6px 9px; background: var(--surface-3); border-radius: 8px; }
   .poll-freetext-item b{ color: var(--amber); font-weight:700; }
-  .poll-total{ font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); margin-top: 9px; }
+  .poll-total{ font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); margin-top: 10px; }
   .field-error{ color: var(--danger); font-size: 11.5px; margin: -6px 0 12px; display:none; }
 
   .profile-preview{ display:flex; justify-content:center; margin-bottom: 16px; }
@@ -1192,6 +1194,16 @@
   </div>
 </div>
 
+<!-- ===================== アンケート表示・投票モーダル ===================== -->
+<div class="modal-scrim" id="poll-view-modal" style="display:none;">
+  <div class="modal-card admin-card">
+    <div class="eyebrow">📊 POLL</div>
+    <h2 id="poll-view-question"></h2>
+    <div class="admin-panel-body" id="poll-view-body"></div>
+    <button class="cancel" id="poll-view-close">閉じる</button>
+  </div>
+</div>
+
 <!-- ===================== チャンネル名編集モーダル ===================== -->
 <div class="modal-scrim" id="channel-rename-modal" style="display:none;">
   <div class="modal-card">
@@ -1435,6 +1447,7 @@ const els = {
   pollBtn: $('poll-btn'), pollModal: $('poll-modal'), pollQuestionInput: $('poll-question-input'),
   pollOptionCount: $('poll-option-count'), pollOptionsInputs: $('poll-options-inputs'),
   pollAllowFreetext: $('poll-allow-freetext'), pollCreateConfirm: $('poll-create-confirm'), pollCreateCancel: $('poll-create-cancel'),
+  pollViewModal: $('poll-view-modal'), pollViewQuestion: $('poll-view-question'), pollViewBody: $('poll-view-body'), pollViewClose: $('poll-view-close'),
   imagePreviewStrip: $('image-preview-strip'), imagePreviewThumb: $('image-preview-thumb'),
   imagePreviewClear: $('image-preview-clear'), imagePreviewMeta: $('image-preview-meta'),
   replyPreviewStrip: $('reply-preview-strip'), replyPreviewName: $('reply-preview-name'),
@@ -1719,10 +1732,20 @@ function computePollStats(m){
   return { optionCounts, freeTexts, myResponse, total };
 }
 
-const expandedPolls = new Set(); // タップで開いたアンケートのメッセージIDを保持（再描画されても開閉状態を維持する）
+/** チャットのバブル内に出す、アンケートのタイトルだけの小さいチップ */
+function renderPollChipHtml(m, msgId){
+  const { myResponse, total } = computePollStats(m);
+  const answered = !!myResponse;
+  return `<button type="button" class="poll-summary" data-msg-id="${msgId}">
+    <span class="poll-summary-icon">📊</span>
+    <span class="poll-summary-text">${escapeHtml(m.poll.question)}</span>
+    <span class="poll-summary-meta">${answered ? '回答済み' : 'タップで回答'}・${total}人</span>
+    <span class="poll-summary-caret">›</span>
+  </button>`;
+}
 
-/** 投票メッセージのHTMLを組み立てる（普段はタイトルだけのチップ表示、タップで詳細が開く） */
-function renderPollHtml(m, msgId){
+/** フローティングモーダル内に出す、選択肢・自由記述欄・集計などの詳細部分 */
+function renderPollDetailsHtml(m, msgId){
   const { optionCounts, freeTexts, myResponse, total } = computePollStats(m);
   const options = m.poll.options || [];
   const optionsHtml = options.map((opt, i) => {
@@ -1744,23 +1767,55 @@ function renderPollHtml(m, msgId){
   const freeTextListHtml = freeTexts.length
     ? `<div class="poll-freetext-list">${freeTexts.map((f) => `<div class="poll-freetext-item"><b>${escapeHtml(f.name)}：</b>${escapeHtml(f.text)}</div>`).join('')}</div>`
     : '';
-  const answered = !!myResponse;
-  const expanded = expandedPolls.has(msgId);
-  return `<div class="poll-block${expanded ? ' expanded' : ''}">
-    <button type="button" class="poll-summary" data-msg-id="${msgId}">
-      <span class="poll-summary-icon">📊</span>
-      <span class="poll-summary-text">${escapeHtml(m.poll.question)}</span>
-      <span class="poll-summary-meta">${answered ? '回答済み' : 'タップで回答'}・${total}人</span>
-      <span class="poll-summary-caret">${expanded ? '▲' : '▼'}</span>
-    </button>
-    <div class="poll-details">
-      <div class="poll-options">${optionsHtml}</div>
-      ${freeTextInputHtml}
-      ${freeTextListHtml}
-      <div class="poll-total">${total}人が回答</div>
-    </div>
-  </div>`;
+  return `<div class="poll-options">${optionsHtml}</div>
+    ${freeTextInputHtml}
+    ${freeTextListHtml}
+    <div class="poll-total">${total}人が回答</div>`;
 }
+
+let openPollMsgId = null; // フローティング表示中のアンケートのメッセージID
+function openPollViewModal(msgId){
+  const docSnap = (lastDocsSnapshot || []).find((d) => d.id === msgId);
+  if (!docSnap || !docSnap.data().poll) return;
+  openPollMsgId = msgId;
+  refreshPollViewModal();
+  els.pollViewModal.style.display = 'flex';
+}
+function refreshPollViewModal(){
+  if (!openPollMsgId) return;
+  const docSnap = (lastDocsSnapshot || []).find((d) => d.id === openPollMsgId);
+  if (!docSnap || !docSnap.data().poll) { closePollViewModal(); return; }
+  const m = docSnap.data();
+  els.pollViewQuestion.textContent = m.poll.question;
+  els.pollViewBody.innerHTML = renderPollDetailsHtml(m, openPollMsgId);
+}
+function closePollViewModal(){
+  openPollMsgId = null;
+  els.pollViewModal.style.display = 'none';
+}
+els.pollViewClose.addEventListener('click', closePollViewModal);
+els.pollViewBody.addEventListener('click', (e) => {
+  const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
+  const optBtn = e.target.closest('.poll-option');
+  if (optBtn && targetId && db) {
+    votePollOption(optBtn.dataset.msgId, parseInt(optBtn.dataset.optionIndex, 10));
+    return;
+  }
+  const submitBtn = e.target.closest('.poll-text-submit');
+  if (submitBtn && targetId && db) {
+    const wrap = submitBtn.closest('.poll-freetext-input');
+    const input = wrap ? wrap.querySelector('.poll-text-input') : null;
+    if (input && input.value.trim()) submitPollFreeText(submitBtn.dataset.msgId, input.value);
+  }
+});
+els.pollViewBody.addEventListener('keydown', (e) => {
+  const input = e.target.closest('.poll-text-input');
+  const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
+  if (input && e.key === 'Enter' && targetId && db) {
+    e.preventDefault();
+    if (input.value.trim()) submitPollFreeText(input.dataset.msgId, input.value);
+  }
+});
 
 async function votePollOption(msgId, optionIndex){
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
@@ -2580,7 +2635,7 @@ function renderMessages(docs){
     const imageHtml = hasImage
       ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}">`
       : (m.imgExpired ? `<div class="msg-image-expired">画像は期限切れです</div>` : '');
-    const pollHtml = hasPoll ? renderPollHtml(m, d.id) : '';
+    const pollHtml = hasPoll ? renderPollChipHtml(m, d.id) : '';
     const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '');
 
     // 返信元の引用プレビュー（あれば）
@@ -2679,6 +2734,7 @@ function renderMessages(docs){
   // 本当に位置がずれた行だけ insertBefore で動かす最小差分パッチに変更。
   patchMessageList(els.messages, orderedNodes);
   knownIds = newKnown;
+  refreshPollViewModal();
   // FIX: 新規チャンネルを開いた直後(wasEmpty)は過去ログの末尾までスムーズスクロールすると
   // 長い距離をゆっくり流れて不自然なので瞬時にジャンプ。既に最下部にいる状態での新着更新
   // (nearBottom)だけ、他のメッセージが上に押し上げられるようにスムーズスクロールさせる。
@@ -2750,46 +2806,15 @@ els.messages.addEventListener('click', (e) => {
   const pollSummary = e.target.closest('.poll-summary');
   if (pollSummary) {
     const id = pollSummary.dataset.msgId;
-    const block = pollSummary.closest('.poll-block');
-    if (id && block) {
-      const nowExpanded = block.classList.toggle('expanded');
-      if (nowExpanded) expandedPolls.add(id); else expandedPolls.delete(id);
-      const caret = block.querySelector('.poll-summary-caret');
-      if (caret) caret.textContent = nowExpanded ? '▲' : '▼';
-    }
+    if (id) openPollViewModal(id);
     return;
   }
-  const pollOptBtn = e.target.closest('.poll-option');
-  if (pollOptBtn && activeTargetId && db) {
-    votePollOption(pollOptBtn.dataset.msgId, parseInt(pollOptBtn.dataset.optionIndex, 10));
-    return;
-  }
-  const pollSubmitBtn = e.target.closest('.poll-text-submit');
-  if (pollSubmitBtn && activeTargetId && db) {
-    const wrap = pollSubmitBtn.closest('.poll-freetext-input');
-    const input = wrap ? wrap.querySelector('.poll-text-input') : null;
-    if (input && input.value.trim()) {
-      submitPollFreeText(pollSubmitBtn.dataset.msgId, input.value);
-    }
-    return;
-  }
-  const pollTextInput = e.target.closest('.poll-text-input');
-  if (pollTextInput) { return; }
   const bubble = e.target.closest('.bubble');
   if (bubble) {
     const row = bubble.closest('.msg-row');
     if (row && row.classList.contains('has-actions')) row.classList.toggle('menu-open');
   }
 });
-
-els.messages.addEventListener('keydown', (e) => {
-  const input = e.target.closest('.poll-text-input');
-  if (input && e.key === 'Enter' && activeTargetIdForPoll() && db) {
-    e.preventDefault();
-    if (input.value.trim()) submitPollFreeText(input.dataset.msgId, input.value);
-  }
-});
-function activeTargetIdForPoll(){ return currentKind === 'dm' ? currentDmId : currentChannelId; }
 
 /** 現在の会話（チャンネル or DM）のFirestoreパスを ['channels', id] / ['dms', id] の形で返す */
 function activeBasePath(){
