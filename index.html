@@ -1033,6 +1033,17 @@
   }
   html.show-splash #splash-screen{ display:flex; }
   #splash-screen.splash-out{ opacity:0; pointer-events:none; }
+
+  /* ===================== 認証ゲート（新規登録 / ログイン選択） ===================== */
+  html.show-auth-gate #app{ opacity:0; }
+  html.show-auth-gate #splash-screen{ display:none !important; }
+  #auth-gate{
+    position:fixed; inset:0; z-index:700; display:none; align-items:center; justify-content:center;
+    padding: 24px; background: var(--bg-grad);
+  }
+  html.show-auth-gate #auth-gate{ display:flex; }
+  .auth-gate-card{ max-width: 360px; }
+  #auth-gate-login-error.show{ display:block; }
   .splash-mark{ width:210px; height:210px; border-radius: 44px; overflow:hidden; display:flex; align-items:center; justify-content:center; margin-bottom: 10px; }
   .splash-mark img{ width:100%; height:100%; object-fit:cover; display:block; }
   .splash-spinner{
@@ -1084,11 +1095,46 @@
       if (launchedBefore) document.documentElement.classList.add('show-splash');
     } catch(_) {}
   })();
+  // 認証ゲート: このブラウザで一度もアカウントを選んでいない、正真正銘の初回訪問者にのみ
+  // 「新規登録」「ログイン」の選択画面を出す。既存ユーザーはこれまで通り自動でログインする。
+  (function(){
+    try {
+      var hasAccount = !!localStorage.getItem('signal_name') || !!localStorage.getItem('signal_login_uid');
+      var gateDone = localStorage.getItem('signal_auth_gate_done') === '1';
+      if (!hasAccount && !gateDone) {
+        document.documentElement.classList.add('show-auth-gate');
+        document.documentElement.classList.remove('show-splash');
+      }
+    } catch(_) {}
+  })();
 </script>
 
 <div id="splash-screen">
   <div class="splash-mark"><img src="icon-192.png" alt="SIGNAL"></div>
   <div class="splash-spinner"></div>
+</div>
+
+<div id="auth-gate">
+  <div class="modal-card auth-gate-card">
+    <div class="splash-mark" style="width:76px;height:76px;border-radius:22px;margin:0 auto 16px;"><img src="icon-192.png" alt="SIGNAL"></div>
+    <h2 style="text-align:center;">SIGNALへようこそ</h2>
+    <p style="text-align:center;">はじめての方は新規登録、すでにアカウントをお持ちの方はログインしてください。</p>
+
+    <div id="auth-gate-choices" style="display:flex; flex-direction:column; gap:10px; margin-top: 6px;">
+      <button type="button" class="primary" id="auth-gate-signup" style="margin-top:0;">新規登録</button>
+      <button type="button" class="mini-btn-outline" id="auth-gate-login-open" style="width:100%; padding:12px; font-size:13px;">UIDでログイン</button>
+    </div>
+
+    <div id="auth-gate-login-form" style="display:none;">
+      <div class="field-label" style="margin-top:16px;">UID</div>
+      <input type="text" id="auth-gate-uid-input" placeholder="ログインするUIDを入力" autocomplete="off">
+      <div class="field-label">パスワード(設定していない場合は空欄のままでOK)</div>
+      <input type="password" id="auth-gate-password-input" placeholder="パスワード" autocomplete="current-password">
+      <div class="field-error" id="auth-gate-login-error">UIDが見つからないか、パスワードが違います</div>
+      <button type="button" class="primary" id="auth-gate-login-submit">ログイン</button>
+      <button type="button" class="cancel" id="auth-gate-login-back">戻る</button>
+    </div>
+  </div>
 </div>
 
 <div id="maintenance-screen">
@@ -1266,6 +1312,9 @@
 
     <div class="field-label">UID(管理者設定に使います)</div>
     <div class="uid-row"><code id="my-uid-display">読み込み中…</code><button type="button" id="copy-uid-btn" class="mini-btn-outline">コピー</button></div>
+
+    <div class="field-label">ログイン用パスワード(任意・他の端末でこのUIDでログインする時に使います)</div>
+    <input type="password" id="account-password-input" maxlength="64" placeholder="空欄のままならパスワード無しでログイン可" autocomplete="new-password">
 
     <button class="primary" id="nick-confirm" disabled>チャットを開始</button>
   </div>
@@ -1610,6 +1659,9 @@ const GOLD_CHECK_SVG = '<svg class="verify-badge gold" viewBox="0 0 20 20" width
 /* ローカルキャッシュ（初回描画を速くするため。正はFirestore側）          */
 /* ------------------------------------------------------------------ */
 const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img', NOTIF_KEY = 'signal_notif';
+const LOGIN_UID_KEY = 'signal_login_uid', AUTH_GATE_DONE_KEY = 'signal_auth_gate_done';
+let loginOverrideUid = null;
+try { loginOverrideUid = localStorage.getItem(LOGIN_UID_KEY) || null; } catch (_) {}
 const LOCAL_CH_NAMES_KEY = 'signal_ch_names', LOCAL_CH_ORDER_KEY = 'signal_ch_order';
 let localChannelNames = {};
 let localChannelOrder = [];
@@ -1688,6 +1740,12 @@ const els = {
   replyPreviewText: $('reply-preview-text'), replyPreviewClear: $('reply-preview-clear'),
   lightboxModal: $('lightbox-modal'), lightboxImg: $('lightbox-img'),
   nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
+  accountPasswordInput: $('account-password-input'),
+  authGateSignup: $('auth-gate-signup'), authGateLoginOpen: $('auth-gate-login-open'),
+  authGateChoices: $('auth-gate-choices'), authGateLoginForm: $('auth-gate-login-form'),
+  authGateUidInput: $('auth-gate-uid-input'), authGatePasswordInput: $('auth-gate-password-input'),
+  authGateLoginSubmit: $('auth-gate-login-submit'), authGateLoginBack: $('auth-gate-login-back'),
+  authGateLoginError: $('auth-gate-login-error'),
   iconPicker: $('icon-picker'), iconInput: $('icon-input'), previewAvatar: $('preview-avatar'),
   iconFile: $('icon-file'), iconImgClear: $('icon-img-clear'),
   verifyStatus: $('verify-status'), myUidDisplay: $('my-uid-display'), copyUidBtn: $('copy-uid-btn'),
@@ -2453,6 +2511,8 @@ function openNickModal(prefillName, prefillIcon, prefillImg){
   els.nickError.style.display = 'none';
   els.nickConfirm.disabled = !els.nickInput.value.trim();
   els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
+  els.accountPasswordInput.value = '';
+  els.accountPasswordInput.placeholder = myName ? '変更する場合のみ入力(空欄なら現状維持)' : '空欄のままならパスワード無しでログイン可';
   if (myUid) {
     els.myUidDisplay.textContent = myUid;
   } else if (!els.myUidDisplay.textContent || els.myUidDisplay.textContent.includes('読み込み') || els.myUidDisplay.textContent.includes('準備')) {
@@ -2481,6 +2541,13 @@ async function claimUsername(newName, uid){
   });
 }
 
+/** パスワードをSHA-256でハッシュ化する（サーバーが無い構成のため簡易的な保護。完全なセキュリティは無い点に注意） */
+async function sha256Hex(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 els.nickConfirm.addEventListener('click', async () => {
   const v = els.nickInput.value.trim();
   if (!v || !db || !myUid) return;
@@ -2495,9 +2562,13 @@ els.nickConfirm.addEventListener('click', async () => {
     localStorage.setItem(NAME_KEY, myName);
     localStorage.setItem(ICON_KEY, myIcon);
     localStorage.setItem(ICONIMG_KEY, myIconImg);
-    await setDoc(doc(db, 'users', myUid), {
+    const userDoc = {
       name: myName, icon: myIcon, iconImg: myIconImg, updatedAt: serverTimestamp()
-    }, { merge: true });
+    };
+    const pw = els.accountPasswordInput.value;
+    if (pw) userDoc.passwordHash = await sha256Hex(pw);
+    await setDoc(doc(db, 'users', myUid), userDoc, { merge: true });
+    els.accountPasswordInput.value = '';
     refreshSelfCard();
     closeModal(els.nickModal);
     startHeartbeat();
@@ -4368,7 +4439,7 @@ function boot(){
   }
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      myUid = user.uid;
+      myUid = loginOverrideUid || user.uid;
       els.myUidDisplay.textContent = myUid;
       afterAuthReady();
     }
@@ -4382,7 +4453,63 @@ function boot(){
     hideSplash();
   });
 }
-boot();
+/** 認証ゲート（初回訪問者向けの「新規登録」「ログイン」選択画面）を閉じる */
+function dismissAuthGate(){
+  try { localStorage.setItem(AUTH_GATE_DONE_KEY, '1'); } catch (_) {}
+  document.documentElement.classList.remove('show-auth-gate');
+}
+if (els.authGateSignup) {
+  els.authGateSignup.addEventListener('click', () => {
+    dismissAuthGate();
+    boot();
+  });
+  els.authGateLoginOpen.addEventListener('click', () => {
+    els.authGateChoices.style.display = 'none';
+    els.authGateLoginForm.style.display = 'block';
+    setTimeout(() => els.authGateUidInput.focus(), 50);
+  });
+  els.authGateLoginBack.addEventListener('click', () => {
+    els.authGateLoginForm.style.display = 'none';
+    els.authGateChoices.style.display = 'flex';
+    els.authGateLoginError.classList.remove('show');
+  });
+  const submitLogin = async () => {
+    const uid = els.authGateUidInput.value.trim();
+    const pw = els.authGatePasswordInput.value;
+    els.authGateLoginError.classList.remove('show');
+    if (!uid) { els.authGateLoginError.textContent = 'UIDを入力してください'; els.authGateLoginError.classList.add('show'); return; }
+    if (!auth || !db) { els.authGateLoginError.textContent = '準備中です。少し待ってからもう一度お試しください'; els.authGateLoginError.classList.add('show'); return; }
+    els.authGateLoginSubmit.disabled = true;
+    els.authGateLoginSubmit.textContent = '確認中…';
+    try {
+      if (!auth.currentUser) await signInAnonymously(auth);
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (!snap.exists()) throw new Error('NOT_FOUND');
+      const data = snap.data();
+      if (data.passwordHash) {
+        const hash = await sha256Hex(pw || '');
+        if (hash !== data.passwordHash) throw new Error('BAD_PASSWORD');
+      }
+      loginOverrideUid = uid;
+      localStorage.setItem(LOGIN_UID_KEY, uid);
+      dismissAuthGate();
+      boot();
+    } catch (e) {
+      els.authGateLoginError.textContent = 'UIDが見つからないか、パスワードが違います';
+      els.authGateLoginError.classList.add('show');
+    } finally {
+      els.authGateLoginSubmit.disabled = false;
+      els.authGateLoginSubmit.textContent = 'ログイン';
+    }
+  };
+  els.authGateLoginSubmit.addEventListener('click', submitLogin);
+  els.authGateUidInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitLogin(); });
+  els.authGatePasswordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitLogin(); });
+}
+// 初回訪問で認証ゲートを表示中は、ユーザーが選択するまで自動ログインを保留する
+if (!document.documentElement.classList.contains('show-auth-gate')) {
+  boot();
+}
 
 /* ------------------------------------------------------------------ */
 /* 起動画面（スプラッシュ）: ログイン〜初期データ取得が終わるまで表示を保持   */
