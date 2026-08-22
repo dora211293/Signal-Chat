@@ -377,7 +377,7 @@
 
   #waveform{ flex:1; height: 34px; min-width: 60px; opacity:.85; }
 
-  #notif-toggle{
+  #notif-toggle, #schedule-list-btn{
     position:relative;
     background:none; border:1px solid var(--border); color: var(--text-muted);
     width: 34px; height: 34px; border-radius: var(--radius-md); cursor:pointer; font-size:15px; flex-shrink:0;
@@ -387,13 +387,16 @@
   #notif-toggle:active{ transform: scale(.9); transition-duration: .1s; }
   #notif-toggle.on{ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
   #notif-toggle.denied{ color: var(--text-faint); opacity:.55; cursor:not-allowed; }
-  #notif-toggle .unread-dot{
+  #schedule-list-btn:hover{ border-color: var(--teal); color: var(--teal); transform: translateY(-1px) scale(1.05); }
+  #schedule-list-btn:active{ transform: scale(.9); transition-duration: .1s; }
+  #notif-toggle .unread-dot, #schedule-list-btn .unread-dot{
     position:absolute; top:-3px; right:-3px; min-width:15px; height:15px; padding:0 3px;
     border-radius:10px; background: var(--danger); color:#fff; font-family: var(--font-mono);
     font-size: 9px; line-height:15px; text-align:center; display:none; box-shadow: 0 0 0 2px var(--surface);
     animation: chipIn .42s var(--ease-spring);
   }
-  #notif-toggle .unread-dot.show{ display:block; }
+  #schedule-list-btn .unread-dot{ background: var(--teal); }
+  #notif-toggle .unread-dot.show, #schedule-list-btn .unread-dot.show{ display:block; }
 
   #onair{
     font-family: var(--font-mono); font-size: 10px; letter-spacing:.1em; color: var(--teal);
@@ -606,6 +609,35 @@
   #poll-btn:active{ transform: scale(.9); transition-duration: .1s; }
   #poll-btn:disabled{ opacity:.35; cursor:not-allowed; }
   #poll-btn:disabled:hover{ transform:none; color: var(--text-muted); border-color: var(--border); background: var(--surface-2); }
+  #schedule-btn{
+    background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
+    width:42px; height:42px; border-radius: var(--radius-pill); cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; transition: transform .12s, color .15s, border-color .15s;
+  }
+  #schedule-btn:hover{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); transform: translateY(-1px) scale(1.06); }
+  #schedule-btn:active{ transform: scale(.9); transition-duration: .1s; }
+  #schedule-btn:disabled{ opacity:.35; cursor:not-allowed; }
+  #schedule-btn:disabled:hover{ transform:none; color: var(--text-muted); border-color: var(--border); background: var(--surface-2); }
+  #schedule-btn.has-pending{ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
+
+  .schedule-modal-desc{ font-size: 12px; color: var(--text-muted); margin: -4px 0 2px; }
+  #schedule-datetime-input{
+    width:100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius-md); padding: 10px 12px; font-size: 14px; outline:none; font-family: inherit;
+  }
+  #schedule-datetime-input:focus{ border-color: var(--amber); box-shadow: 0 0 0 3.5px var(--amber-dim); }
+  .schedule-item{
+    display:flex; align-items:center; gap:10px; padding: 9px 10px; border-radius: var(--radius-md);
+    background: var(--surface-2); border: 1px solid var(--border); margin-bottom:7px;
+  }
+  .schedule-item .si-time{ font-family: var(--font-mono); font-size: 11px; color: var(--teal); flex-shrink:0; white-space:nowrap; }
+  .schedule-item .si-text{ flex:1; min-width:0; font-size: 13px; color: var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .schedule-item .si-cancel{
+    background:none; border:1px solid var(--border); color: var(--text-faint); border-radius: var(--radius-xs);
+    font-size: 11px; padding: 4px 8px; cursor:pointer; flex-shrink:0; transition: color .15s, border-color .15s;
+  }
+  .schedule-item .si-cancel:hover{ color: var(--danger); border-color: var(--danger); }
+  .schedule-empty{ font-size: 12.5px; color: var(--text-faint); text-align:center; padding: 18px 6px; }
 
   #lightbox-modal{ background:#04060acc; cursor:zoom-out; }
   #lightbox-inner{ max-width:92vw; max-height:88vh; animation: modalCardIn .36s var(--ease-spring-soft); }
@@ -1121,6 +1153,7 @@
         <h1 id="topbar-name">読み込み中…</h1>
       </div>
       <canvas id="waveform"></canvas>
+      <button id="schedule-list-btn" title="予約中のメッセージ" style="display:none;">⏰<span class="unread-dot" id="schedule-count-dot">0</span></button>
       <button id="notif-toggle" title="通知を有効化">🔔<span class="unread-dot" id="notif-unread-dot">0</span></button>
       <div id="onair" class="off"><span class="dot"></span><span id="onair-text">接続中</span></div>
     </header>
@@ -1155,6 +1188,9 @@
       </button>
       <button id="poll-btn" type="button" title="アンケートを作成">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M12 19V5M20 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="schedule-btn" type="button" title="送信予約(日時指定)">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
       <textarea id="msg-input" rows="1" placeholder="メッセージを入力…"></textarea>
       <button id="send-btn" disabled title="送信">
@@ -1266,6 +1302,28 @@
     <h2 id="poll-view-question"></h2>
     <div class="admin-panel-body" id="poll-view-body"></div>
     <button class="cancel" id="poll-view-close">閉じる</button>
+  </div>
+</div>
+
+<!-- ===================== 送信予約モーダル（日時指定） ===================== -->
+<div class="modal-scrim" id="schedule-modal" style="display:none;">
+  <div class="modal-card admin-card">
+    <div class="eyebrow">⏰ SCHEDULE</div>
+    <h2>送信する日時を指定</h2>
+    <p id="schedule-modal-desc" class="schedule-modal-desc"></p>
+    <input type="datetime-local" id="schedule-datetime-input">
+    <button class="primary" id="schedule-confirm">この時間に予約する</button>
+    <button class="cancel" id="schedule-cancel">キャンセル</button>
+  </div>
+</div>
+
+<!-- ===================== 予約中メッセージ一覧モーダル ===================== -->
+<div class="modal-scrim" id="schedule-list-modal" style="display:none;">
+  <div class="modal-card admin-card">
+    <div class="eyebrow">⏰ SCHEDULED</div>
+    <h2>予約中のメッセージ</h2>
+    <div class="admin-panel-body" id="schedule-list-body"></div>
+    <button class="cancel" id="schedule-list-close">閉じる</button>
   </div>
 </div>
 
@@ -1607,6 +1665,10 @@ const els = {
   pollOptionCount: $('poll-option-count'), pollOptionsInputs: $('poll-options-inputs'),
   pollAllowFreetext: $('poll-allow-freetext'), pollCreateConfirm: $('poll-create-confirm'), pollCreateCancel: $('poll-create-cancel'),
   pollViewModal: $('poll-view-modal'), pollViewQuestion: $('poll-view-question'), pollViewBody: $('poll-view-body'), pollViewClose: $('poll-view-close'),
+  scheduleBtn: $('schedule-btn'), scheduleModal: $('schedule-modal'), scheduleModalDesc: $('schedule-modal-desc'),
+  scheduleDatetimeInput: $('schedule-datetime-input'), scheduleConfirm: $('schedule-confirm'), scheduleCancel: $('schedule-cancel'),
+  scheduleListBtn: $('schedule-list-btn'), scheduleCountDot: $('schedule-count-dot'),
+  scheduleListModal: $('schedule-list-modal'), scheduleListBody: $('schedule-list-body'), scheduleListClose: $('schedule-list-close'),
   imagePreviewStrip: $('image-preview-strip'), imagePreviewThumb: $('image-preview-thumb'),
   imagePreviewClear: $('image-preview-clear'), imagePreviewMeta: $('image-preview-meta'),
   replyPreviewStrip: $('reply-preview-strip'), replyPreviewName: $('reply-preview-name'),
@@ -2659,6 +2721,7 @@ function selectChannel(id, name){
   updateGlobalUnreadUI();
   updateComposerPermission();
   listenMessages(id);
+  listenScheduled(id);
   listenTyping(id);
   listenReads(id);
   markRead(id);
@@ -2698,6 +2761,7 @@ function selectDm(otherUid, otherName){
   updateComposerPermission();
   setDoc(doc(db, 'dms', currentDmId), { participants: [myUid, otherUid] }, { merge: true }).catch(() => {});
   listenMessages(null, currentDmId);
+  listenScheduled(null, currentDmId);
   listenTyping(null, currentDmId);
   listenReads(null, currentDmId);
   markRead(null, currentDmId);
@@ -3069,6 +3133,155 @@ function listenMessages(channelId, dmId){
     renderMessages(lastDocsSnapshot);
     if ((coll === 'channels' && id === currentChannelId) || (coll === 'dms' && id === currentDmId)) markRead(channelId, dmId);
   });
+}
+
+/* ------------------------------------------------------------------ */
+/* 送信予約（日時を指定してのちほど自動送信されるメッセージ）                    */
+/* ------------------------------------------------------------------ */
+let scheduledCache = [];
+let unsubScheduled = null;
+function listenScheduled(channelId, dmId){
+  if (unsubScheduled) unsubScheduled();
+  if (!db) return;
+  const [coll, id] = dmId ? ['dms', dmId] : ['channels', channelId];
+  const q = query(collection(db, coll, id, 'scheduled'), orderBy('sendAt', 'asc'));
+  unsubScheduled = onSnapshot(q, (snap) => {
+    scheduledCache = snap.docs;
+    updateScheduleListUI();
+    if (els.scheduleListModal.style.display !== 'none') renderScheduleListModal();
+  });
+}
+function updateScheduleListUI(){
+  const n = scheduledCache.length;
+  els.scheduleListBtn.style.display = n > 0 ? '' : 'none';
+  els.scheduleCountDot.textContent = n > 99 ? '99+' : String(n);
+  els.scheduleCountDot.classList.toggle('show', n > 0);
+  els.scheduleBtn.classList.toggle('has-pending', n > 0);
+}
+function fmtScheduleTime(ms){
+  const d = new Date(ms);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const hm = d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+  if (sameDay) return `今日 ${hm}`;
+  return `${d.getMonth() + 1}/${d.getDate()} ${hm}`;
+}
+function renderScheduleListModal(){
+  if (!scheduledCache.length) {
+    els.scheduleListBody.innerHTML = `<div class="schedule-empty">予約中のメッセージはありません。</div>`;
+    return;
+  }
+  els.scheduleListBody.innerHTML = scheduledCache.map((d) => {
+    const m = d.data();
+    const ms = m.sendAt && m.sendAt.toMillis ? m.sendAt.toMillis() : 0;
+    const preview = m.text ? escapeHtml(m.text) : (m.img ? '📷 画像' : '');
+    return `<div class="schedule-item" data-id="${d.id}">
+      <span class="si-time">${fmtScheduleTime(ms)}</span>
+      <span class="si-text">${preview}</span>
+      <button type="button" class="si-cancel" data-id="${d.id}">取消</button>
+    </div>`;
+  }).join('');
+}
+els.scheduleListBtn.addEventListener('click', () => {
+  renderScheduleListModal();
+  els.scheduleListModal.classList.remove('closing');
+  els.scheduleListModal.style.display = 'flex';
+});
+els.scheduleListClose.addEventListener('click', () => { closeModal(els.scheduleListModal); });
+els.scheduleListBody.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.si-cancel');
+  if (!btn || !db) return;
+  const [coll, id] = activeBasePath();
+  btn.disabled = true;
+  try { await deleteDoc(doc(db, coll, id, 'scheduled', btn.dataset.id)); }
+  catch (err) { console.error(err); alert('予約の取り消しに失敗しました'); btn.disabled = false; }
+});
+
+els.scheduleBtn.addEventListener('click', () => {
+  const text = els.input.value.trim();
+  const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
+  if ((!text && !pendingImage) || !targetId) { alert('先に送信するメッセージを入力してください'); return; }
+  if (!canPostInCurrentChannel()) { alert('このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
+  const d = new Date(Date.now() + 5 * 60 * 1000);
+  d.setSeconds(0, 0);
+  const pad = (n) => String(n).padStart(2, '0');
+  els.scheduleDatetimeInput.min = `${(new Date()).getFullYear()}-${pad(new Date().getMonth() + 1)}-${pad(new Date().getDate())}T${pad(new Date().getHours())}:${pad(new Date().getMinutes())}`;
+  els.scheduleDatetimeInput.value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  els.scheduleModalDesc.textContent = text ? `「${text.length > 40 ? text.slice(0, 40) + '…' : text}」を指定した時間に送信します。` : '画像を指定した時間に送信します。';
+  els.scheduleModal.classList.remove('closing');
+  els.scheduleModal.style.display = 'flex';
+});
+els.scheduleCancel.addEventListener('click', () => { closeModal(els.scheduleModal); });
+els.scheduleConfirm.addEventListener('click', async () => {
+  const text = els.input.value.trim();
+  const image = pendingImage;
+  const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
+  if ((!text && !image) || !targetId || !db || !myName || !myUid) { closeModal(els.scheduleModal); return; }
+  const val = els.scheduleDatetimeInput.value;
+  if (!val) { alert('日時を指定してください'); return; }
+  const sendAt = new Date(val);
+  if (isNaN(sendAt.getTime()) || sendAt.getTime() <= Date.now()) { alert('未来の日時を指定してください'); return; }
+  const replySnapshot = replyingTo;
+  const [coll, id] = activeBasePath();
+  els.scheduleConfirm.disabled = true;
+  try {
+    const payload = { text, uid: myUid, name: myName, icon: myIcon || '', sendAt, createdAt: serverTimestamp() };
+    if (image) { payload.img = image.dataUrl; payload.imgW = image.w; payload.imgH = image.h; }
+    if (replySnapshot) {
+      payload.replyTo = { id: replySnapshot.id, name: replySnapshot.name, text: replySnapshot.text || '', img: !!replySnapshot.img };
+    }
+    await addDoc(collection(db, coll, id, 'scheduled'), payload);
+    els.input.value = ''; els.input.style.height = 'auto';
+    clearImagePreview();
+    clearReplyTarget();
+    closeModal(els.scheduleModal);
+  } catch (e) { console.error('予約の作成に失敗しました', e); alert('予約の作成に失敗しました'); }
+  els.scheduleConfirm.disabled = false;
+});
+
+/** 予約時刻(sendAt)が来た予約メッセージを、実際のメッセージとして送信し予約を削除する */
+async function promoteScheduledMessage(coll, id, schedId){
+  const schedRef = doc(db, coll, id, 'scheduled', schedId);
+  const newMsgRef = doc(collection(db, coll, id, 'messages'));
+  try {
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(schedRef);
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const payload = { text: data.text || '', uid: data.uid, name: data.name, icon: data.icon || '', ts: serverTimestamp() };
+      if (data.img) { payload.img = data.img; payload.imgW = data.imgW; payload.imgH = data.imgH; }
+      if (data.replyTo) payload.replyTo = data.replyTo;
+      tx.set(newMsgRef, payload);
+      tx.delete(schedRef);
+    });
+    if (coll === 'dms') {
+      await setDoc(doc(db, 'dms', id), { participants: id.split('__'), updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+    }
+  } catch (e) { console.error('予約メッセージの送信に失敗しました', e); }
+}
+
+/** 今の会話だけでなく、参加している全チャンネル・全フレンドとのDMを定期的に見に行き、
+ *  時間が来た予約メッセージがあれば送信する（サーバー側の仕組みがないため、
+ *  誰か1人でもこのアプリを開いていれば動く、という素朴な仕組み） */
+async function scanAndPromoteScheduled(){
+  if (!db || !myUid) return;
+  const now = new Date();
+  const targets = [];
+  channelsCache.forEach((d) => targets.push(['channels', d.id]));
+  Object.keys(friendsCache).forEach((uid) => targets.push(['dms', dmIdFor(myUid, uid)]));
+  for (const [coll, id] of targets) {
+    try {
+      const q = query(collection(db, coll, id, 'scheduled'), where('sendAt', '<=', now), limit(10));
+      const snap = await getDocs(q);
+      for (const d of snap.docs) await promoteScheduledMessage(coll, id, d.id);
+    } catch (e) { /* パーミッション等で読めない会話はスキップ */ }
+  }
+}
+let scheduledScanTimer = null;
+function startScheduledScanLoop(){
+  if (scheduledScanTimer) return;
+  scanAndPromoteScheduled();
+  scheduledScanTimer = setInterval(scanAndPromoteScheduled, 15000);
 }
 
 async function sendMessage(){
@@ -4033,6 +4246,7 @@ async function afterAuthReady(){
     listenFriendRequests();
     listenSentFriendRequests();
     if (isAdmin) listenPendingVerifyRequests();
+    startScheduledScanLoop();
 
     const mySnap = await getDoc(doc(db, 'users', myUid)).catch(() => null);
     if (mySnap && mySnap.exists()) {
