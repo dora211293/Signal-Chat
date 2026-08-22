@@ -71,6 +71,11 @@
   /* チャットのメッセージ本文・画像だけはコピー/保存できるようにし、それ以外のUI（ボタン・名前・メニュー等）は
      選択・長押し保存・ドラッグ保存できないようにする */
   *{ -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  /* 絵文字は機種のフォントではなく、常に同じ絵柄で描画するTwemoji画像に置き換える */
+  img.emoji{
+    height: 1.2em; width: 1.2em; margin: 0 .03em 0 .05em; vertical-align: -.22em;
+    display:inline-block; -webkit-user-drag: none; user-drag: none; pointer-events:none;
+  }
   img{ -webkit-user-drag: none; user-drag: none; }
   input, textarea, [contenteditable]{ -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
   .msg-text, .msg-text *{
@@ -465,17 +470,30 @@
     margin-top:3px; padding: 0 3px; position: relative;
     display:flex; gap:10px; align-items:center;
     max-height:0; opacity:0; overflow:visible; pointer-events:none;
-    transition: max-height .2s ease, opacity .15s ease, margin-top .2s ease;
+    transition: max-height .32s var(--ease-spring-soft), opacity .18s ease, margin-top .32s var(--ease-spring-soft);
   }
   .msg-row.menu-open .msg-actions{ max-height:28px; opacity:1; pointer-events:auto; }
   .msg-row.mine .msg-actions{ flex-direction:row-reverse; }
   .msg-row.has-actions .bubble{ cursor:pointer; }
+  @keyframes actionPopIn{
+    0%{ opacity:0; transform: scale(.35) translateY(5px); }
+    55%{ opacity:1; transform: scale(1.18) translateY(-1px); }
+    100%{ opacity:1; transform: scale(1) translateY(0); }
+  }
+  .msg-row.menu-open .msg-actions button{ animation: actionPopIn .34s var(--ease-spring-soft) backwards; }
+  .msg-row.menu-open .msg-actions button:nth-child(1){ animation-delay: .02s; }
+  .msg-row.menu-open .msg-actions button:nth-child(2){ animation-delay: .07s; }
+  .msg-row.menu-open .msg-actions button:nth-child(3){ animation-delay: .12s; }
+  .msg-row.mine.menu-open .msg-actions button:nth-child(1){ animation-delay: .12s; }
+  .msg-row.mine.menu-open .msg-actions button:nth-child(2){ animation-delay: .07s; }
+  .msg-row.mine.menu-open .msg-actions button:nth-child(3){ animation-delay: .02s; }
   .msg-del-btn, .msg-reply-btn, .msg-react-btn{
     background:none; border:none; font-family: var(--font-mono); font-size: 9.5px;
     color: var(--text-faint); cursor:pointer; padding: 2px 3px; opacity:.7;
+    transition: color .15s var(--ease-ios), opacity .15s var(--ease-ios), transform .2s var(--ease-spring);
   }
-  .msg-del-btn:hover{ color: var(--danger); opacity:1; }
-  .msg-reply-btn:hover, .msg-react-btn:hover{ color: var(--amber); opacity:1; }
+  .msg-del-btn:hover{ color: var(--danger); opacity:1; transform: translateY(-1px); }
+  .msg-reply-btn:hover, .msg-react-btn:hover{ color: var(--amber); opacity:1; transform: translateY(-1px); }
 
   /* ---- 返信の引用表示（バブル内） ---- */
   .reply-quote{
@@ -1598,6 +1616,7 @@
 
     </div>
     <button type="button" class="mini-btn-danger" id="settings-reset" style="width:100%; margin-bottom:8px;">すべてリセット</button>
+    <button type="button" class="mini-btn-danger" id="settings-logout" style="width:100%; margin-bottom:8px;">ログアウト</button>
     <button class="cancel" id="settings-close">閉じる</button>
   </div>
 </div>
@@ -1608,6 +1627,9 @@
   <b>⚠ Firebase未設定</b><br>
   このファイル内の <b>firebaseConfig</b> がプレースホルダのままです。
 </div>
+
+<!-- 絵文字を機種のフォントに依存させず、常に同じ見た目(Twemoji)で描画するためのライブラリ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js" crossorigin="anonymous"></script>
 
 <script type="module">
 /* =========================================================================
@@ -1642,6 +1664,18 @@ const ADMIN_UIDS = [
 
 const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
 let db = null, auth = null;
+
+/** 要素内の絵文字を、機種フォントに依存しないTwemoji画像に置き換える。
+ *  メッセージ・アイコン・リアクションなど、絵文字を描画する箇所の最後に必ず呼ぶ */
+function parseEmoji(el){
+  if (!el || typeof window.twemoji === 'undefined') return;
+  try { window.twemoji.parse(el, { folder: 'svg', ext: '.svg', className: 'emoji' }); } catch (_) {}
+}
+/** innerHTML用のテンプレート文字列の中の絵文字を、その場でTwemoji画像タグに変換する */
+function twemojiHtml(str){
+  if (typeof window.twemoji === 'undefined') return str;
+  try { return window.twemoji.parse(str, { folder: 'svg', ext: '.svg', className: 'emoji' }); } catch (_) { return str; }
+}
 
 if (isConfigured) {
   const app = initializeApp(firebaseConfig);
@@ -1753,6 +1787,7 @@ const els = {
   channelConfirm: $('channel-confirm'), channelCancel: $('channel-cancel'),
   adminModal: $('admin-modal'), adminPanelBody: $('admin-panel-body'), adminClose: $('admin-close'),
   settingsBtn: $('settings-btn'), settingsModal: $('settings-modal'), settingsClose: $('settings-close'),
+  settingsLogout: $('settings-logout'),
   settingsReset: $('settings-reset'), colorTargetList: $('color-target-list'),
   colorBulkPicker: $('color-bulk-picker'), colorBulkLabel: $('color-bulk-label'),
   colorSelectAll: $('color-select-all'), colorSelectNone: $('color-select-none'),
@@ -1812,12 +1847,12 @@ function escapeHtml(str){
 /** 画像 > 絵文字 > イニシャル の優先順でアバターのHTMLを返す */
 function avatarInner(p){
   if (p && p.iconImg) return `<img src="${p.iconImg}" alt="">`;
-  if (p && p.icon) return `<span style="font-size:1.15em;line-height:1;">${escapeHtml(p.icon)}</span>`;
+  if (p && p.icon) return `<span style="font-size:1.15em;line-height:1;">${twemojiHtml(escapeHtml(p.icon))}</span>`;
   return escapeHtml(initials(p && p.name));
 }
 function nameWithBadge(name, verified, gold){
   const badge = gold ? GOLD_CHECK_SVG : (verified ? CHECK_SVG : '');
-  return escapeHtml(name) + (badge ? ' ' + badge : '');
+  return twemojiHtml(escapeHtml(name)) + (badge ? ' ' + badge : '');
 }
 function normalizeName(n){ return (n || '').trim().toLowerCase(); }
 
@@ -2246,7 +2281,7 @@ function toggleReactionPicker(msgId, anchorRow){
   openReactionPickerId = msgId;
   const picker = document.createElement('div');
   picker.className = 'emoji-picker';
-  picker.innerHTML = REACTION_EMOJIS.map((em) => `<button type="button" data-emoji="${em}">${em}</button>`).join('');
+  picker.innerHTML = REACTION_EMOJIS.map((em) => `<button type="button" data-emoji="${em}">${twemojiHtml(em)}</button>`).join('');
   picker.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-emoji]');
     if (!btn) return;
@@ -2257,6 +2292,7 @@ function toggleReactionPicker(msgId, anchorRow){
   });
   const actions = anchorRow.querySelector('.msg-actions');
   if (actions) actions.appendChild(picker);
+  parseEmoji(picker);
 }
 document.addEventListener('click', (e) => {
   if (openReactionPickerId && !e.target.closest('.emoji-picker') && !e.target.closest('.msg-react-btn')) closeReactionPicker();
@@ -2754,7 +2790,7 @@ els.channelRenamePersonal.addEventListener('click', () => {
   saveLocalChannelNames();
   closeModal(els.channelRenameModal);
   renderChannelList(channelsCache);
-  if (currentKind === 'channel' && currentChannelId === renamingChannelId) els.topbarName.textContent = v;
+  if (currentKind === 'channel' && currentChannelId === renamingChannelId) els.topbarName.innerHTML = twemojiHtml(escapeHtml(v));
   renamingChannelId = null;
 });
 els.channelRenameGlobal.addEventListener('click', async () => {
@@ -2815,7 +2851,7 @@ function selectChannel(id, name){
   currentDmId = null; currentDmOtherUid = null; currentDmOtherName = null;
   currentChannelId = id;
   currentChannelName = displayChannelName(id, name);
-  els.topbarName.textContent = currentChannelName;
+  els.topbarName.innerHTML = twemojiHtml(escapeHtml(currentChannelName));
   els.topbarFreq.textContent = pseudoFreq(id) + ' MHz';
   els.input.placeholder = 'メッセージを入力…';
   [...els.channelList.children].forEach((li) => li.classList.toggle('active', li.dataset.id === id));
@@ -2855,7 +2891,7 @@ function selectDm(otherUid, otherName){
   currentDmId = dmIdFor(myUid, otherUid);
   currentDmOtherUid = otherUid;
   currentDmOtherName = otherName;
-  els.topbarName.textContent = otherName;
+  els.topbarName.innerHTML = twemojiHtml(escapeHtml(otherName));
   els.topbarFreq.textContent = 'DM';
   els.input.placeholder = `${otherName} さんにメッセージを送信…`;
   [...els.channelList.children].forEach((li) => li.classList.remove('active'));
@@ -3049,8 +3085,8 @@ function renderMessages(docs){
     // 返信元の引用プレビュー（あれば）
     const replyHtml = m.replyTo
       ? `<div class="reply-quote" data-jump-id="${m.replyTo.id}">
-           <div class="rq-name">${escapeHtml(m.replyTo.name)}</div>
-           <div class="rq-text">${escapeHtml(m.replyTo.text || '')}</div>
+           <div class="rq-name">${twemojiHtml(escapeHtml(m.replyTo.name))}</div>
+           <div class="rq-text">${twemojiHtml(escapeHtml(m.replyTo.text || ''))}</div>
          </div>`
       : '';
 
@@ -3089,7 +3125,7 @@ function renderMessages(docs){
         <div class="msg-avatar" data-uid="${m.uid}" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
         <div class="msg-body">
           ${metaHtml}
-          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${escapeHtml(m.text)}</div>` : ''}${pollHtml}</div>
+          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${twemojiHtml(escapeHtml(m.text))}</div>` : ''}${pollHtml}</div>
         </div>`;
 
       const body = row.querySelector('.msg-body');
@@ -3109,16 +3145,16 @@ function renderMessages(docs){
         const reactRow = document.createElement('div');
         reactRow.className = 'reactions-row';
         reactRow.innerHTML = reactionEntries.map(([emoji, uids]) =>
-          `<span class="reaction-chip${uids.includes(myUid) ? ' mine' : ''}" data-emoji="${emoji}">${emoji}<span class="cnt">${uids.length}</span></span>`
+          `<span class="reaction-chip${uids.includes(myUid) ? ' mine' : ''}" data-emoji="${emoji}">${twemojiHtml(emoji)}<span class="cnt">${uids.length}</span></span>`
         ).join('');
         body.appendChild(reactRow);
       }
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
       actions.innerHTML = `
-        <button type="button" class="msg-reply-btn" data-id="${d.id}">↩ 返信</button>
-        <button type="button" class="msg-react-btn" data-id="${d.id}">😊 リアクション</button>
-        ${canDelete ? `<button type="button" class="msg-del-btn" data-id="${d.id}">${mine ? '取り消し' : '削除(管理者)'} 🗑</button>` : ''}
+        <button type="button" class="msg-reply-btn" data-id="${d.id}">${twemojiHtml('↩')} 返信</button>
+        <button type="button" class="msg-react-btn" data-id="${d.id}">${twemojiHtml('😊')} リアクション</button>
+        ${canDelete ? `<button type="button" class="msg-del-btn" data-id="${d.id}">${mine ? '取り消し' : '削除(管理者)'} ${twemojiHtml('🗑')}</button>` : ''}
       `;
       body.appendChild(actions);
     }
@@ -4353,6 +4389,17 @@ els.settingsBtn.addEventListener('click', () => {
   els.settingsModal.classList.remove('closing'); els.settingsModal.style.display = 'flex';
 });
 els.settingsClose.addEventListener('click', () => { closeModal(els.settingsModal); });
+els.settingsLogout.addEventListener('click', () => {
+  if (!confirm('ログアウトしますか？このブラウザに保存されているアカウント情報を消去し、ログイン選択画面に戻ります。')) return;
+  try {
+    localStorage.removeItem(NAME_KEY);
+    localStorage.removeItem(ICON_KEY);
+    localStorage.removeItem(ICONIMG_KEY);
+    localStorage.removeItem(LOGIN_UID_KEY);
+    localStorage.removeItem(AUTH_GATE_DONE_KEY);
+  } catch (_) {}
+  location.reload();
+});
 
 applyUiSettings(); // 起動時に保存済みのカスタマイズを反映
 
@@ -4510,6 +4557,9 @@ if (els.authGateSignup) {
 if (!document.documentElement.classList.contains('show-auth-gate')) {
   boot();
 }
+// 静的HTMLに直接書かれている絵文字（トップバーのアイコン・絵文字アイコン選択肢など）も
+// 機種依存のTwemoji化する。ライブラリの読み込みが遅れる場合に備えて少し待って実行する
+window.addEventListener('load', () => setTimeout(() => parseEmoji(document.body), 60));
 
 /* ------------------------------------------------------------------ */
 /* 起動画面（スプラッシュ）: ログイン〜初期データ取得が終わるまで表示を保持   */
