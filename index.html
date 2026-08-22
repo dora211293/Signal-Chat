@@ -62,6 +62,8 @@
     --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
     --panel-alpha: 1;
     --ui-radius-scale: 1;
+    --safe-top-extra: 0px;
+    --safe-bottom-extra: 0px;
   }
   [data-theme="light"]{
     --bg: #FFFFFF;
@@ -189,7 +191,7 @@
     display:flex; flex-direction:column;
     min-width: 0; min-height: 0; height: 100%;
   }
-  .brand{ display:flex; align-items:center; padding: calc(20px + env(safe-area-inset-top)) 18px 14px; flex-shrink: 0; }
+  .brand{ display:flex; align-items:center; padding: calc(20px + env(safe-area-inset-top) + var(--safe-top-extra)) 18px 14px; flex-shrink: 0; }
   .brand-text{ display:flex; flex-direction:column; line-height:1.15; }
   .brand-text b{ font-family: var(--font-display); font-size: 17px; letter-spacing: .04em; }
   .brand-text span{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: .06em; }
@@ -348,7 +350,7 @@
   #main{ display:flex; flex-direction:column; min-width:0; min-height: 0; height:100%; position:relative; }
 
   #topbar{
-    display:flex; align-items:center; gap:14px; padding: calc(14px + env(safe-area-inset-top)) 20px 14px;
+    display:flex; align-items:center; gap:14px; padding: calc(14px + env(safe-area-inset-top) + var(--safe-top-extra)) 20px 14px;
     border-bottom: 1px solid var(--border);
     background: linear-gradient(180deg, color-mix(in srgb, var(--surface) calc(72% * var(--panel-alpha)), transparent), color-mix(in srgb, var(--surface) calc(20% * var(--panel-alpha)), transparent));
     backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
@@ -574,7 +576,7 @@
     font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
   }
 
-  #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) calc(88% * var(--panel-alpha)), transparent); backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); flex-shrink:0; }
+  #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom) + var(--safe-bottom-extra)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) calc(88% * var(--panel-alpha)), transparent); backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); flex-shrink:0; }
   #attach-btn{
     background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
     width:42px; height:42px; border-radius: var(--radius-pill); cursor:pointer; flex-shrink:0;
@@ -802,6 +804,34 @@
   .settings-group:last-child{ border-bottom:none; padding-bottom: 4px; }
   .settings-group-title{ font-size: 13px; font-weight:700; margin-bottom: 6px; }
   .settings-hint{ font-size: 11px; color: var(--text-muted); line-height:1.5; margin: 0 0 10px; }
+
+  /* --- 設定モーダル：メニュー階層 --- */
+  .settings-header{ display:flex; align-items:center; gap:10px; }
+  .settings-back-btn{
+    flex-shrink:0; width:30px; height:30px; border-radius:50%; background: var(--surface-2);
+    border: 1px solid var(--border); color: var(--text); font-size:15px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; margin-top: 2px;
+  }
+  .settings-back-btn:hover{ background: var(--surface-3); }
+  .settings-header-text{ min-width:0; flex:1; }
+  .settings-header-text h2{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .settings-menu-list{ display:flex; flex-direction:column; gap:4px; }
+  .settings-menu-item{
+    width:100%; display:flex; align-items:center; gap:12px; text-align:left;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 11px 12px; cursor:pointer; color: var(--text);
+  }
+  .settings-menu-item:hover{ background: var(--surface-3); }
+  .smi-icon{ font-size:17px; flex-shrink:0; width:22px; text-align:center; }
+  .smi-text{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+  .smi-label{ font-size:13px; font-weight:600; }
+  .smi-sub{ font-family: var(--font-mono); font-size:10.5px; color: var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .smi-chev{ flex-shrink:0; color: var(--text-faint); font-size:16px; }
+
+  .settings-panel{ animation: appIn .28s var(--ease-ios); }
+  .settings-panel .settings-group{ padding: 0 0 14px; border-bottom:none; }
+  .settings-panel .settings-group + .settings-group{ padding-top:14px; border-top: 1px solid var(--border); }
 
   .color-target-list{ display:flex; flex-direction:column; gap:2px; margin-bottom: 10px; }
   .color-target-row{
@@ -1252,12 +1282,58 @@
 
 <div class="modal-scrim" id="settings-modal" style="display:none;">
   <div class="modal-card settings-card">
-    <div class="eyebrow">SETTINGS</div>
-    <h2>設定・カスタマイズ</h2>
-    <div class="settings-body">
+    <div class="settings-header">
+      <button type="button" class="settings-back-btn" id="settings-back-btn" style="display:none;" aria-label="戻る">‹</button>
+      <div class="settings-header-text">
+        <div class="eyebrow" id="settings-eyebrow">SETTINGS</div>
+        <h2 id="settings-title">設定・カスタマイズ</h2>
+      </div>
+    </div>
+    <div class="settings-body" id="settings-body">
 
-      <div class="settings-group">
-        <div class="settings-group-title">🖌 配色</div>
+      <!-- ===== 項目一覧（トップ） ===== -->
+      <div id="settings-menu-view">
+        <div class="settings-menu-list">
+          <button type="button" class="settings-menu-item" data-panel="colors">
+            <span class="smi-icon">🖌</span>
+            <span class="smi-text"><span class="smi-label">配色</span><span class="smi-sub">アクセントカラーなど12項目</span></span>
+            <span class="smi-chev">›</span>
+          </button>
+          <button type="button" class="settings-menu-item" data-panel="scale">
+            <span class="smi-icon">🔍</span>
+            <span class="smi-text"><span class="smi-label">UIの大きさ</span><span class="smi-sub" id="smi-scale-sub">100%</span></span>
+            <span class="smi-chev">›</span>
+          </button>
+          <button type="button" class="settings-menu-item" data-panel="opacity">
+            <span class="smi-icon">👻</span>
+            <span class="smi-text"><span class="smi-label">透明度</span><span class="smi-sub" id="smi-opacity-sub">100%</span></span>
+            <span class="smi-chev">›</span>
+          </button>
+          <button type="button" class="settings-menu-item" data-panel="radius">
+            <span class="smi-icon">◻</span>
+            <span class="smi-text"><span class="smi-label">角丸の強さ</span><span class="smi-sub" id="smi-radius-sub">100%</span></span>
+            <span class="smi-chev">›</span>
+          </button>
+          <button type="button" class="settings-menu-item" data-panel="safearea">
+            <span class="smi-icon">📱</span>
+            <span class="smi-text"><span class="smi-label">セーフエリア</span><span class="smi-sub" id="smi-safearea-sub">上0px・下0px</span></span>
+            <span class="smi-chev">›</span>
+          </button>
+          <button type="button" class="settings-menu-item" data-panel="behavior">
+            <span class="smi-icon">🎬</span>
+            <span class="smi-text"><span class="smi-label">動作設定</span><span class="smi-sub" id="smi-behavior-sub">アニメーション・表示密度</span></span>
+            <span class="smi-chev">›</span>
+          </button>
+          <button type="button" class="settings-menu-item" data-panel="presets">
+            <span class="smi-icon">🎨</span>
+            <span class="smi-text"><span class="smi-label">プリセット</span><span class="smi-sub">まとめて配色を切り替え</span></span>
+            <span class="smi-chev">›</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== 配色 ===== -->
+      <div id="settings-panel-colors" class="settings-panel" style="display:none;">
         <p class="settings-hint">変更したい項目を複数選んでから、下のカラーピッカーで色を選ぶとまとめて反映されます。行の丸いスウォッチをクリックすれば個別にも変更できます。</p>
         <div id="color-target-list" class="color-target-list"></div>
         <div class="color-bulk-row">
@@ -1268,54 +1344,85 @@
         </div>
       </div>
 
-      <div class="settings-group">
-        <div class="settings-group-title">🔍 UIの大きさ</div>
-        <div class="settings-slider-row">
-          <input type="range" id="ui-scale-slider" min="80" max="130" step="1" value="100">
-          <span class="settings-slider-val" id="ui-scale-val">100%</span>
-        </div>
-      </div>
-
-      <div class="settings-group">
-        <div class="settings-group-title">👻 透明度</div>
-        <div class="settings-slider-row">
-          <input type="range" id="ui-opacity-slider" min="35" max="100" step="1" value="100">
-          <span class="settings-slider-val" id="ui-opacity-val">100%</span>
-        </div>
-      </div>
-
-      <div class="settings-group">
-        <div class="settings-group-title">◻ 角丸の強さ</div>
-        <div class="settings-slider-row">
-          <input type="range" id="ui-radius-slider" min="0" max="160" step="5" value="100">
-          <span class="settings-slider-val" id="ui-radius-val">100%</span>
-        </div>
-      </div>
-
-      <div class="settings-group">
-        <div class="settings-toggle-row">
-          <div>
-            <div class="settings-group-title" style="margin:0;">🎬 アニメーションを控えめに</div>
-            <p class="settings-hint" style="margin:2px 0 0;">演出・揺れ・弾むアニメーションを減らします</p>
+      <!-- ===== UIの大きさ ===== -->
+      <div id="settings-panel-scale" class="settings-panel" style="display:none;">
+        <div class="settings-group">
+          <div class="settings-slider-row">
+            <input type="range" id="ui-scale-slider" min="80" max="130" step="1" value="100">
+            <span class="settings-slider-val" id="ui-scale-val">100%</span>
           </div>
-          <label class="settings-switch"><input type="checkbox" id="reduce-motion-toggle"><span></span></label>
-        </div>
-        <div class="settings-toggle-row">
-          <div>
-            <div class="settings-group-title" style="margin:0;">📦 コンパクト表示</div>
-            <p class="settings-hint" style="margin:2px 0 0;">メッセージや一覧の余白を詰めて多く表示します</p>
-          </div>
-          <label class="settings-switch"><input type="checkbox" id="compact-toggle"><span></span></label>
         </div>
       </div>
 
-      <div class="settings-group">
-        <div class="settings-group-title">🎨 プリセット</div>
-        <div class="preset-row" id="preset-row">
-          <button type="button" class="preset-chip" data-preset="default">標準</button>
-          <button type="button" class="preset-chip" data-preset="mono">モノクローム</button>
-          <button type="button" class="preset-chip" data-preset="neon">ネオン</button>
-          <button type="button" class="preset-chip" data-preset="black">ブラック</button>
+      <!-- ===== 透明度 ===== -->
+      <div id="settings-panel-opacity" class="settings-panel" style="display:none;">
+        <div class="settings-group">
+          <div class="settings-slider-row">
+            <input type="range" id="ui-opacity-slider" min="35" max="100" step="1" value="100">
+            <span class="settings-slider-val" id="ui-opacity-val">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 角丸の強さ ===== -->
+      <div id="settings-panel-radius" class="settings-panel" style="display:none;">
+        <div class="settings-group">
+          <div class="settings-slider-row">
+            <input type="range" id="ui-radius-slider" min="0" max="160" step="5" value="100">
+            <span class="settings-slider-val" id="ui-radius-val">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== セーフエリア ===== -->
+      <div id="settings-panel-safearea" class="settings-panel" style="display:none;">
+        <div class="settings-group">
+          <div class="settings-group-title" style="margin:0 0 4px;">上側の余白</div>
+          <p class="settings-hint">ノッチ・パンチホールカメラなどでヘッダーが見切れる場合に余白を追加します。</p>
+          <div class="settings-slider-row">
+            <input type="range" id="safe-top-slider" min="0" max="60" step="1" value="0">
+            <span class="settings-slider-val" id="safe-top-val">0px</span>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-title" style="margin:0 0 4px;">下側の余白</div>
+          <p class="settings-hint">ホームバー・ナビゲーションバーと入力欄が干渉する場合に余白を追加します。</p>
+          <div class="settings-slider-row">
+            <input type="range" id="safe-bottom-slider" min="0" max="60" step="1" value="0">
+            <span class="settings-slider-val" id="safe-bottom-val">0px</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 動作設定 ===== -->
+      <div id="settings-panel-behavior" class="settings-panel" style="display:none;">
+        <div class="settings-group">
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-group-title" style="margin:0;">🎬 アニメーションを控えめに</div>
+              <p class="settings-hint" style="margin:2px 0 0;">演出・揺れ・弾むアニメーションを減らします</p>
+            </div>
+            <label class="settings-switch"><input type="checkbox" id="reduce-motion-toggle"><span></span></label>
+          </div>
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-group-title" style="margin:0;">📦 コンパクト表示</div>
+              <p class="settings-hint" style="margin:2px 0 0;">メッセージや一覧の余白を詰めて多く表示します</p>
+            </div>
+            <label class="settings-switch"><input type="checkbox" id="compact-toggle"><span></span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== プリセット ===== -->
+      <div id="settings-panel-presets" class="settings-panel" style="display:none;">
+        <div class="settings-group">
+          <div class="preset-row" id="preset-row">
+            <button type="button" class="preset-chip" data-preset="default">標準</button>
+            <button type="button" class="preset-chip" data-preset="mono">モノクローム</button>
+            <button type="button" class="preset-chip" data-preset="neon">ネオン</button>
+            <button type="button" class="preset-chip" data-preset="black">ブラック</button>
+          </div>
         </div>
       </div>
 
@@ -1469,6 +1576,12 @@ const els = {
   uiRadiusSlider: $('ui-radius-slider'), uiRadiusVal: $('ui-radius-val'),
   reduceMotionToggle: $('reduce-motion-toggle'),
   compactToggle: $('compact-toggle'), presetRow: $('preset-row'),
+  safeTopSlider: $('safe-top-slider'), safeTopVal: $('safe-top-val'),
+  safeBottomSlider: $('safe-bottom-slider'), safeBottomVal: $('safe-bottom-val'),
+  settingsBody: $('settings-body'), settingsBackBtn: $('settings-back-btn'), settingsTitle: $('settings-title'),
+  settingsEyebrow: $('settings-eyebrow'), settingsMenuView: $('settings-menu-view'),
+  smiScaleSub: $('smi-scale-sub'), smiOpacitySub: $('smi-opacity-sub'),
+  smiRadiusSub: $('smi-radius-sub'), smiSafeareaSub: $('smi-safearea-sub'),
   maintenanceScreen: $('maintenance-screen'), splashScreen: $('splash-screen'),
   waveform: $('waveform'),
   notifToggle: $('notif-toggle'), notifUnreadDot: $('notif-unread-dot'),
@@ -3501,7 +3614,7 @@ function contrastTextFor(hex){
   const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return lum > 0.6 ? '#2B2410' : '#F1E6D2';
 }
-const DEFAULT_UI_SETTINGS = { colors: {}, scale: 100, opacity: 100, radius: 100, reduceMotion: false, compact: false };
+const DEFAULT_UI_SETTINGS = { colors: {}, scale: 100, opacity: 100, radius: 100, safeTop: 0, safeBottom: 0, reduceMotion: false, compact: false };
 function loadUiSettings(){
   try {
     const raw = localStorage.getItem(UI_SETTINGS_KEY);
@@ -3542,6 +3655,9 @@ function applyUiSettings(){
   document.documentElement.style.setProperty('--panel-alpha', String(uiSettings.opacity / 100));
   // 角丸
   document.documentElement.style.setProperty('--ui-radius-scale', String(uiSettings.radius / 100));
+  // セーフエリア（上下の追加余白）
+  document.documentElement.style.setProperty('--safe-top-extra', (uiSettings.safeTop || 0) + 'px');
+  document.documentElement.style.setProperty('--safe-bottom-extra', (uiSettings.safeBottom || 0) + 'px');
   // アニメーション / コンパクト
   document.documentElement.classList.toggle('reduce-motion', !!uiSettings.reduceMotion);
   document.documentElement.classList.toggle('compact-mode', !!uiSettings.compact);
@@ -3618,6 +3734,20 @@ els.uiRadiusSlider.addEventListener('input', () => {
   applyUiSettings();
   saveUiSettings();
 });
+els.safeTopSlider.addEventListener('input', () => {
+  uiSettings.safeTop = Number(els.safeTopSlider.value);
+  els.safeTopVal.textContent = uiSettings.safeTop + 'px';
+  els.smiSafeareaSub.textContent = `上${uiSettings.safeTop}px・下${uiSettings.safeBottom}px`;
+  applyUiSettings();
+  saveUiSettings();
+});
+els.safeBottomSlider.addEventListener('input', () => {
+  uiSettings.safeBottom = Number(els.safeBottomSlider.value);
+  els.safeBottomVal.textContent = uiSettings.safeBottom + 'px';
+  els.smiSafeareaSub.textContent = `上${uiSettings.safeTop}px・下${uiSettings.safeBottom}px`;
+  applyUiSettings();
+  saveUiSettings();
+});
 els.reduceMotionToggle.addEventListener('change', () => {
   uiSettings.reduceMotion = els.reduceMotionToggle.checked;
   applyUiSettings();
@@ -3660,12 +3790,52 @@ function refreshSettingsUI(){
   els.uiScaleSlider.value = uiSettings.scale; els.uiScaleVal.textContent = uiSettings.scale + '%';
   els.uiOpacitySlider.value = uiSettings.opacity; els.uiOpacityVal.textContent = uiSettings.opacity + '%';
   els.uiRadiusSlider.value = uiSettings.radius; els.uiRadiusVal.textContent = uiSettings.radius + '%';
+  els.safeTopSlider.value = uiSettings.safeTop || 0; els.safeTopVal.textContent = (uiSettings.safeTop || 0) + 'px';
+  els.safeBottomSlider.value = uiSettings.safeBottom || 0; els.safeBottomVal.textContent = (uiSettings.safeBottom || 0) + 'px';
   els.reduceMotionToggle.checked = !!uiSettings.reduceMotion;
   els.compactToggle.checked = !!uiSettings.compact;
+
+  // メニュー一覧側の副次テキスト（現在値プレビュー）
+  els.smiScaleSub.textContent = uiSettings.scale + '%';
+  els.smiOpacitySub.textContent = uiSettings.opacity + '%';
+  els.smiRadiusSub.textContent = uiSettings.radius + '%';
+  els.smiSafeareaSub.textContent = `上${uiSettings.safeTop || 0}px・下${uiSettings.safeBottom || 0}px`;
 }
+
+/* ---- 設定モーダル：一覧 ⇔ 詳細パネルのナビゲーション ---- */
+const SETTINGS_PANEL_TITLES = {
+  colors: '🖌 配色', scale: '🔍 UIの大きさ', opacity: '👻 透明度', radius: '◻ 角丸の強さ',
+  safearea: '📱 セーフエリア', behavior: '🎬 動作設定', presets: '🎨 プリセット',
+};
+function showSettingsMenu(){
+  document.querySelectorAll('.settings-panel').forEach((p) => { p.style.display = 'none'; });
+  els.settingsMenuView.style.display = 'block';
+  els.settingsBackBtn.style.display = 'none';
+  els.settingsEyebrow.textContent = 'SETTINGS';
+  els.settingsTitle.textContent = '設定・カスタマイズ';
+  els.settingsBody.scrollTop = 0;
+}
+function showSettingsPanel(key){
+  const panel = document.getElementById('settings-panel-' + key);
+  if (!panel) return;
+  els.settingsMenuView.style.display = 'none';
+  document.querySelectorAll('.settings-panel').forEach((p) => { p.style.display = 'none'; });
+  panel.style.display = 'block';
+  els.settingsBackBtn.style.display = 'flex';
+  els.settingsEyebrow.textContent = 'SETTINGS';
+  els.settingsTitle.textContent = SETTINGS_PANEL_TITLES[key] || '設定';
+  els.settingsBody.scrollTop = 0;
+}
+els.settingsMenuView.addEventListener('click', (e) => {
+  const item = e.target.closest('.settings-menu-item');
+  if (!item) return;
+  showSettingsPanel(item.dataset.panel);
+});
+els.settingsBackBtn.addEventListener('click', showSettingsMenu);
 
 els.settingsBtn.addEventListener('click', () => {
   refreshSettingsUI();
+  showSettingsMenu();
   els.settingsModal.style.display = 'flex';
 });
 els.settingsClose.addEventListener('click', () => { els.settingsModal.style.display = 'none'; });
