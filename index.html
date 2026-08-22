@@ -549,27 +549,6 @@
   }
   .emoji-picker button:hover{ background: var(--surface-3); transform: scale(1.22); }
 
-  /* ---- CSSで描いたリアクション絵文字（6種）とそのパーツ単位アニメーション ---- */
-  .rxn-emoji{ display:inline-block; width:1.2em; height:1.2em; vertical-align:-.22em; overflow:visible; }
-  .reaction-chip .rxn-emoji{ width:14px; height:14px; vertical-align:-2.5px; }
-  .emoji-picker button .rxn-emoji{ width:19px; height:19px; }
-  .rxn-part{ transform-box: fill-box; transform-origin: 50% 55%; }
-  .rxn-mouth{ transform-box: fill-box; transform-origin: 50% 50%; }
-  .rxn-tear{ transform-box: fill-box; transform-origin: 50% 0%; }
-  @keyframes rxnHeartBeat{ 0%,100%{ transform: scale(1); } 15%{ transform: scale(1.24); } 30%{ transform: scale(.94); } 45%{ transform: scale(1.16); } 62%{ transform: scale(1); } }
-  @keyframes rxnThumbTilt{ 0%,100%{ transform: rotate(0); } 30%{ transform: rotate(-16deg) translateY(-1px); } 65%{ transform: rotate(5deg); } }
-  @keyframes rxnLaughRock{ 0%,100%{ transform: rotate(0); } 25%{ transform: rotate(-8deg); } 75%{ transform: rotate(8deg); } }
-  @keyframes rxnGasp{ 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.45,1.25); } }
-  @keyframes rxnTearFall{ 0%{ transform: translateY(0); opacity:1; } 75%{ opacity:1; } 100%{ transform: translateY(5px); opacity:0; } }
-  @keyframes rxnPrayPress{ 0%,100%{ transform: scaleX(1); } 50%{ transform: scaleX(.86); } }
-  .emoji-picker button:hover .rxn-heart .rxn-part, .reaction-chip:hover .rxn-heart .rxn-part, .rxn-heart.pop .rxn-part{ animation: rxnHeartBeat .9s ease; }
-  .emoji-picker button:hover .rxn-thumbsup .rxn-part, .reaction-chip:hover .rxn-thumbsup .rxn-part, .rxn-thumbsup.pop .rxn-part{ animation: rxnThumbTilt .6s var(--ease-spring-soft); }
-  .emoji-picker button:hover .rxn-laugh .rxn-part, .reaction-chip:hover .rxn-laugh .rxn-part, .rxn-laugh.pop .rxn-part{ animation: rxnLaughRock .5s ease; }
-  .emoji-picker button:hover .rxn-wow .rxn-mouth, .reaction-chip:hover .rxn-wow .rxn-mouth, .rxn-wow.pop .rxn-mouth{ animation: rxnGasp .45s ease; }
-  .emoji-picker button:hover .rxn-cry .rxn-tear, .reaction-chip:hover .rxn-cry .rxn-tear, .rxn-cry.pop .rxn-tear{ animation: rxnTearFall .7s ease; }
-  .emoji-picker button:hover .rxn-pray .rxn-part, .reaction-chip:hover .rxn-pray .rxn-part, .rxn-pray.pop .rxn-part{ animation: rxnPrayPress .5s ease; }
-  .rxn-laugh.pop .rxn-tear{ animation: rxnTearFall .7s ease; }
-
   /* ---- 返信プレビューバー（コンポーザー上部） ---- */
   #reply-preview-strip{ padding: 8px 20px 0; background: var(--surface); flex-shrink:0; }
   .reply-preview-item{
@@ -2050,51 +2029,6 @@ function fileToChatImageDataUrl(file){
 let pendingImage = null; // { dataUrl, w, h, bytes } | null
 const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
-/** リアクション用の6種類だけは、機種フォントの画像に頼らず自前のSVGで描く。
- *  こうすることでパーツ単位のCSSアニメーション（ハートの鼓動、涙が落ちる、など）を付けられる */
-const CSS_EMOJI = {
-  '👍': `<svg class="rxn-emoji rxn-thumbsup" viewBox="0 0 36 36"><g class="rxn-part">
-    <rect x="6" y="17" width="18" height="14" rx="6" fill="#FFC442"/>
-    <path d="M8 21 h14 M8 25 h14" stroke="#E8A011" stroke-width="1.4" stroke-linecap="round"/>
-    <rect x="14" y="2" width="9" height="19" rx="4.4" fill="#FFC442" transform="rotate(-18 18.5 11.5)"/>
-  </g></svg>`,
-  '❤️': `<svg class="rxn-emoji rxn-heart" viewBox="0 0 36 36"><path class="rxn-part" fill="#F4536B" d="M18 31 C7.5 22.5, 1.5 15.5, 1.5 9.3 C1.5 4.2, 5.7 0.5, 10.6 0.5 C14.2 0.5, 17.3 2.8, 18 6 C18.7 2.8, 21.8 0.5, 25.4 0.5 C30.3 0.5, 34.5 4.2, 34.5 9.3 C34.5 15.5, 28.5 22.5, 18 31 Z"/></svg>`,
-  '😂': `<svg class="rxn-emoji rxn-laugh" viewBox="0 0 36 36"><g class="rxn-part">
-    <circle cx="18" cy="18" r="16" fill="#FFCC4D"/>
-    <path d="M9 15 Q12.5 11 16 15" stroke="#664500" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path d="M20 15 Q23.5 11 27 15" stroke="#664500" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path d="M9 22 Q18 33 27 22 Q18 27 9 22 Z" fill="#664500"/>
-    <path class="rxn-tear" d="M6.5 21 q-2 3 -.5 5.5" stroke="#5DADEC" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    <path class="rxn-tear" d="M29.5 21 q2 3 .5 5.5" stroke="#5DADEC" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-  </g></svg>`,
-  '😮': `<svg class="rxn-emoji rxn-wow" viewBox="0 0 36 36"><g class="rxn-part">
-    <circle cx="18" cy="18" r="16" fill="#FFCC4D"/>
-    <circle cx="13" cy="16" r="3.1" fill="#664500"/>
-    <circle cx="23" cy="16" r="3.1" fill="#664500"/>
-    <circle cx="13.8" cy="15.2" r="1" fill="#fff"/>
-    <circle cx="23.8" cy="15.2" r="1" fill="#fff"/>
-    <ellipse class="rxn-mouth" cx="18" cy="25" rx="3.4" ry="4.4" fill="#664500"/>
-  </g></svg>`,
-  '😢': `<svg class="rxn-emoji rxn-cry" viewBox="0 0 36 36"><g class="rxn-part">
-    <circle cx="18" cy="18" r="16" fill="#FFCC4D"/>
-    <path d="M9 14.5 Q12.5 12.5 16 14.5" stroke="#664500" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path d="M20 14.5 Q23.5 12.5 27 14.5" stroke="#664500" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <circle cx="12.5" cy="18" r="1.6" fill="#664500"/>
-    <circle cx="23.5" cy="18" r="1.6" fill="#664500"/>
-    <path d="M12 25 Q18 20.5 24 25" stroke="#664500" stroke-width="2" fill="none" stroke-linecap="round"/>
-    <path class="rxn-tear" d="M23 19 q3 3 1 7 q-2.4 1.6 -3.6 -1 q1.4 -.6 1.6 -2.6 q.2 -2 1 -3.4 Z" fill="#5DADEC"/>
-  </g></svg>`,
-  '🙏': `<svg class="rxn-emoji rxn-pray" viewBox="0 0 36 36"><g class="rxn-part" fill="#FFC983">
-    <ellipse cx="13.5" cy="17" rx="6" ry="15" transform="rotate(-11 13.5 31)"/>
-    <ellipse cx="22.5" cy="17" rx="6" ry="15" transform="rotate(11 22.5 31)"/>
-    <rect x="15" y="28" width="6" height="6" rx="2"/>
-    <path d="M18 4 L18 30" stroke="#E8A55B" stroke-width="1.1" opacity=".55" fill="none"/>
-    <path d="M9 13 q3 1.4 6 0 M9 19 q3 1.4 6 0 M21 13 q3 1.4 6 0 M21 19 q3 1.4 6 0" stroke="#E8A55B" stroke-width="1" fill="none" opacity=".45"/>
-  </g></svg>`,
-};
-/** 絵文字を、リアクション用SVGがあればそれに、無ければTwemoji画像に変換する */
-function reactionEmojiHtml(em){ return CSS_EMOJI[em] || twemojiHtml(em); }
-
 /* ------------------------------------------------------------------ */
 /* 返信（リプライ）機能                                                 */
 /* ------------------------------------------------------------------ */
@@ -2347,13 +2281,12 @@ function toggleReactionPicker(msgId, anchorRow){
   openReactionPickerId = msgId;
   const picker = document.createElement('div');
   picker.className = 'emoji-picker';
-  picker.innerHTML = REACTION_EMOJIS.map((em) => `<button type="button" data-emoji="${em}">${reactionEmojiHtml(em)}</button>`).join('');
+  picker.innerHTML = REACTION_EMOJIS.map((em) => `<button type="button" data-emoji="${em}">${twemojiHtml(em)}</button>`).join('');
   picker.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-emoji]');
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
     spawnReactionBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
-    popReactionIcon(btn);
     toggleReaction(msgId, btn.dataset.emoji);
     closeReactionPicker();
   });
@@ -2364,17 +2297,6 @@ function toggleReactionPicker(msgId, anchorRow){
 document.addEventListener('click', (e) => {
   if (openReactionPickerId && !e.target.closest('.emoji-picker') && !e.target.closest('.msg-react-btn')) closeReactionPicker();
 });
-
-/** リアクション用SVGアイコンに、選んだ瞬間だけ弾むワンショット演出(pop)を発火する */
-function popReactionIcon(container){
-  if (!container || document.documentElement.classList.contains('reduce-motion')) return;
-  const svg = container.querySelector('.rxn-emoji');
-  if (!svg) return;
-  svg.classList.remove('pop');
-  void svg.getBoundingClientRect();
-  svg.classList.add('pop');
-  setTimeout(() => svg.classList.remove('pop'), 750);
-}
 
 /** リアクションを選んだ瞬間に、指の位置から色付きの粒がパッと弾けるご褒美演出 */
 function spawnReactionBurst(x, y){
@@ -3223,7 +3145,7 @@ function renderMessages(docs){
         const reactRow = document.createElement('div');
         reactRow.className = 'reactions-row';
         reactRow.innerHTML = reactionEntries.map(([emoji, uids]) =>
-          `<span class="reaction-chip${uids.includes(myUid) ? ' mine' : ''}" data-emoji="${emoji}">${reactionEmojiHtml(emoji)}<span class="cnt">${uids.length}</span></span>`
+          `<span class="reaction-chip${uids.includes(myUid) ? ' mine' : ''}" data-emoji="${emoji}">${twemojiHtml(emoji)}<span class="cnt">${uids.length}</span></span>`
         ).join('');
         body.appendChild(reactRow);
       }
@@ -3319,7 +3241,6 @@ els.messages.addEventListener('click', (e) => {
   if (reactChip && activeTargetId && db) {
     const row = reactChip.closest('.msg-row');
     if (row && row.dataset.id) toggleReaction(row.dataset.id, reactChip.dataset.emoji);
-    popReactionIcon(reactChip);
     return;
   }
   const rq = e.target.closest('.reply-quote');
