@@ -54,8 +54,8 @@
     --radius-xs: calc(12px * var(--ui-radius-scale));
     --radius-pill: 999px;
     --ease-ios: cubic-bezier(.32,.72,0,1);
-    --ease-spring: cubic-bezier(.22,1.85,.42,1);
-    --ease-spring-soft: cubic-bezier(.34,1.56,.64,1);
+    --ease-spring: cubic-bezier(.34,1.38,.4,1);
+    --ease-spring-soft: cubic-bezier(.36,1.14,.4,1);
     --ease-standard: cubic-bezier(.4,0,.2,1);
     --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
     --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
@@ -444,14 +444,12 @@
   .msg-row.mine.chained .bubble{ border-radius: 22px 8px 8px 22px; }
 
   @keyframes msgIn{
-    0%{ opacity:0; transform: translateY(46px) scale(.82); }
-    55%{ opacity:1; transform: translateY(-5px) scale(1.03); }
-    78%{ transform: translateY(2px) scale(.99); }
-    100%{ transform: translateY(0) scale(1); }
+    0%{ opacity:0; transform: translateY(16px) scale(.97); }
+    100%{ opacity:1; transform: translateY(0) scale(1); }
   }
-  .msg-row.msg-enter{ animation: msgIn .72s cubic-bezier(.21,.98,.3,1.22) both; transform-origin: bottom center; }
-  @keyframes avatarPop{ from{ opacity:0; transform: scale(.35); } to{ opacity:1; transform: scale(1); } }
-  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .55s cubic-bezier(.22,1.3,.36,1) .08s both; }
+  .msg-row.msg-enter{ animation: msgIn .42s var(--ease-spring-soft) both; transform-origin: bottom center; }
+  @keyframes avatarPop{ from{ opacity:0; transform: scale(.75); } to{ opacity:1; transform: scale(1); } }
+  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .36s var(--ease-spring-soft) .04s both; }
   @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
   .day-divider{ animation: dayIn .3s ease; }
 
@@ -595,7 +593,7 @@
   #poll-btn:disabled:hover{ transform:none; color: var(--text-muted); border-color: var(--border); background: var(--surface-2); }
 
   #lightbox-modal{ background:#04060acc; cursor:zoom-out; }
-  #lightbox-inner{ max-width:92vw; max-height:88vh; animation: modalCardIn .25s var(--ease-spring); }
+  #lightbox-inner{ max-width:92vw; max-height:88vh; animation: modalCardIn .3s var(--ease-spring-soft); }
   #lightbox-img{ max-width:92vw; max-height:88vh; width:auto; height:auto; border-radius:10px; box-shadow: 0 20px 60px #000000a0; display:block; }
   #msg-input{
     flex:1; resize:none; max-height: 120px; min-height: 42px;
@@ -620,17 +618,16 @@
   #send-btn::after{
     content:''; position:absolute; inset:-4px; border-radius:50%; border: 2px solid var(--amber); opacity:0; pointer-events:none;
   }
-  @keyframes sendPulse{ 0%{ transform: scale(1); } 35%{ transform: scale(.8) rotate(-8deg); } 65%{ transform: scale(1.12) rotate(4deg); } 100%{ transform: scale(1) rotate(0); } }
-  @keyframes sendRipple{ 0%{ transform: scale(.5); opacity:.9; } 100%{ transform: scale(2.1); opacity:0; } }
-  #send-btn.sent{ animation: sendPulse .42s var(--ease-spring); }
-  #send-btn.sent::after{ animation: sendRipple .55s var(--ease-ios); }
+  @keyframes sendPulse{ 0%{ transform: scale(1); } 45%{ transform: scale(.88); } 100%{ transform: scale(1); } }
+  @keyframes sendRipple{ 0%{ transform: scale(.5); opacity:.7; } 100%{ transform: scale(1.9); opacity:0; } }
+  #send-btn.sent{ animation: sendPulse .3s var(--ease-spring-soft); }
+  #send-btn.sent::after{ animation: sendRipple .5s var(--ease-ios); }
 
   /* ===================== Modals ===================== */
   @keyframes modalScrimIn{ from{ opacity:0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); } to{ opacity:1; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); } }
   @keyframes modalCardIn{
-    0%{ opacity:0; transform: translateY(60px) scale(.78) rotate(-2deg); }
-    60%{ opacity:1; transform: translateY(-6px) scale(1.03) rotate(.5deg); }
-    100%{ opacity:1; transform: translateY(0) scale(1) rotate(0); }
+    0%{ opacity:0; transform: translateY(24px) scale(.94); }
+    100%{ opacity:1; transform: translateY(0) scale(1); }
   }
   .modal-scrim{
     position:fixed; inset:0; background:#060a0ecc; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -643,7 +640,7 @@
     -webkit-backdrop-filter: blur(calc(6px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
     border: 1px solid var(--border); border-radius: var(--radius-lg);
     padding: 26px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow-md); margin: auto;
-    animation: modalCardIn .46s var(--ease-spring);
+    animation: modalCardIn .34s var(--ease-spring-soft);
   }
   .modal-card .eyebrow{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing:.14em; }
   .modal-card h2{ font-family: var(--font-display); font-size: 21px; margin: 6px 0 4px; }
