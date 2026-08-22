@@ -171,7 +171,7 @@
     #sidebar{
       position: fixed; inset: 0 20% 0 0; z-index: 40;
       transform: translateX(-105%);
-      transition: transform .38s var(--ease-ios);
+      transition: transform .46s var(--ease-ios);
       box-shadow: 30px 0 60px #00000080;
     }
     #sidebar.open{ transform: translateX(0); }
@@ -268,7 +268,7 @@
   .scope-switch .tab-thumb{
     position:absolute; top:3px; bottom:3px; left:3px; width: 40px;
     background: var(--amber); border-radius: var(--radius-pill);
-    transition: transform .42s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
+    transition: width .3s var(--ease-ios); z-index:0;
   }
   .scope-switch button{
     position:relative; z-index:1; flex:1; border:none; background:none; color: var(--text-muted); font-size: 10.5px; padding: 6px 4px;
@@ -285,7 +285,7 @@
   .sidebar-tabs .tab-thumb{
     position:absolute; top:3px; bottom:3px; left:3px; width: calc(50% - 3px);
     background: var(--amber); border-radius: var(--radius-pill);
-    transition: transform .42s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
+    transition: width .3s var(--ease-ios); z-index:0;
   }
   .sidebar-tabs button{
     position:relative; z-index:1; flex:1; border:none; background:none; color: var(--text-muted);
@@ -444,12 +444,13 @@
   .msg-row.mine.chained .bubble{ border-radius: 22px 8px 8px 22px; }
 
   @keyframes msgIn{
-    0%{ opacity:0; transform: translateY(16px) scale(.97); }
+    0%{ opacity:0; transform: translateY(20px) scale(.95); }
+    62%{ opacity:1; transform: translateY(-1px) scale(1.018); }
     100%{ opacity:1; transform: translateY(0) scale(1); }
   }
-  .msg-row.msg-enter{ animation: msgIn .42s var(--ease-spring-soft) both; transform-origin: bottom center; }
-  @keyframes avatarPop{ from{ opacity:0; transform: scale(.75); } to{ opacity:1; transform: scale(1); } }
-  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .36s var(--ease-spring-soft) .04s both; }
+  .msg-row.msg-enter{ animation: msgIn .52s var(--ease-spring-soft) both; transform-origin: bottom center; }
+  @keyframes avatarPop{ from{ opacity:0; transform: scale(.7); } to{ opacity:1; transform: scale(1); } }
+  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .4s var(--ease-spring-soft) .05s both; }
   @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
   .day-divider{ animation: dayIn .3s ease; }
 
@@ -593,7 +594,7 @@
   #poll-btn:disabled:hover{ transform:none; color: var(--text-muted); border-color: var(--border); background: var(--surface-2); }
 
   #lightbox-modal{ background:#04060acc; cursor:zoom-out; }
-  #lightbox-inner{ max-width:92vw; max-height:88vh; animation: modalCardIn .3s var(--ease-spring-soft); }
+  #lightbox-inner{ max-width:92vw; max-height:88vh; animation: modalCardIn .36s var(--ease-spring-soft); }
   #lightbox-img{ max-width:92vw; max-height:88vh; width:auto; height:auto; border-radius:10px; box-shadow: 0 20px 60px #000000a0; display:block; }
   #msg-input{
     flex:1; resize:none; max-height: 120px; min-height: 42px;
@@ -626,7 +627,8 @@
   /* ===================== Modals ===================== */
   @keyframes modalScrimIn{ from{ opacity:0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); } to{ opacity:1; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); } }
   @keyframes modalCardIn{
-    0%{ opacity:0; transform: translateY(24px) scale(.94); }
+    0%{ opacity:0; transform: translateY(26px) scale(.94); }
+    65%{ opacity:1; transform: translateY(-2px) scale(1.012); }
     100%{ opacity:1; transform: translateY(0) scale(1); }
   }
   .modal-scrim{
@@ -640,7 +642,7 @@
     -webkit-backdrop-filter: blur(calc(6px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
     border: 1px solid var(--border); border-radius: var(--radius-lg);
     padding: 26px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow-md); margin: auto;
-    animation: modalCardIn .34s var(--ease-spring-soft);
+    animation: modalCardIn .42s var(--ease-spring-soft);
   }
   .modal-card .eyebrow{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing:.14em; }
   .modal-card h2{ font-family: var(--font-display); font-size: 21px; margin: 6px 0 4px; }
@@ -780,7 +782,7 @@
   .admin-tabs .tab-thumb{
     position:absolute; top:4px; bottom:4px; left:4px; width: 40px;
     background: linear-gradient(150deg, var(--amber), color-mix(in srgb, var(--amber) 65%, black)); border-radius: var(--radius-pill);
-    transition: transform .45s var(--ease-spring), width .3s var(--ease-ios); z-index:0;
+    transition: width .3s var(--ease-ios); z-index:0;
   }
   .admin-tab{ position:relative; z-index:1; flex:1; background:none; border:none; color: var(--text-muted); padding: 8px; border-radius: var(--radius-pill); font-size: 12px; cursor:pointer; transition: color .25s var(--ease-ios); }
   .admin-tab.active{ border-color: transparent; color: #14100a; font-weight:600; }
@@ -1626,7 +1628,8 @@ function nameWithBadge(name, verified, gold){
 }
 function normalizeName(n){ return (n || '').trim().toLowerCase(); }
 
-/** iOS風セグメントコントロールのスライド式ハイライトを、アクティブなボタンの実測位置・幅に合わせて動かす */
+/** iOS風セグメントコントロールのスライド式ハイライトを、アクティブなボタンの実測位置・幅に合わせて動かす。
+ *  移動中はわずかに縮んでからまた戻る「スクイーズ」を付け、ただのスライドより弾力のある印象にする。 */
 function positionTabThumb(container){
   if (!container) return;
   const thumb = container.querySelector(':scope > .tab-thumb');
@@ -1634,8 +1637,20 @@ function positionTabThumb(container){
   if (!thumb || !buttons.length) return;
   const active = buttons.find((b) => b.classList.contains('active')) || buttons[0];
   const base = buttons[0].offsetLeft;
+  const targetX = active.offsetLeft - base;
+  const prevX = thumb.dataset.thumbX !== undefined ? parseFloat(thumb.dataset.thumbX) : targetX;
   thumb.style.width = active.offsetWidth + 'px';
-  thumb.style.transform = `translateX(${active.offsetLeft - base}px)`;
+  if (thumb.animate && Math.abs(prevX - targetX) > 0.5 && !document.documentElement.classList.contains('reduce-motion')) {
+    thumb.getAnimations().forEach((a) => a.cancel());
+    const midX = (prevX + targetX) / 2;
+    thumb.animate([
+      { transform: `translateX(${prevX}px) scaleX(1)` },
+      { transform: `translateX(${midX}px) scaleX(.9)`, offset: .5 },
+      { transform: `translateX(${targetX}px) scaleX(1)` },
+    ], { duration: 460, easing: 'cubic-bezier(.34,1.38,.4,1)', fill: 'both' });
+  }
+  thumb.style.transform = `translateX(${targetX}px)`;
+  thumb.dataset.thumbX = targetX;
 }
 window.addEventListener('resize', () => {
   positionTabThumb(els.scopeSwitch);
