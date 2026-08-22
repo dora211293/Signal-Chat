@@ -397,6 +397,28 @@
   }
   #schedule-list-btn .unread-dot{ background: var(--teal); }
   #notif-toggle .unread-dot.show, #schedule-list-btn .unread-dot.show{ display:block; }
+  @keyframes bellRing{
+    0%, 100%{ transform: rotate(0); }
+    15%{ transform: rotate(-17deg); }
+    30%{ transform: rotate(13deg); }
+    45%{ transform: rotate(-9deg); }
+    60%{ transform: rotate(6deg); }
+    75%{ transform: rotate(-3deg); }
+    88%{ transform: rotate(1deg); }
+  }
+  #notif-toggle.ringing{ animation: bellRing .62s ease; transform-origin: 50% 20%; }
+  @keyframes ringLineFly{
+    0%{ opacity:0; transform: scale(.3) translateX(0); }
+    28%{ opacity:1; }
+    100%{ opacity:0; transform: scale(1) translateX(5px); }
+  }
+  #notif-toggle.ringing::before, #notif-toggle.ringing::after{
+    content:''; position:absolute; top:38%; width:6px; height:2px; background: currentColor; border-radius:2px; pointer-events:none;
+  }
+  #notif-toggle.ringing::before{ left:-1px; animation: ringLineFly .62s ease .04s; }
+  #notif-toggle.ringing::after{ right:-1px; transform: scaleX(-1); animation: ringLineFly .62s ease .16s; }
+  @keyframes countBump{ 0%{ transform: translateY(0) scale(1); } 40%{ transform: translateY(-4px) scale(1.2); } 100%{ transform: translateY(0) scale(1); } }
+  .count-bump{ display:inline-block; animation: countBump .34s var(--ease-spring-soft); }
 
   #onair{
     font-family: var(--font-mono); font-size: 10px; letter-spacing:.1em; color: var(--teal);
@@ -827,6 +849,11 @@
   .mini-btn:hover, .mini-btn-outline:hover, .mini-btn-gold:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); }
   .mini-btn:active, .mini-btn-outline:active, .mini-btn-gold:active, .mini-btn-danger:active{ transform: scale(.94); transition-duration: .1s; }
   .mini-btn-danger:hover{ transform: translateY(-1px); }
+  @keyframes reqSentPop{ 0%{ transform: scale(1); } 38%{ transform: scale(.8); } 72%{ transform: scale(1.14); } 100%{ transform: scale(1); } }
+  .mini-btn.req-sent, .mini-btn-outline.req-sent{
+    background: var(--teal-dim) !important; color: var(--teal) !important; border-color: var(--teal-dim) !important;
+    animation: reqSentPop .46s var(--ease-ios); cursor:default;
+  }
 
   .uid-row{ display:flex; align-items:center; gap:8px; margin-bottom: 14px; }
   .uid-row code{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 10.5px; color: var(--text-muted); background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-xs); padding:6px 8px; }
@@ -3214,6 +3241,16 @@ function updateScheduleListUI(){
   els.scheduleCountDot.classList.toggle('show', n > 0);
   els.scheduleBtn.classList.toggle('has-pending', n > 0);
 }
+/** カウント系のテキストが変化した瞬間だけ、軽くぴょんと弾ませる（オドメーター風の手触り） */
+function setCountText(el, text){
+  if (!el || el.textContent === text) { if (el) el.textContent = text; return; }
+  el.textContent = text;
+  if (document.documentElement.classList.contains('reduce-motion')) return;
+  el.classList.remove('count-bump');
+  void el.offsetWidth;
+  el.classList.add('count-bump');
+}
+
 function fmtScheduleTime(ms){
   const d = new Date(ms);
   const now = new Date();
@@ -3491,6 +3528,7 @@ function handleIncomingMessageForNotif(channelId, m){
     unreadByChannel[channelId] = (unreadByChannel[channelId] || 0) + 1;
     updateChannelUnreadBadge(channelId);
     updateGlobalUnreadUI();
+    ringNotifBell();
   }
   const shouldNotify = notifEnabled && ('Notification' in window) && Notification.permission === 'granted'
     && (document.hidden || channelId !== currentChannelId);
@@ -3535,6 +3573,7 @@ function handleIncomingDmForNotif(dmId, otherUid, otherName, m){
     unreadByDm[dmId] = (unreadByDm[dmId] || 0) + 1;
     updateGlobalUnreadUI();
     renderDmList();
+    ringNotifBell();
   }
   const shouldNotify = notifEnabled && ('Notification' in window) && Notification.permission === 'granted' && !isOpenAndVisible;
   if (!shouldNotify) return;
@@ -3561,6 +3600,14 @@ function watchDmForNotif(dmId, otherUid){
 function watchAllFriendDms(){
   Object.keys(friendsCache).forEach((uid) => watchDmForNotif(dmIdFor(myUid, uid), uid));
 }
+/** 通知ベルを「カランカラン」と物理的に揺らす演出。新着通知の受信時とトグル操作時に呼ぶ */
+function ringNotifBell(){
+  if (!els.notifToggle || document.documentElement.classList.contains('reduce-motion')) return;
+  els.notifToggle.classList.remove('ringing');
+  void els.notifToggle.offsetWidth;
+  els.notifToggle.classList.add('ringing');
+  setTimeout(() => els.notifToggle.classList.remove('ringing'), 650);
+}
 if (els.notifToggle) {
   if (localStorage.getItem(NOTIF_KEY) === '1' && 'Notification' in window && Notification.permission === 'granted') {
     notifEnabled = true;
@@ -3580,6 +3627,7 @@ if (els.notifToggle) {
     }
     localStorage.setItem(NOTIF_KEY, notifEnabled ? '1' : '0');
     updateNotifBtnUI();
+    ringNotifBell();
   });
 }
 
@@ -3671,14 +3719,22 @@ function updateFriendReqUI(){
   els.friendTabDot.textContent = n > 0 ? ` (${n})` : '';
 }
 
-async function sendFriendRequest(toUid, toName){
+/** フレンド申請ボタンを、送信成功の一瞬でチェックマーク付きの確定状態にモーフさせる */
+function morphButtonToSent(btn){
+  if (!btn) return;
+  btn.disabled = true;
+  btn.classList.add('req-sent');
+  btn.textContent = '✓ 申請済み';
+}
+async function sendFriendRequest(toUid, toName, triggerBtn){
   if (!db || !myUid || toUid === myUid) return;
   if (friendsCache[toUid]) { alert('すでにフレンドです'); return; }
   const already = sentRequestsCache.find((d) => d.data().to === toUid) || friendRequestsCache.find((d) => d.data().from === toUid);
   if (already) { alert('すでに申請済みです'); return; }
   try {
     await addDoc(collection(db, 'friendRequests'), { from: myUid, fromName: myName, to: toUid, toName, status: 'pending', ts: serverTimestamp() });
-    renderFriendsPanel();
+    if (triggerBtn) { morphButtonToSent(triggerBtn); setTimeout(renderFriendsPanel, 480); }
+    else renderFriendsPanel();
   } catch (e) { console.error(e); alert('申請の送信に失敗しました'); }
 }
 
@@ -3701,6 +3757,9 @@ function openProfileCard(uid){
   const isSelf = uid === myUid;
   els.profileDmBtn.style.display = isSelf ? 'none' : '';
   els.profileAddFriendBtn.style.display = (isSelf || isFriend) ? 'none' : '';
+  els.profileAddFriendBtn.disabled = false;
+  els.profileAddFriendBtn.classList.remove('req-sent');
+  els.profileAddFriendBtn.textContent = 'フレンド申請';
   els.profileModal.classList.remove('closing');
   els.profileModal.style.display = 'flex';
 }
@@ -3715,8 +3774,8 @@ els.profileDmBtn.addEventListener('click', () => {
 els.profileAddFriendBtn.addEventListener('click', () => {
   if (!profileCardUid) return;
   const prof = usersCache[profileCardUid] || {};
-  sendFriendRequest(profileCardUid, prof.name || 'ユーザー');
-  closeModal(els.profileModal);
+  sendFriendRequest(profileCardUid, prof.name || 'ユーザー', els.profileAddFriendBtn);
+  setTimeout(() => closeModal(els.profileModal), 480);
 });
 async function acceptFriendRequest(reqId, fromUid, fromName){
   if (!db || !myUid) return;
@@ -3805,7 +3864,7 @@ function renderFriendsPanel(){
           <div class="info">${nameWithBadge(prof.name || '(無名)', !!prof.verified, !!prof.goldVerified)}</div>
           <div class="actions">${actionHtml}</div>`;
         const addBtn = row.querySelector('[data-act="add"]');
-        if (addBtn) addBtn.addEventListener('click', () => sendFriendRequest(uid, prof.name || '(無名)'));
+        if (addBtn) addBtn.addEventListener('click', () => sendFriendRequest(uid, prof.name || '(無名)', addBtn));
         results.appendChild(row);
       });
     };
@@ -3855,7 +3914,7 @@ window.addEventListener('pagehide', () => {
 });
 function renderOnlineList(online){
   lastOnline = online || [];
-  els.onlineCount.textContent = lastOnline.length;
+  els.onlineCount && setCountText(els.onlineCount, String(lastOnline.length));
   els.onlineList.innerHTML = lastOnline.map((p) => {
     const prof = usersCache[p.uid] || p;
     return `<span class="online-chip"><span class="online-chip-avatar">${avatarInner(prof)}</span>${nameWithBadge(prof.name || p.name, !!prof.verified, !!prof.goldVerified)}</span>`;
