@@ -405,8 +405,8 @@
     background: var(--surface); border: 1px solid var(--border); padding: 3px 12px; border-radius: 20px; margin: 14px 0 10px;
   }
 
-  .msg-row{ display:flex; gap: 10px; width: fit-content; max-width: 76%; margin: 7px 0 0; align-items: flex-end; align-self: flex-start; }
-  .msg-row.mine{ align-self:flex-end; flex-direction:row-reverse; }
+  .msg-row{ display:flex; gap: 10px; width: fit-content; max-width: 76%; margin: 7px auto 0 0; align-items: flex-end; align-self: flex-start; justify-content: flex-start; }
+  .msg-row.mine{ align-self:flex-end; flex-direction:row-reverse; justify-content:flex-end; margin-left:auto; margin-right:0; }
   .msg-row.grouped{ margin-top: 2px; }
 
   .msg-avatar{
