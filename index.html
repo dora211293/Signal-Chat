@@ -527,6 +527,13 @@
   }
   @keyframes chipOut{ from{ opacity:1; transform: scale(1); } to{ opacity:0; transform: scale(.85); } }
   .emoji-picker.closing{ animation: chipOut .14s var(--ease-ios) forwards; pointer-events:none; }
+
+  .reaction-burst-particle{
+    position:fixed; left:0; top:0; width:6px; height:6px; border-radius:50%;
+    pointer-events:none; z-index:200; transform: translate(-50%,-50%) translate(0,0) scale(1); opacity:1;
+    transition: transform .56s var(--ease-ios), opacity .56s var(--ease-ios);
+  }
+  .reaction-burst-particle.flying{ transform: translate(-50%,-50%) translate(var(--dx), var(--dy)) scale(0); opacity:0; }
   .msg-row.mine .emoji-picker{ left:auto; right:0; }
   .emoji-picker button{
     background:none; border:none; font-size: 17px; cursor:pointer; padding: 2px 3px; line-height:1;
@@ -934,14 +941,28 @@
   .settings-switch input{ opacity:0; width:0; height:0; }
   .settings-switch span{
     position:absolute; inset:0; background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--radius-pill);
-    cursor:pointer; transition: background-color .25s ease;
+    cursor:pointer; transition: background-color .3s var(--ease-ios);
   }
   .settings-switch span::before{
     content:''; position:absolute; width:18px; height:18px; left:2px; top:2px; background:#fff; border-radius:50%;
-    box-shadow: var(--shadow-sm); transition: transform .25s var(--ease-spring);
+    box-shadow: var(--shadow-sm); transition: transform .3s var(--ease-spring);
   }
   .settings-switch input:checked + span{ background: var(--amber); }
   .settings-switch input:checked + span::before{ transform: translateX(18px); }
+  @keyframes toggleOnSquish{
+    0%{ transform: translateX(0) scale(1,1); }
+    30%{ transform: translateX(9px) scale(1.38,.74); }
+    62%{ transform: translateX(21px) scale(.88,1.1); }
+    100%{ transform: translateX(18px) scale(1,1); }
+  }
+  @keyframes toggleOffSquish{
+    0%{ transform: translateX(18px) scale(1,1); }
+    30%{ transform: translateX(9px) scale(1.38,.74); }
+    62%{ transform: translateX(-3px) scale(.88,1.1); }
+    100%{ transform: translateX(0) scale(1,1); }
+  }
+  .settings-switch.anim-on span::before{ animation: toggleOnSquish .46s var(--ease-ios) forwards; }
+  .settings-switch.anim-off span::before{ animation: toggleOffSquish .46s var(--ease-ios) forwards; }
 
   .preset-row{ display:flex; gap:7px; flex-wrap:wrap; }
   .preset-chip{
@@ -1750,6 +1771,18 @@ function nameWithBadge(name, verified, gold){
 }
 function normalizeName(n){ return (n || '').trim().toLowerCase(); }
 
+document.querySelectorAll('.settings-switch input[type="checkbox"]').forEach((input) => {
+  input.addEventListener('change', () => {
+    if (document.documentElement.classList.contains('reduce-motion')) return;
+    const wrap = input.closest('.settings-switch');
+    if (!wrap) return;
+    wrap.classList.remove('anim-on', 'anim-off');
+    void wrap.offsetWidth;
+    wrap.classList.add(input.checked ? 'anim-on' : 'anim-off');
+    setTimeout(() => wrap.classList.remove('anim-on', 'anim-off'), 480);
+  });
+});
+
 /** iOS風セグメントコントロールのスライド式ハイライトを、アクティブなボタンの実測位置・幅に合わせて動かす。
  *  移動中はわずかに縮んでからまた戻る「スクイーズ」を付け、ただのスライドより弾力のある印象にする。 */
 function positionTabThumb(container){
@@ -2167,6 +2200,8 @@ function toggleReactionPicker(msgId, anchorRow){
   picker.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-emoji]');
     if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    spawnReactionBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
     toggleReaction(msgId, btn.dataset.emoji);
     closeReactionPicker();
   });
@@ -2176,6 +2211,27 @@ function toggleReactionPicker(msgId, anchorRow){
 document.addEventListener('click', (e) => {
   if (openReactionPickerId && !e.target.closest('.emoji-picker') && !e.target.closest('.msg-react-btn')) closeReactionPicker();
 });
+
+/** リアクションを選んだ瞬間に、指の位置から色付きの粒がパッと弾けるご褒美演出 */
+function spawnReactionBurst(x, y){
+  if (document.documentElement.classList.contains('reduce-motion')) return;
+  const colors = ['var(--amber)', 'var(--teal)', 'var(--gold)', '#ff7a8a'];
+  const n = 8;
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement('span');
+    p.className = 'reaction-burst-particle';
+    const angle = (Math.PI * 2 * i / n) + (Math.random() * 0.5 - 0.25);
+    const dist = 22 + Math.random() * 20;
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    p.style.background = colors[i % colors.length];
+    document.body.appendChild(p);
+    requestAnimationFrame(() => p.classList.add('flying'));
+    setTimeout(() => p.remove(), 620);
+  }
+}
 
 async function toggleReaction(msgId, emoji){
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
