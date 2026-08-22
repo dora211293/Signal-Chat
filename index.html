@@ -54,8 +54,8 @@
     --radius-xs: calc(12px * var(--ui-radius-scale));
     --radius-pill: 999px;
     --ease-ios: cubic-bezier(.32,.72,0,1);
-    --ease-spring: cubic-bezier(.34,1.38,.4,1);
-    --ease-spring-soft: cubic-bezier(.36,1.14,.4,1);
+    --ease-spring: cubic-bezier(.32,1.62,.4,1);
+    --ease-spring-soft: cubic-bezier(.34,1.3,.4,1);
     --ease-standard: cubic-bezier(.4,0,.2,1);
     --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
     --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
@@ -444,13 +444,13 @@
   .msg-row.mine.chained .bubble{ border-radius: 22px 8px 8px 22px; }
 
   @keyframes msgIn{
-    0%{ opacity:0; transform: translateY(20px) scale(.95); }
-    62%{ opacity:1; transform: translateY(-1px) scale(1.018); }
+    0%{ opacity:0; transform: translateY(22px) scale(.93); }
+    58%{ opacity:1; transform: translateY(-2px) scale(1.035); }
     100%{ opacity:1; transform: translateY(0) scale(1); }
   }
-  .msg-row.msg-enter{ animation: msgIn .52s var(--ease-spring-soft) both; transform-origin: bottom center; }
-  @keyframes avatarPop{ from{ opacity:0; transform: scale(.7); } to{ opacity:1; transform: scale(1); } }
-  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .4s var(--ease-spring-soft) .05s both; }
+  .msg-row.msg-enter{ animation: msgIn .5s var(--ease-spring-soft) both; transform-origin: bottom center; }
+  @keyframes avatarPop{ 0%{ opacity:0; transform: scale(.55); } 65%{ transform: scale(1.12); } 100%{ opacity:1; transform: scale(1); } }
+  .msg-row.msg-enter .msg-avatar{ animation: avatarPop .42s var(--ease-spring-soft) .05s both; }
   @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
   .day-divider{ animation: dayIn .3s ease; }
 
@@ -508,8 +508,10 @@
     position:absolute; bottom: calc(100% + 6px); left:0; z-index: 5;
     display:flex; gap:3px; background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-pill);
     padding: 5px 7px; box-shadow: var(--shadow-md);
-    animation: chipIn .22s var(--ease-spring);
+    animation: chipIn .22s var(--ease-spring-soft);
   }
+  @keyframes chipOut{ from{ opacity:1; transform: scale(1); } to{ opacity:0; transform: scale(.85); } }
+  .emoji-picker.closing{ animation: chipOut .14s var(--ease-ios) forwards; pointer-events:none; }
   .msg-row.mine .emoji-picker{ left:auto; right:0; }
   .emoji-picker button{
     background:none; border:none; font-size: 17px; cursor:pointer; padding: 2px 3px; line-height:1;
@@ -619,16 +621,16 @@
   #send-btn::after{
     content:''; position:absolute; inset:-4px; border-radius:50%; border: 2px solid var(--amber); opacity:0; pointer-events:none;
   }
-  @keyframes sendPulse{ 0%{ transform: scale(1); } 45%{ transform: scale(.88); } 100%{ transform: scale(1); } }
+  @keyframes sendPulse{ 0%{ transform: scale(1); } 40%{ transform: scale(.78); } 72%{ transform: scale(1.14); } 100%{ transform: scale(1); } }
   @keyframes sendRipple{ 0%{ transform: scale(.5); opacity:.7; } 100%{ transform: scale(1.9); opacity:0; } }
-  #send-btn.sent{ animation: sendPulse .3s var(--ease-spring-soft); }
+  #send-btn.sent{ animation: sendPulse .38s var(--ease-spring-soft); }
   #send-btn.sent::after{ animation: sendRipple .5s var(--ease-ios); }
 
   /* ===================== Modals ===================== */
   @keyframes modalScrimIn{ from{ opacity:0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); } to{ opacity:1; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); } }
   @keyframes modalCardIn{
-    0%{ opacity:0; transform: translateY(26px) scale(.94); }
-    65%{ opacity:1; transform: translateY(-2px) scale(1.012); }
+    0%{ opacity:0; transform: translateY(30px) scale(.9); }
+    62%{ opacity:1; transform: translateY(-3px) scale(1.025); }
     100%{ opacity:1; transform: translateY(0) scale(1); }
   }
   .modal-scrim{
@@ -636,6 +638,13 @@
     display:flex; align-items:center; justify-content:center; z-index:100; padding: 20px; overflow-y: auto;
     animation: modalScrimIn .32s var(--ease-ios);
   }
+  @keyframes modalScrimOut{ from{ opacity:1; } to{ opacity:0; } }
+  @keyframes modalCardOut{
+    0%{ opacity:1; transform: translateY(0) scale(1); }
+    100%{ opacity:0; transform: translateY(16px) scale(.95); }
+  }
+  .modal-scrim.closing{ animation: modalScrimOut .22s var(--ease-ios) forwards; }
+  .modal-scrim.closing .modal-card, .modal-scrim.closing #lightbox-inner{ animation: modalCardOut .2s var(--ease-ios) forwards; }
   .modal-card{
     background: color-mix(in srgb, var(--surface) calc(var(--panel-alpha) * 100%), transparent);
     backdrop-filter: blur(calc(6px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
@@ -1645,9 +1654,10 @@ function positionTabThumb(container){
     const midX = (prevX + targetX) / 2;
     thumb.animate([
       { transform: `translateX(${prevX}px) scaleX(1)` },
-      { transform: `translateX(${midX}px) scaleX(.9)`, offset: .5 },
+      { transform: `translateX(${midX}px) scaleX(.78)`, offset: .5 },
+      { transform: `translateX(${targetX}px) scaleX(1.06)`, offset: .82 },
       { transform: `translateX(${targetX}px) scaleX(1)` },
-    ], { duration: 460, easing: 'cubic-bezier(.34,1.38,.4,1)', fill: 'both' });
+    ], { duration: 480, easing: 'cubic-bezier(.32,1.1,.4,1)', fill: 'both' });
   }
   thumb.style.transform = `translateX(${targetX}px)`;
   thumb.dataset.thumbX = targetX;
@@ -1657,6 +1667,48 @@ window.addEventListener('resize', () => {
   positionTabThumb(document.getElementById('admin-tabs'));
   positionTabThumb(document.getElementById('friends-tabs'));
 });
+
+/** モーダル(.modal-scrim)を、閉じるアニメーションを再生してから非表示にする */
+function closeModal(el){
+  if (!el || el.style.display === 'none') return;
+  if (document.documentElement.classList.contains('reduce-motion')) { el.style.display = 'none'; return; }
+  el.classList.remove('closing');
+  void el.offsetWidth;
+  el.classList.add('closing');
+  let done = false;
+  const finish = () => {
+    if (done) return; done = true;
+    el.style.display = 'none';
+    el.classList.remove('closing');
+  };
+  el.addEventListener('animationend', finish, { once: true });
+  setTimeout(finish, 260);
+}
+
+/** el の中身を updateFn で差し替える際、内容量による縦サイズの変化を高さアニメーションで滑らかに繋ぐ */
+function animateHeightSwap(el, updateFn){
+  if (!el) { updateFn(); return; }
+  const reduced = document.documentElement.classList.contains('reduce-motion');
+  const startH = el.offsetHeight;
+  updateFn();
+  if (reduced) return;
+  const endH = el.scrollHeight;
+  if (Math.abs(endH - startH) < 1) return;
+  el.style.overflow = 'hidden';
+  el.style.height = startH + 'px';
+  void el.offsetHeight;
+  el.style.transition = 'height .38s var(--ease-spring-soft)';
+  requestAnimationFrame(() => { el.style.height = endH + 'px'; });
+  let done = false;
+  const cleanup = () => {
+    if (done) return; done = true;
+    el.style.transition = ''; el.style.height = ''; el.style.overflow = '';
+    el.removeEventListener('transitionend', onEnd);
+  };
+  const onEnd = (e) => { if (e.propertyName === 'height') cleanup(); };
+  el.addEventListener('transitionend', onEnd);
+  setTimeout(cleanup, 450);
+}
 
 /** アップロードされた画像ファイルを 128x128 の正方形JPEGに圧縮してdata URLで返す */
 function fileToCompressedDataUrl(file){
@@ -1799,10 +1851,10 @@ function openPollModal(){
   els.pollOptionCount.value = '2';
   els.pollAllowFreetext.checked = false;
   renderPollOptionInputs();
-  els.pollModal.style.display = 'flex';
+  els.pollModal.classList.remove('closing'); els.pollModal.style.display = 'flex';
   setTimeout(() => els.pollQuestionInput.focus(), 50);
 }
-function closePollModal(){ els.pollModal.style.display = 'none'; }
+function closePollModal(){ closeModal(els.pollModal); }
 els.pollBtn.addEventListener('click', () => {
   if (!canPostInCurrentChannel()) { alert('このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
   openPollModal();
@@ -1904,7 +1956,7 @@ function openPollViewModal(msgId){
   if (!docSnap || !docSnap.data().poll) return;
   openPollMsgId = msgId;
   refreshPollViewModal();
-  els.pollViewModal.style.display = 'flex';
+  els.pollViewModal.classList.remove('closing'); els.pollViewModal.style.display = 'flex';
 }
 function refreshPollViewModal(){
   if (!openPollMsgId) return;
@@ -1916,7 +1968,7 @@ function refreshPollViewModal(){
 }
 function closePollViewModal(){
   openPollMsgId = null;
-  els.pollViewModal.style.display = 'none';
+  closeModal(els.pollViewModal);
 }
 els.pollViewClose.addEventListener('click', closePollViewModal);
 els.pollViewBody.addEventListener('click', (e) => {
@@ -1983,7 +2035,14 @@ function jumpToMessage(id){
 let openReactionPickerId = null;
 function closeReactionPicker(){
   openReactionPickerId = null;
-  document.querySelectorAll('.emoji-picker').forEach((el) => el.remove());
+  document.querySelectorAll('.emoji-picker').forEach((el) => {
+    if (document.documentElement.classList.contains('reduce-motion')) { el.remove(); return; }
+    el.classList.add('closing');
+    let done = false;
+    const finish = () => { if (done) return; done = true; el.remove(); };
+    el.addEventListener('animationend', finish, { once: true });
+    setTimeout(finish, 200);
+  });
 }
 function toggleReactionPicker(msgId, anchorRow){
   if (openReactionPickerId === msgId) { closeReactionPicker(); return; }
@@ -2056,10 +2115,10 @@ els.imageFileInput.addEventListener('change', async () => {
 });
 els.imagePreviewClear.addEventListener('click', clearImagePreview);
 
-els.lightboxModal.addEventListener('click', () => { els.lightboxModal.style.display = 'none'; });
+els.lightboxModal.addEventListener('click', () => { closeModal(els.lightboxModal); });
 function openLightbox(src){
   els.lightboxImg.src = src;
-  els.lightboxModal.style.display = 'flex';
+  els.lightboxModal.classList.remove('closing'); els.lightboxModal.style.display = 'flex';
 }
 
 /** 期限切れ画像の自動削除（クライアント側の遅延掃除）。1メッセージにつき1回だけ試みる。 */
@@ -2250,7 +2309,7 @@ function openNickModal(prefillName, prefillIcon, prefillImg){
     els.myUidDisplay.textContent = '認証中…';
   }
   renderVerifyRow();
-  els.nickModal.style.display = 'flex';
+  els.nickModal.classList.remove('closing'); els.nickModal.style.display = 'flex';
   setTimeout(() => els.nickInput.focus(), 50);
 }
 els.nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !els.nickConfirm.disabled) els.nickConfirm.click(); });
@@ -2290,7 +2349,7 @@ els.nickConfirm.addEventListener('click', async () => {
       name: myName, icon: myIcon, iconImg: myIconImg, updatedAt: serverTimestamp()
     }, { merge: true });
     refreshSelfCard();
-    els.nickModal.style.display = 'none';
+    closeModal(els.nickModal);
     startHeartbeat();
     if (currentChannelId) markRead(currentChannelId);
   } catch (e) {
@@ -2462,16 +2521,16 @@ function openChannelRenameModal(id, realName){
   els.channelRenameDesc.textContent = isAdmin
     ? 'この変更を誰に適用しますか？「全員に適用」はチャンネル名そのものを変更します。'
     : 'この変更はあなたのブラウザにのみ保存され、他の人には表示されません。';
-  els.channelRenameModal.style.display = 'flex';
+  els.channelRenameModal.classList.remove('closing'); els.channelRenameModal.style.display = 'flex';
   setTimeout(() => els.channelRenameInput.focus(), 50);
 }
-els.channelRenameCancel.addEventListener('click', () => { els.channelRenameModal.style.display = 'none'; renamingChannelId = null; });
+els.channelRenameCancel.addEventListener('click', () => { closeModal(els.channelRenameModal); renamingChannelId = null; });
 els.channelRenamePersonal.addEventListener('click', () => {
   const v = els.channelRenameInput.value.trim().slice(0, 24);
   if (!v || !renamingChannelId) return;
   localChannelNames[renamingChannelId] = v;
   saveLocalChannelNames();
-  els.channelRenameModal.style.display = 'none';
+  closeModal(els.channelRenameModal);
   renderChannelList(channelsCache);
   if (currentKind === 'channel' && currentChannelId === renamingChannelId) els.topbarName.textContent = v;
   renamingChannelId = null;
@@ -2483,7 +2542,7 @@ els.channelRenameGlobal.addEventListener('click', async () => {
     await setDoc(doc(db, 'channels', renamingChannelId), { name: v }, { merge: true });
     delete localChannelNames[renamingChannelId];
     saveLocalChannelNames();
-    els.channelRenameModal.style.display = 'none';
+    closeModal(els.channelRenameModal);
   } catch (e) { console.error(e); alert('変更に失敗しました'); }
   renamingChannelId = null;
 });
@@ -2630,10 +2689,10 @@ async function deleteChannel(channelId, name){
 els.addChannelBtn.addEventListener('click', () => {
   els.channelInput.value = '';
   els.channelConfirm.disabled = true;
-  els.channelModal.style.display = 'flex';
+  els.channelModal.classList.remove('closing'); els.channelModal.style.display = 'flex';
   setTimeout(() => els.channelInput.focus(), 50);
 });
-els.channelCancel.addEventListener('click', () => { els.channelModal.style.display = 'none'; });
+els.channelCancel.addEventListener('click', () => { closeModal(els.channelModal); });
 els.channelInput.addEventListener('input', () => { els.channelConfirm.disabled = !els.channelInput.value.trim(); });
 els.channelInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !els.channelConfirm.disabled) els.channelConfirm.click(); });
 els.channelConfirm.addEventListener('click', async () => {
@@ -2641,7 +2700,7 @@ els.channelConfirm.addEventListener('click', async () => {
   if (!name || !db) return;
   els.channelConfirm.disabled = true;
   const ref = await addDoc(collection(db, 'channels'), { name, createdAt: serverTimestamp() });
-  els.channelModal.style.display = 'none';
+  closeModal(els.channelModal);
   selectChannel(ref.id, name);
 });
 
@@ -3337,7 +3396,7 @@ function renderFriendsPanel(){
           <button type="button" class="mini-btn" data-act="dm">DM</button>
           <button type="button" class="mini-btn-danger" data-act="remove">解除</button>
         </div>`;
-      row.querySelector('[data-act="dm"]').addEventListener('click', () => { els.friendsModal.style.display = 'none'; selectDm(uid, prof.name || friendsCache[uid].name); });
+      row.querySelector('[data-act="dm"]').addEventListener('click', () => { closeModal(els.friendsModal); selectDm(uid, prof.name || friendsCache[uid].name); });
       row.querySelector('[data-act="remove"]').addEventListener('click', () => removeFriend(uid));
       body.appendChild(row);
     });
@@ -3399,16 +3458,16 @@ function updateFriendTabsUI(){
   positionTabThumb(document.getElementById('friends-tabs'));
 }
 document.querySelectorAll('#friends-modal .admin-tab').forEach((btn) => {
-  btn.addEventListener('click', () => { currentFriendTab = btn.dataset.ftab; updateFriendTabsUI(); renderFriendsPanel(); playTabPanelIn(els.friendsPanelBody); });
+  btn.addEventListener('click', () => { currentFriendTab = btn.dataset.ftab; updateFriendTabsUI(); animateHeightSwap(els.friendsPanelBody, renderFriendsPanel); playTabPanelIn(els.friendsPanelBody); });
 });
 els.friendsPanelBtn.addEventListener('click', () => {
   currentFriendTab = 'list';
   updateFriendTabsUI();
   renderFriendsPanel();
-  els.friendsModal.style.display = 'flex';
+  els.friendsModal.classList.remove('closing'); els.friendsModal.style.display = 'flex';
   requestAnimationFrame(() => positionTabThumb(document.getElementById('friends-tabs')));
 });
-els.friendsClose.addEventListener('click', () => { els.friendsModal.style.display = 'none'; });
+els.friendsClose.addEventListener('click', () => { closeModal(els.friendsModal); });
 
 /* ------------------------------------------------------------------ */
 /* プレゼンス（オンライン表示）                                          */
@@ -3582,17 +3641,17 @@ function playTabPanelIn(el){
   el.style.animation = 'tabPanelIn .4s var(--ease-spring) both';
 }
 document.querySelectorAll('#admin-modal .admin-tab').forEach((btn) => {
-  btn.addEventListener('click', () => { currentAdminTab = btn.dataset.tab; updateAdminTabsUI(); renderAdminPanel(); playTabPanelIn(els.adminPanelBody); });
+  btn.addEventListener('click', () => { currentAdminTab = btn.dataset.tab; updateAdminTabsUI(); animateHeightSwap(els.adminPanelBody, renderAdminPanel); playTabPanelIn(els.adminPanelBody); });
 });
 els.adminPanelBtn.addEventListener('click', () => {
   currentAdminTab = 'requests';
   updateAdminTabsUI();
   renderAdminPanel();
   adminModalOpen = true;
-  els.adminModal.style.display = 'flex';
+  els.adminModal.classList.remove('closing'); els.adminModal.style.display = 'flex';
   requestAnimationFrame(() => positionTabThumb(document.getElementById('admin-tabs')));
 });
-els.adminClose.addEventListener('click', () => { adminModalOpen = false; els.adminModal.style.display = 'none'; });
+els.adminClose.addEventListener('click', () => { adminModalOpen = false; closeModal(els.adminModal); });
 
 /* ------------------------------------------------------------------ */
 /* 設定・カスタマイズ                                                     */
@@ -3848,9 +3907,9 @@ els.settingsBackBtn.addEventListener('click', showSettingsMenu);
 els.settingsBtn.addEventListener('click', () => {
   refreshSettingsUI();
   showSettingsMenu();
-  els.settingsModal.style.display = 'flex';
+  els.settingsModal.classList.remove('closing'); els.settingsModal.style.display = 'flex';
 });
-els.settingsClose.addEventListener('click', () => { els.settingsModal.style.display = 'none'; });
+els.settingsClose.addEventListener('click', () => { closeModal(els.settingsModal); });
 
 applyUiSettings(); // 起動時に保存済みのカスタマイズを反映
 
