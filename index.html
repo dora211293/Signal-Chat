@@ -96,6 +96,18 @@
 
   *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body{ height: 100%; }
+  /* チャットのメッセージ本文・画像だけはコピー/保存できるようにし、それ以外のUI（ボタン・名前・メニュー等）は
+     選択・長押し保存・ドラッグ保存できないようにする */
+  *{ -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  img{ -webkit-user-drag: none; user-drag: none; }
+  input, textarea, [contenteditable]{ -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+  .msg-text, .msg-text *{
+    -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
+  }
+  .msg-image{
+    -webkit-user-select: auto; user-select: auto; -webkit-touch-callout: default;
+    -webkit-user-drag: auto; user-drag: auto;
+  }
   body{
     margin:0;
     background: var(--bg-grad);
@@ -409,7 +421,7 @@
   .msg-row.mine{ align-self:flex-end; flex-direction:row-reverse; justify-content:flex-end; margin-left:auto; margin-right:0; }
   .msg-row.grouped{ margin-top: 2px; }
 
-  .msg-avatar{
+  .msg-avatar{ cursor:pointer;
     width: 30px; height: 30px; border-radius: 50%; flex-shrink:0; background: var(--surface-3);
     display:flex; align-items:center; justify-content:center;
     font-family: var(--font-display); font-size: 13px; font-weight:600; color: var(--text-muted);
@@ -784,6 +796,21 @@
   .verify-badge-lg{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color: var(--teal); font-weight:600; }
   .verify-badge-lg.gold{ color: var(--gold-2); }
   .verify-pending{ font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); }
+
+  /* プロフィールカード（アバタータップで表示） */
+  .profile-card{ max-width: 300px; display:flex; flex-direction:column; align-items:center; text-align:center; gap: 4px; padding-top: 30px; padding-bottom: 22px; }
+  .profile-card-avatar{
+    width: 76px; height: 76px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size: 26px; font-weight:700; background: var(--surface-2); border: 2px solid var(--border); overflow:hidden;
+    margin-bottom: 6px; animation: avatarPop .4s var(--ease-spring-soft) both;
+  }
+  .profile-card-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .profile-card-name{ font-size: 16.5px; font-weight:700; display:flex; align-items:center; gap:5px; }
+  .profile-card-status{ display:flex; align-items:center; gap:6px; font-size: 12px; color: var(--text-muted); margin-top:2px; margin-bottom: 18px; }
+  .profile-card-status .dot{ width:7px; height:7px; border-radius:50%; background: var(--text-faint); }
+  .profile-card-status .dot.online{ background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: blink 1.8s infinite; }
+  .profile-card-actions{ display:flex; gap:8px; width:100%; }
+  .profile-card-actions .mini-btn, .profile-card-actions .mini-btn-outline{ flex:1; padding: 9px 10px; font-size: 12.5px; }
 
   /* Admin panel */
   .admin-card{ max-width: 430px; }
@@ -1255,6 +1282,20 @@
   </div>
 </div>
 
+<!-- ===================== プロフィールカード ===================== -->
+<div class="modal-scrim" id="profile-modal" style="display:none;">
+  <div class="modal-card profile-card">
+    <div class="profile-card-avatar" id="profile-card-avatar">–</div>
+    <div class="profile-card-name" id="profile-card-name">–</div>
+    <div class="profile-card-status"><span class="dot" id="profile-card-dot"></span><span id="profile-card-status-text">オフライン</span></div>
+    <div class="profile-card-actions" id="profile-card-actions">
+      <button type="button" class="mini-btn" id="profile-dm-btn">DMを送る</button>
+      <button type="button" class="mini-btn-outline" id="profile-add-friend-btn">フレンド申請</button>
+    </div>
+    <button class="cancel" id="profile-close">閉じる</button>
+  </div>
+</div>
+
 <!-- ===================== フレンドパネル ===================== -->
 <div class="modal-scrim" id="friends-modal" style="display:none;">
   <div class="modal-card admin-card">
@@ -1549,6 +1590,9 @@ const $ = (id) => document.getElementById(id);
 const els = {
   sidebar: $('sidebar'), scrim: $('sidebar-scrim'), menuBtn: $('menu-btn'),
   selfName: $('self-name'), selfAvatar: $('self-avatar'), editNameBtn: $('edit-name-btn'),
+  profileModal: $('profile-modal'), profileCardAvatar: $('profile-card-avatar'), profileCardName: $('profile-card-name'),
+  profileCardDot: $('profile-card-dot'), profileCardStatusText: $('profile-card-status-text'),
+  profileDmBtn: $('profile-dm-btn'), profileAddFriendBtn: $('profile-add-friend-btn'), profileClose: $('profile-close'),
   themeToggle: $('theme-toggle'),
   adminPanelBtn: $('admin-panel-btn'),
   channelList: $('channel-list'), addChannelBtn: $('add-channel-btn'),
@@ -1603,6 +1647,13 @@ const els = {
   friendsModal: $('friends-modal'), friendsPanelBody: $('friends-panel-body'), friendsClose: $('friends-close'),
   friendTabDot: $('friend-tab-dot'),
 };
+
+// チャットのメッセージ本文・画像以外（アイコン、ボタン、UIテキストなど）は
+// 右クリックメニュー・長押しメニューからのコピー/保存を防ぐ
+document.addEventListener('contextmenu', (e) => {
+  if (e.target.closest('.msg-text, .msg-image')) return;
+  e.preventDefault();
+});
 
 // スクリプトが動いている証拠として即座に表示を変える
 // （ここが「読み込み中…」のままなら、JSが読み込めていないかデプロイが古い）
@@ -2361,6 +2412,7 @@ els.nickConfirm.addEventListener('click', async () => {
   }
 });
 els.editNameBtn.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg));
+els.selfAvatar.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg));
 
 /* ------------------------------------------------------------------ */
 /* サイドバー（モバイル開閉）                                            */
@@ -2862,7 +2914,7 @@ function renderMessages(docs){
     if (row.dataset.sig !== sig) {
       row.dataset.sig = sig;
       row.innerHTML = `
-        <div class="msg-avatar" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
+        <div class="msg-avatar" data-uid="${m.uid}" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
         <div class="msg-body">
           ${metaHtml}
           <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${escapeHtml(m.text)}</div>` : ''}${pollHtml}</div>
@@ -2954,6 +3006,8 @@ function patchMessageList(container, orderedNodes){
 }
 
 els.messages.addEventListener('click', (e) => {
+  const avatar = e.target.closest('.msg-avatar');
+  if (avatar && avatar.dataset.uid) { openProfileCard(avatar.dataset.uid); return; }
   const delBtn = e.target.closest('.msg-del-btn');
   const activeTargetId = currentKind === 'dm' ? currentDmId : currentChannelId;
   if (delBtn && activeTargetId && db) {
@@ -3358,6 +3412,43 @@ async function sendFriendRequest(toUid, toName){
     renderFriendsPanel();
   } catch (e) { console.error(e); alert('申請の送信に失敗しました'); }
 }
+
+/** メッセージのアバターをタップした時に表示する、相手のプロフィールカード */
+let profileCardUid = null;
+function openProfileCard(uid){
+  if (!uid) return;
+  if (uid === myUid) { openNickModal(myName, myIcon, myIconImg); return; }
+  profileCardUid = uid;
+  const prof = usersCache[uid] || {};
+  const name = prof.name || 'ユーザー';
+  els.profileCardAvatar.innerHTML = avatarInner(prof);
+  els.profileCardAvatar.style.color = avatarColor(uid);
+  els.profileCardAvatar.style.borderColor = avatarColor(uid) + '55';
+  els.profileCardName.innerHTML = nameWithBadge(name, !!prof.verified, !!prof.goldVerified);
+  const isOnline = lastOnline.some((p) => p.uid === uid);
+  els.profileCardDot.classList.toggle('online', isOnline);
+  els.profileCardStatusText.textContent = isOnline ? 'オンライン' : 'オフライン';
+  const isFriend = !!friendsCache[uid];
+  const isSelf = uid === myUid;
+  els.profileDmBtn.style.display = isSelf ? 'none' : '';
+  els.profileAddFriendBtn.style.display = (isSelf || isFriend) ? 'none' : '';
+  els.profileModal.classList.remove('closing');
+  els.profileModal.style.display = 'flex';
+}
+els.profileClose.addEventListener('click', () => { closeModal(els.profileModal); });
+els.profileModal.addEventListener('click', (e) => { if (e.target === els.profileModal) closeModal(els.profileModal); });
+els.profileDmBtn.addEventListener('click', () => {
+  if (!profileCardUid) return;
+  const prof = usersCache[profileCardUid] || {};
+  closeModal(els.profileModal);
+  selectDm(profileCardUid, prof.name || 'ユーザー');
+});
+els.profileAddFriendBtn.addEventListener('click', () => {
+  if (!profileCardUid) return;
+  const prof = usersCache[profileCardUid] || {};
+  sendFriendRequest(profileCardUid, prof.name || 'ユーザー');
+  closeModal(els.profileModal);
+});
 async function acceptFriendRequest(reqId, fromUid, fromName){
   if (!db || !myUid) return;
   try {
