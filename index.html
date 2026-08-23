@@ -352,48 +352,57 @@
 
   #waveform{ flex:1; height: 34px; min-width: 60px; opacity:.85; }
 
-  #notif-toggle, #schedule-list-btn{
+  #schedule-list-btn{
     position:relative;
     background:none; border:1px solid var(--border); color: var(--text-muted);
     width: 34px; height: 34px; border-radius: var(--radius-md); cursor:pointer; font-size:15px; flex-shrink:0;
     transition: border-color .18s var(--ease-ios), color .18s var(--ease-ios), background-color .18s var(--ease-ios), transform .28s var(--ease-spring);
   }
-  #notif-toggle:hover{ border-color: var(--amber); color: var(--amber); transform: translateY(-1px) scale(1.05); }
-  #notif-toggle:active{ transform: scale(.9); transition-duration: .1s; }
-  #notif-toggle.on{ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
-  #notif-toggle.denied{ color: var(--text-faint); opacity:.55; cursor:not-allowed; }
   #schedule-list-btn:hover{ border-color: var(--teal); color: var(--teal); transform: translateY(-1px) scale(1.05); }
   #schedule-list-btn:active{ transform: scale(.9); transition-duration: .1s; }
-  #notif-toggle .unread-dot, #schedule-list-btn .unread-dot{
+  #schedule-list-btn .unread-dot{
     position:absolute; top:-3px; right:-3px; min-width:15px; height:15px; padding:0 3px;
-    border-radius:10px; background: var(--danger); color:#fff; font-family: var(--font-mono);
+    border-radius:10px; background: var(--teal); color:#fff; font-family: var(--font-mono);
     font-size: 9px; line-height:15px; text-align:center; display:none; box-shadow: 0 0 0 2px var(--surface);
     animation: chipIn .42s var(--ease-spring);
   }
-  #schedule-list-btn .unread-dot{ background: var(--teal); }
-  #notif-toggle .unread-dot.show, #schedule-list-btn .unread-dot.show{ display:block; }
-  @keyframes bellRing{
-    0%, 100%{ transform: rotate(0); }
-    15%{ transform: rotate(-17deg); }
-    30%{ transform: rotate(13deg); }
-    45%{ transform: rotate(-9deg); }
-    60%{ transform: rotate(6deg); }
-    75%{ transform: rotate(-3deg); }
-    88%{ transform: rotate(1deg); }
-  }
-  #notif-toggle.ringing{ animation: bellRing .62s ease; transform-origin: 50% 20%; }
-  @keyframes ringLineFly{
-    0%{ opacity:0; transform: scale(.3) translateX(0); }
-    28%{ opacity:1; }
-    100%{ opacity:0; transform: scale(1) translateX(5px); }
-  }
-  #notif-toggle.ringing::before, #notif-toggle.ringing::after{
-    content:''; position:absolute; top:38%; width:6px; height:2px; background: currentColor; border-radius:2px; pointer-events:none;
-  }
-  #notif-toggle.ringing::before{ left:-1px; animation: ringLineFly .62s ease .04s; }
-  #notif-toggle.ringing::after{ right:-1px; transform: scaleX(-1); animation: ringLineFly .62s ease .16s; }
+  #schedule-list-btn .unread-dot.show{ display:block; }
   @keyframes countBump{ 0%{ transform: translateY(0) scale(1); } 40%{ transform: translateY(-4px) scale(1.2); } 100%{ transform: translateY(0) scale(1); } }
   .count-bump{ display:inline-block; animation: countBump .34s var(--ease-spring-soft); }
+
+  /* ===================== 新着通知バナー(開いていないチャットの更新を上から通知) ===================== */
+  #notif-banner{
+    position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top) + var(--safe-top-extra));
+    width: min(420px, calc(100vw - 24px));
+    transform: translate(-50%, calc(-100% - 24px));
+    z-index: 900;
+    display:flex; align-items:center; gap:10px;
+    padding: 12px 14px;
+    background: color-mix(in srgb, var(--surface-2) calc(var(--panel-alpha) * 100%), transparent);
+    backdrop-filter: blur(calc(10px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
+    -webkit-backdrop-filter: blur(calc(10px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    opacity: 0;
+    transition: transform .46s var(--ease-spring), opacity .3s var(--ease-ios);
+  }
+  #notif-banner.show{ transform: translate(-50%, 0); opacity: 1; }
+  #notif-banner:active{ transform: translate(-50%, 0) scale(.98); transition-duration: .1s; }
+  #notif-banner .notif-banner-icon{
+    flex-shrink:0; width: 34px; height: 34px; border-radius: var(--radius-sm);
+    background: var(--teal-dim); color: var(--teal);
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+  }
+  #notif-banner .notif-banner-text{ min-width:0; flex:1; }
+  #notif-banner .notif-banner-title{
+    font-family: var(--font-display); font-size: 13px; font-weight:600; color: var(--text);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  #notif-banner .notif-banner-body{
+    font-size: 12.5px; color: var(--text-muted); margin-top: 1px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
 
   #onair{
     font-family: var(--font-mono); font-size: 10px; letter-spacing:.1em; color: var(--teal);
@@ -1165,6 +1174,14 @@
   </div>
 </div>
 
+<div id="notif-banner">
+  <div class="notif-banner-icon">💬</div>
+  <div class="notif-banner-text">
+    <div class="notif-banner-title" id="notif-banner-title"></div>
+    <div class="notif-banner-body" id="notif-banner-body"></div>
+  </div>
+</div>
+
 <div id="app">
 
   <div id="sidebar-scrim"></div>
@@ -1232,7 +1249,6 @@
       </div>
       <canvas id="waveform"></canvas>
       <button id="schedule-list-btn" title="予約中のメッセージ" style="display:none;">⏰<span class="unread-dot" id="schedule-count-dot">0</span></button>
-      <button id="notif-toggle" title="通知を有効化">🔔<span class="unread-dot" id="notif-unread-dot">0</span></button>
       <div id="onair" class="off"><span class="dot"></span><span id="onair-text">接続中</span></div>
     </header>
 
@@ -1692,7 +1708,7 @@ const GOLD_CHECK_SVG = '<svg class="verify-badge gold" viewBox="0 0 20 20" width
 /* ------------------------------------------------------------------ */
 /* ローカルキャッシュ（初回描画を速くするため。正はFirestore側）          */
 /* ------------------------------------------------------------------ */
-const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img', NOTIF_KEY = 'signal_notif';
+const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img';
 const LOGIN_UID_KEY = 'signal_login_uid', AUTH_GATE_DONE_KEY = 'signal_auth_gate_done';
 let loginOverrideUid = null;
 try { loginOverrideUid = localStorage.getItem(LOGIN_UID_KEY) || null; } catch (_) {}
@@ -1735,7 +1751,6 @@ let hbTimer = null;
 let adminModalOpen = false;
 let currentAdminTab = 'requests';
 let pendingVerifyRequests = [];
-let notifEnabled = false;
 let unreadByChannel = {};
 let channelNameCache = {};
 const notifWatchers = {};
@@ -1804,7 +1819,7 @@ const els = {
   smiRadiusSub: $('smi-radius-sub'), smiSafeareaSub: $('smi-safearea-sub'),
   maintenanceScreen: $('maintenance-screen'), splashScreen: $('splash-screen'),
   waveform: $('waveform'),
-  notifToggle: $('notif-toggle'), notifUnreadDot: $('notif-unread-dot'),
+  notifBanner: $('notif-banner'), notifBannerTitle: $('notif-banner-title'), notifBannerBody: $('notif-banner-body'),
   editModeBtn: $('edit-mode-btn'), scopeSwitch: $('scope-switch'),
   sidebarTabs: $('sidebar-tabs'), channelSection: $('channel-section'), dmSection: $('dm-section'), dmTabDot: $('dm-tab-dot'),
   channelRenameModal: $('channel-rename-modal'), channelRenameInput: $('channel-rename-input'),
@@ -3540,7 +3555,9 @@ function listenReads(channelId, dmId){
 }
 
 /* ------------------------------------------------------------------ */
-/* 通知（ブラウザ通知 + 未読バッジ）                                      */
+/* 通知（アプリ内バナー + 未読バッジ）                                     */
+/* SIGNALを開いている間だけ、開いていないチャットの更新を上からバナーで知らせる。 */
+/* SIGNALを開いていない間（タブ非表示時）はバナーを出さない。                  */
 /* ------------------------------------------------------------------ */
 function updateChannelUnreadBadge(channelId){
   const li = els.channelList.querySelector(`.channel-item[data-id="${channelId}"]`);
@@ -3562,53 +3579,52 @@ function updateChannelUnreadBadge(channelId){
 function updateGlobalUnreadUI(){
   const dmTotal = Object.values(unreadByDm).reduce((a, b) => a + b, 0);
   const total = Object.values(unreadByChannel).reduce((a, b) => a + b, 0) + dmTotal;
-  if (els.notifUnreadDot) {
-    els.notifUnreadDot.textContent = total > 99 ? '99+' : String(total);
-    els.notifUnreadDot.classList.toggle('show', total > 0);
-  }
   if (els.dmTabDot) {
     els.dmTabDot.textContent = dmTotal > 99 ? '99+' : String(dmTotal);
     els.dmTabDot.classList.toggle('show', dmTotal > 0);
   }
   document.title = total > 0 ? `(${total > 99 ? '99+' : total}) SIGNAL` : 'SIGNAL — リアルタイムチャット';
 }
-function updateNotifBtnUI(){
-  if (!els.notifToggle) return;
-  const supported = 'Notification' in window;
-  if (!supported) { els.notifToggle.style.display = 'none'; return; }
-  const denied = Notification.permission === 'denied';
-  els.notifToggle.classList.toggle('on', notifEnabled && Notification.permission === 'granted');
-  els.notifToggle.classList.toggle('denied', denied);
-  els.notifToggle.title = denied
-    ? '通知がブロックされています(ブラウザのサイト設定から許可してください)'
-    : (notifEnabled ? '通知：オン（クリックでオフ）' : '通知：オフ（クリックでオン）');
+let notifBannerHideTimer = null;
+let notifBannerOnTap = null;
+/** 画面上部にバナーを表示し、チャンネル名/送信者名と本文(1行分)を知らせる。タップで該当チャットへ遷移。 */
+function showNotifBanner(title, body, onTap){
+  if (!els.notifBanner) return;
+  els.notifBannerTitle.textContent = title;
+  els.notifBannerBody.textContent = body;
+  notifBannerOnTap = onTap;
+  els.notifBanner.classList.add('show');
+  clearTimeout(notifBannerHideTimer);
+  notifBannerHideTimer = setTimeout(hideNotifBanner, 4200);
+}
+function hideNotifBanner(){
+  if (!els.notifBanner) return;
+  els.notifBanner.classList.remove('show');
+  clearTimeout(notifBannerHideTimer);
+  notifBannerHideTimer = null;
+}
+if (els.notifBanner) {
+  els.notifBanner.addEventListener('click', () => {
+    const fn = notifBannerOnTap;
+    hideNotifBanner();
+    if (fn) fn();
+  });
 }
 function handleIncomingMessageForNotif(channelId, m){
-  const isOpenAndVisible = channelId === currentChannelId && !document.hidden;
+  const isOpen = channelId === currentChannelId;
+  const isOpenAndVisible = isOpen && !document.hidden;
   if (!isOpenAndVisible) {
     unreadByChannel[channelId] = (unreadByChannel[channelId] || 0) + 1;
     updateChannelUnreadBadge(channelId);
     updateGlobalUnreadUI();
-    ringNotifBell();
   }
-  const shouldNotify = notifEnabled && ('Notification' in window) && Notification.permission === 'granted'
-    && (document.hidden || channelId !== currentChannelId);
-  if (!shouldNotify) return;
+  if (document.hidden || isOpen) return; // SIGNALが開いていない/そのチャットが開いている間はバナーを出さない
   const senderProf = usersCache[m.uid] || {};
   const senderName = senderProf.name || m.name || '誰か';
   const chName = channelNameCache[channelId] || 'SIGNAL';
-  try {
-    const n = new Notification(`${senderName} — ${chName}`, {
-      body: (m.text || '').slice(0, 120),
-      icon: 'icon-192.png',
-      tag: 'signal-' + channelId,
-    });
-    n.onclick = () => {
-      window.focus();
-      if (channelId !== currentChannelId) selectChannel(channelId, channelNameCache[channelId] || '');
-      n.close();
-    };
-  } catch (_) { /* 通知の生成に失敗しても本編には影響させない */ }
+  showNotifBanner(chName, `${senderName}: ${m.text || ''}`, () => {
+    if (channelId !== currentChannelId) selectChannel(channelId, channelNameCache[channelId] || '');
+  });
 }
 function watchChannelForNotif(channelId){
   if (!db || notifWatchers[channelId]) return;
@@ -3629,19 +3645,15 @@ function unwatchChannelForNotif(channelId){
 }
 
 function handleIncomingDmForNotif(dmId, otherUid, otherName, m){
-  const isOpenAndVisible = currentKind === 'dm' && currentDmId === dmId && !document.hidden;
+  const isOpen = currentKind === 'dm' && currentDmId === dmId;
+  const isOpenAndVisible = isOpen && !document.hidden;
   if (!isOpenAndVisible) {
     unreadByDm[dmId] = (unreadByDm[dmId] || 0) + 1;
     updateGlobalUnreadUI();
     renderDmList();
-    ringNotifBell();
   }
-  const shouldNotify = notifEnabled && ('Notification' in window) && Notification.permission === 'granted' && !isOpenAndVisible;
-  if (!shouldNotify) return;
-  try {
-    const n = new Notification(`${otherName} — DM`, { body: (m.text || '').slice(0, 120), icon: 'icon-192.png', tag: 'signal-dm-' + dmId });
-    n.onclick = () => { window.focus(); selectDm(otherUid, otherName); n.close(); };
-  } catch (_) {}
+  if (document.hidden || isOpen) return;
+  showNotifBanner(`${otherName} — DM`, m.text || '', () => selectDm(otherUid, otherName));
 }
 function watchDmForNotif(dmId, otherUid){
   if (!db || dmNotifWatchers[dmId]) return;
@@ -3660,36 +3672,6 @@ function watchDmForNotif(dmId, otherUid){
 }
 function watchAllFriendDms(){
   Object.keys(friendsCache).forEach((uid) => watchDmForNotif(dmIdFor(myUid, uid), uid));
-}
-/** 通知ベルを「カランカラン」と物理的に揺らす演出。新着通知の受信時とトグル操作時に呼ぶ */
-function ringNotifBell(){
-  if (!els.notifToggle || document.documentElement.classList.contains('reduce-motion')) return;
-  els.notifToggle.classList.remove('ringing');
-  void els.notifToggle.offsetWidth;
-  els.notifToggle.classList.add('ringing');
-  setTimeout(() => els.notifToggle.classList.remove('ringing'), 650);
-}
-if (els.notifToggle) {
-  if (localStorage.getItem(NOTIF_KEY) === '1' && 'Notification' in window && Notification.permission === 'granted') {
-    notifEnabled = true;
-  }
-  updateNotifBtnUI();
-  els.notifToggle.addEventListener('click', async () => {
-    if (!('Notification' in window)) { alert('このブラウザ・環境は通知に対応していません'); return; }
-    if (Notification.permission === 'denied') {
-      alert('通知がブロックされています。ブラウザのサイト設定から通知を許可してください。');
-      return;
-    }
-    if (Notification.permission !== 'granted') {
-      const perm = await Notification.requestPermission().catch(() => 'denied');
-      if (perm === 'granted') notifEnabled = true;
-    } else {
-      notifEnabled = !notifEnabled;
-    }
-    localStorage.setItem(NOTIF_KEY, notifEnabled ? '1' : '0');
-    updateNotifBtnUI();
-    ringNotifBell();
-  });
 }
 
 /* ------------------------------------------------------------------ */
