@@ -872,6 +872,13 @@
   .profile-card-actions{ display:flex; gap:8px; width:100%; }
   .profile-card-actions .mini-btn, .profile-card-actions .mini-btn-outline{ flex:1; padding: 9px 10px; font-size: 12.5px; }
 
+  /* パネルの中身(認証申請待ちの件数など)によって高さが変わっても、切替タブの位置が動いて押しにくくならないよう、
+     カードを画面下部に固定し、内容が増えたときは上方向にだけ伸びるようにする */
+  .modal-scrim.bottom-sheet{ align-items: flex-end; }
+  .modal-scrim.bottom-sheet .modal-card{ margin: 0 auto; max-height: calc(100dvh - 40px); display:flex; flex-direction:column; min-height:0; }
+  .modal-scrim.bottom-sheet .admin-panel-body{ flex-shrink:1; }
+  .modal-scrim.bottom-sheet .admin-tabs{ flex-shrink:0; margin: 14px 0 0; }
+
   /* Admin panel */
   .admin-card{ max-width: 430px; }
   .admin-tabs{ position:relative; display:flex; gap:4px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 4px; }
@@ -1452,26 +1459,27 @@
 </div>
 
 <!-- ===================== フレンドパネル ===================== -->
-<div class="modal-scrim" id="friends-modal" style="display:none;">
+<div class="modal-scrim bottom-sheet" id="friends-modal" style="display:none;">
   <div class="modal-card admin-card">
     <div class="eyebrow">FRIENDS</div>
     <h2>フレンド</h2>
+    <div class="admin-panel-body" id="friends-panel-body"></div>
     <div class="admin-tabs" id="friends-tabs">
       <div class="tab-thumb"></div>
       <button class="admin-tab active" data-ftab="list">友達</button>
       <button class="admin-tab" data-ftab="requests">申請<span id="friend-tab-dot"></span></button>
       <button class="admin-tab" data-ftab="add">追加</button>
     </div>
-    <div class="admin-panel-body" id="friends-panel-body"></div>
     <button class="cancel" id="friends-close">閉じる</button>
   </div>
 </div>
 
 <!-- ===================== 管理者パネル ===================== -->
-<div class="modal-scrim" id="admin-modal" style="display:none;">
+<div class="modal-scrim bottom-sheet" id="admin-modal" style="display:none;">
   <div class="modal-card admin-card">
     <div class="eyebrow">ADMIN</div>
     <h2>管理者パネル</h2>
+    <div class="admin-panel-body" id="admin-panel-body"></div>
     <div class="admin-tabs" id="admin-tabs">
       <div class="tab-thumb"></div>
       <button class="admin-tab active" data-tab="requests">認証申請</button>
@@ -1479,7 +1487,6 @@
       <button class="admin-tab" data-tab="channels">チャンネル</button>
       <button class="admin-tab" data-tab="maintenance">メンテナンス</button>
     </div>
-    <div class="admin-panel-body" id="admin-panel-body"></div>
     <button class="cancel" id="admin-close">閉じる</button>
   </div>
 </div>
