@@ -221,7 +221,7 @@
     display:none; align-items:center; justify-content:center; gap:6px; flex-shrink:0;
     transition: background-color .18s var(--ease-ios), box-shadow .18s var(--ease-ios), transform .28s var(--ease-spring);
   }
-  .admin-btn:hover{ background: var(--amber-dim); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+  .admin-btn:hover{ background: var(--amber-dim); box-shadow: var(--shadow-sm); }
   .admin-btn:active{ transform: scale(.97); transition-duration: .1s; }
 
   .section-label{
@@ -1002,10 +1002,10 @@
     display:flex; align-items:center; justify-content:center; gap:6px; flex-shrink:0; position:relative;
     transition: background-color .18s var(--ease-ios), box-shadow .18s var(--ease-ios), transform .28s var(--ease-spring);
   }
-  .friends-btn:hover{ background: var(--teal-dim); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+  .friends-btn:hover{ background: var(--teal-dim); box-shadow: var(--shadow-sm); }
   .friends-btn:active{ transform: scale(.97); transition-duration: .1s; }
   .friends-btn .req-dot{
-    position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; padding:0 3px;
+    position:absolute; bottom:-4px; right:-4px; min-width:16px; height:16px; padding:0 3px;
     border-radius: var(--radius-pill); background: var(--danger); color:#fff; font-family: var(--font-mono);
     font-size: 9.5px; line-height:16px; text-align:center; display:none; box-shadow: 0 0 0 2px var(--surface);
   }
