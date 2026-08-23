@@ -203,6 +203,7 @@
   }
   .self-meta{ min-width:0; flex:1; }
   .self-meta .name{ font-size: 13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:4px; }
+  .self-meta .username{ font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .self-meta .status{ font-family: var(--font-mono); font-size: 10px; color: var(--teal); display:flex; align-items:center; gap:5px; margin-top:1px;}
   .self-meta .status .dot{ position:relative; width:6px; height:6px; border-radius:50%; background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: blink 2s infinite; }
   .self-meta .status .dot::after{
@@ -616,7 +617,34 @@
     font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
   }
 
-  #composer{ display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom) + var(--safe-bottom-extra)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) calc(88% * var(--panel-alpha)), transparent); backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); flex-shrink:0; }
+  #composer{ position:relative; display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom) + var(--safe-bottom-extra)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) calc(88% * var(--panel-alpha)), transparent); backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); flex-shrink:0; }
+
+  /* ===================== @メンション ===================== */
+  .mention{
+    color: var(--amber); background: var(--amber-dim); padding: 1px 6px 1px 5px; border-radius: var(--radius-pill);
+    font-weight: 600; white-space: nowrap; cursor: pointer;
+  }
+  .bubble.mine .mention{ color: var(--mine-bubble-text); background: #00000030; }
+  .mention-me{ color:#14100a !important; background: var(--amber) !important; box-shadow: 0 0 0 1px var(--amber); }
+  .msg-row.mentions-me .bubble{ box-shadow: 0 0 0 1.5px var(--amber), var(--shadow-sm); }
+  #mention-suggest{
+    position:absolute; left:20px; right:20px; bottom: 100%; margin-bottom: 10px;
+    max-height: 236px; overflow-y:auto; display:none;
+    background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
+    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+    padding: 6px; z-index: 30; animation: appIn .18s var(--ease-ios);
+  }
+  .mention-suggest-item{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius: var(--radius-sm); cursor:pointer; }
+  .mention-suggest-item:hover, .mention-suggest-item.active{ background: var(--surface-3); }
+  .mention-suggest-avatar{
+    width:28px; height:28px; border-radius:50%; overflow:hidden; flex-shrink:0; display:flex; align-items:center;
+    justify-content:center; font-size:12px; font-weight:700; background: var(--surface-3);
+  }
+  .mention-suggest-body{ min-width:0; flex:1; }
+  .mention-suggest-name{ font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mention-suggest-username{ font-size:11.5px; color: var(--text-muted); font-family: var(--font-mono); }
+  .mention-suggest-empty{ padding: 12px; font-size:12.5px; color: var(--text-faint); text-align:center; }
   #attach-btn{
     background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
     width:42px; height:42px; border-radius: var(--radius-pill); cursor:pointer; flex-shrink:0;
@@ -806,6 +834,11 @@
   .poll-freetext-item b{ color: var(--amber); font-weight:700; }
   .poll-total{ font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); margin-top: 10px; }
   .field-error{ color: var(--danger); font-size: 11.5px; margin: -6px 0 12px; display:none; }
+  .field-hint{ color: var(--text-faint); font-size: 11px; margin: -6px 0 8px; }
+  .username-input-row{ display:flex; align-items:center; gap:0; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 4px; transition: border-color .18s var(--ease-ios), box-shadow .18s var(--ease-ios); }
+  .username-input-row:focus-within{ border-color: var(--amber); box-shadow: 0 0 0 3.5px var(--amber-dim); }
+  .username-at{ padding: 11px 0 11px 13px; color: var(--text-faint); font-family: var(--font-mono); font-size: 14px; }
+  .username-input-row input{ margin:0; border:none !important; background: transparent !important; box-shadow:none !important; padding-left: 3px; }
 
   .profile-preview{ display:flex; justify-content:center; margin-bottom: 16px; }
   .preview-avatar{
@@ -866,6 +899,7 @@
   }
   .profile-card-avatar img{ width:100%; height:100%; object-fit:cover; }
   .profile-card-name{ font-size: 16.5px; font-weight:700; display:flex; align-items:center; gap:5px; }
+  .profile-card-username{ font-family: var(--font-mono); font-size: 12px; color: var(--text-faint); margin-top: 1px; }
   .profile-card-status{ display:flex; align-items:center; gap:6px; font-size: 12px; color: var(--text-muted); margin-top:2px; margin-bottom: 18px; }
   .profile-card-status .dot{ width:7px; height:7px; border-radius:50%; background: var(--text-faint); }
   .profile-card-status .dot.online{ background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: blink 1.8s infinite; }
@@ -1204,6 +1238,7 @@
       <div class="self-avatar" id="self-avatar">–</div>
       <div class="self-meta">
         <div class="name" id="self-name">–</div>
+        <div class="username" id="self-username"></div>
         <div class="status"><span class="dot"></span><span id="self-status-text">送信可能</span></div>
       </div>
       <div class="icon-actions">
@@ -1293,7 +1328,8 @@
       <button id="schedule-btn" type="button" title="送信予約(日時指定)">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
-      <textarea id="msg-input" rows="1" placeholder="メッセージを入力…"></textarea>
+      <div id="mention-suggest"></div>
+      <textarea id="msg-input" rows="1" placeholder="メッセージを入力…(@でメンション)"></textarea>
       <button id="send-btn" disabled title="送信">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11L21 3L13 21L11 13L3 11Z" stroke="#14100a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
       </button>
@@ -1318,9 +1354,17 @@
 
     <div class="profile-preview"><div class="preview-avatar" id="preview-avatar">–</div></div>
 
-    <div class="field-label">名前(他の人と重複できません)</div>
+    <div class="field-label">表示名(重複OK・チャットに表示される名前)</div>
     <input type="text" id="nick-input" maxlength="20" placeholder="太郎" autocomplete="off">
-    <div class="field-error" id="nick-error">その名前はすでに使われています</div>
+    <div class="field-error" id="nick-error">保存に失敗しました</div>
+
+    <div class="field-label">ユーザー名(@から始まる・他の人と重複不可・メンションに使用)</div>
+    <div class="username-input-row">
+      <span class="username-at">@</span>
+      <input type="text" id="username-input" maxlength="20" placeholder="taro_1234" autocomplete="off">
+    </div>
+    <div class="field-hint">半角英数字とアンダースコアのみ・3〜20文字</div>
+    <div class="field-error" id="username-error">そのユーザー名はすでに使われています</div>
 
     <div class="field-label">画像アイコン(任意・自動で圧縮されます)</div>
     <div class="image-pick-row">
@@ -1449,6 +1493,7 @@
   <div class="modal-card profile-card">
     <div class="profile-card-avatar" id="profile-card-avatar">–</div>
     <div class="profile-card-name" id="profile-card-name">–</div>
+    <div class="profile-card-username" id="profile-card-username"></div>
     <div class="profile-card-status"><span class="dot" id="profile-card-dot"></span><span id="profile-card-status-text">オフライン</span></div>
     <div class="profile-card-actions" id="profile-card-actions">
       <button type="button" class="mini-btn" id="profile-dm-btn">DMを送る</button>
@@ -1769,8 +1814,9 @@ let maintenanceEnabled = false; // メンテナンスモード（金認証ユー
 const $ = (id) => document.getElementById(id);
 const els = {
   sidebar: $('sidebar'), scrim: $('sidebar-scrim'), menuBtn: $('menu-btn'),
-  selfName: $('self-name'), selfAvatar: $('self-avatar'), editNameBtn: $('edit-name-btn'),
+  selfName: $('self-name'), selfAvatar: $('self-avatar'), editNameBtn: $('edit-name-btn'), selfUsername: $('self-username'),
   profileModal: $('profile-modal'), profileCardAvatar: $('profile-card-avatar'), profileCardName: $('profile-card-name'),
+  profileCardUsername: $('profile-card-username'),
   profileCardDot: $('profile-card-dot'), profileCardStatusText: $('profile-card-status-text'),
   profileDmBtn: $('profile-dm-btn'), profileAddFriendBtn: $('profile-add-friend-btn'), profileClose: $('profile-close'),
   adminPanelBtn: $('admin-panel-btn'),
@@ -1780,7 +1826,7 @@ const els = {
   onair: $('onair'), onairText: $('onair-text'),
   messages: $('messages'), emptyState: $('empty-state'),
   typing: $('typing-indicator'),
-  input: $('msg-input'), sendBtn: $('send-btn'),
+  input: $('msg-input'), sendBtn: $('send-btn'), mentionSuggest: $('mention-suggest'),
   attachBtn: $('attach-btn'), imageFileInput: $('image-file-input'),
   pollBtn: $('poll-btn'), pollModal: $('poll-modal'), pollQuestionInput: $('poll-question-input'),
   pollOptionCount: $('poll-option-count'), pollOptionsInputs: $('poll-options-inputs'),
@@ -1796,6 +1842,7 @@ const els = {
   replyPreviewText: $('reply-preview-text'), replyPreviewClear: $('reply-preview-clear'),
   lightboxModal: $('lightbox-modal'), lightboxImg: $('lightbox-img'),
   nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
+  usernameInput: $('username-input'), usernameError: $('username-error'),
   accountPasswordInput: $('account-password-input'),
   authGateSignup: $('auth-gate-signup'), authGateLoginOpen: $('auth-gate-login-open'),
   authGateChoices: $('auth-gate-choices'), authGateLoginForm: $('auth-gate-login-form'),
@@ -1877,6 +1924,156 @@ function nameWithBadge(name, verified, gold){
   return twemojiHtml(escapeHtml(name)) + (badge ? ' ' + badge : '');
 }
 function normalizeName(n){ return (n || '').trim().toLowerCase(); }
+/** ユーザー名(@ハンドル)の正規化：先頭の@を除去し小文字化。一致判定・保存キーに使う */
+function normalizeUsername(n){ return (n || '').trim().toLowerCase().replace(/^@+/, ''); }
+function isValidUsername(key){ return /^[a-z0-9_]{3,20}$/.test(key || ''); }
+/** ユーザー名からuidを引く（usersCacheの中を線形探索。人数規模的に十分軽量） */
+function getUidByUsername(uname){
+  const key = normalizeUsername(uname);
+  if (!key) return null;
+  for (const uid in usersCache) {
+    if (usersCache[uid] && normalizeUsername(usersCache[uid].username) === key) return uid;
+  }
+  return null;
+}
+/** メッセージ本文をHTMLエスケープしつつ、既知ユーザーへの@メンションだけをハイライトする */
+function renderMessageText(text){
+  const raw = text || '';
+  const re = /@([a-zA-Z0-9_]{3,20})\b/g;
+  const myKey = normalizeUsername((usersCache[myUid] || {}).username);
+  let out = '', last = 0, match;
+  while ((match = re.exec(raw))) {
+    const prevChar = raw[match.index - 1];
+    if (prevChar && /[\w@]/.test(prevChar)) continue; // user@example.com のような誤検出を防ぐ
+    const uname = match[1];
+    const uid = getUidByUsername(uname);
+    if (!uid) continue; // 実在しないユーザー名はメンション扱いしない
+    out += escapeHtml(raw.slice(last, match.index));
+    const isMe = myKey && normalizeUsername(uname) === myKey;
+    out += `<span class="mention${isMe ? ' mention-me' : ''}" data-uid="${escapeHtml(uid)}">@${escapeHtml(uname)}</span>`;
+    last = re.lastIndex;
+  }
+  out += escapeHtml(raw.slice(last));
+  return twemojiHtml(out);
+}
+/** 送信テキストから@メンションされたユーザーのuid一覧を抽出する（自分自身は除く） */
+function extractMentionUids(text){
+  const raw = text || '';
+  const re = /@([a-zA-Z0-9_]{3,20})\b/g;
+  const uids = new Set();
+  let match;
+  while ((match = re.exec(raw))) {
+    const prevChar = raw[match.index - 1];
+    if (prevChar && /[\w@]/.test(prevChar)) continue;
+    const uid = getUidByUsername(match[1]);
+    if (uid && uid !== myUid) uids.add(uid);
+  }
+  return [...uids];
+}
+
+/* ------------------------------------------------------------------ */
+/* @メンション オートコンプリート（コンポーザーの textarea 上で完結）        */
+/* ------------------------------------------------------------------ */
+let mentionActive = false;
+let mentionStart = -1;   // textarea内での起点となる「@」のインデックス
+let mentionItems = [];   // 現在表示中の候補一覧
+let mentionIndex = 0;    // キーボード操作でのハイライト位置
+
+function mentionCandidates(query){
+  const q = normalizeUsername(query);
+  const list = Object.keys(usersCache)
+    .filter((uid) => usersCache[uid] && usersCache[uid].username)
+    .map((uid) => ({ uid, ...usersCache[uid] }))
+    .filter((u) => {
+      if (!q) return true;
+      const uname = normalizeUsername(u.username);
+      const dname = (u.name || '').toLowerCase();
+      return uname.includes(q) || dname.includes(q);
+    });
+  list.sort((a, b) => {
+    const aStarts = normalizeUsername(a.username).startsWith(q) ? 0 : 1;
+    const bStarts = normalizeUsername(b.username).startsWith(q) ? 0 : 1;
+    if (aStarts !== bStarts) return aStarts - bStarts;
+    return normalizeUsername(a.username).localeCompare(normalizeUsername(b.username));
+  });
+  return list.slice(0, 8);
+}
+
+function closeMentionSuggest(){
+  mentionActive = false;
+  mentionStart = -1;
+  mentionItems = [];
+  els.mentionSuggest.style.display = 'none';
+  els.mentionSuggest.innerHTML = '';
+}
+
+function renderMentionSuggest(){
+  if (!mentionItems.length) {
+    els.mentionSuggest.innerHTML = `<div class="mention-suggest-empty">該当ユーザーがいません</div>`;
+    els.mentionSuggest.style.display = 'block';
+    return;
+  }
+  els.mentionSuggest.innerHTML = mentionItems.map((u, i) => `
+    <div class="mention-suggest-item${i === mentionIndex ? ' active' : ''}" data-idx="${i}">
+      <span class="mention-suggest-avatar">${avatarInner(u)}</span>
+      <span class="mention-suggest-body">
+        <div class="mention-suggest-name">${twemojiHtml(escapeHtml(u.name || 'ユーザー'))}</div>
+        <div class="mention-suggest-username">@${escapeHtml(u.username)}</div>
+      </span>
+    </div>
+  `).join('');
+  els.mentionSuggest.style.display = 'block';
+}
+
+/** カーソル位置から「入力中の@トークン」を検出し、候補一覧を更新する */
+function updateMentionSuggest(){
+  const val = els.input.value;
+  const caret = els.input.selectionStart;
+  let i = caret - 1;
+  while (i >= 0 && !/\s/.test(val[i]) && val[i] !== '@') i--;
+  if (i < 0 || val[i] !== '@') { closeMentionSuggest(); return; }
+  const before = val[i - 1];
+  if (before && !/\s/.test(before)) { closeMentionSuggest(); return; } // @の直前は行頭か空白のみ許可
+  const query = val.slice(i + 1, caret);
+  if (/\s/.test(query) || query.length > 20) { closeMentionSuggest(); return; }
+  mentionActive = true;
+  mentionStart = i;
+  mentionItems = mentionCandidates(query);
+  mentionIndex = 0;
+  renderMentionSuggest();
+}
+
+/** 候補を選び、textarea内の「@クエリ」を「@username 」に差し替える */
+function selectMentionItem(idx){
+  const u = mentionItems[idx];
+  if (!u || mentionStart < 0) return;
+  const val = els.input.value;
+  const caret = els.input.selectionStart;
+  const insert = '@' + u.username + ' ';
+  els.input.value = val.slice(0, mentionStart) + insert + val.slice(caret);
+  const newCaret = mentionStart + insert.length;
+  els.input.setSelectionRange(newCaret, newCaret);
+  closeMentionSuggest();
+  els.input.dispatchEvent(new Event('input'));
+  els.input.focus();
+}
+
+els.mentionSuggest.addEventListener('mousedown', (e) => {
+  e.preventDefault(); // textareaのフォーカスを外さずクリックを確定させる
+  const item = e.target.closest('.mention-suggest-item');
+  if (!item) return;
+  selectMentionItem(Number(item.dataset.idx));
+});
+els.input.addEventListener('click', updateMentionSuggest);
+els.input.addEventListener('keyup', (e) => {
+  if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) updateMentionSuggest();
+});
+// メッセージ本文内のメンションをタップした時、そのユーザーのプロフィールカードを開く
+els.messages.addEventListener('click', (e) => {
+  const mention = e.target.closest('.mention');
+  if (mention && mention.dataset.uid) openProfileCard(mention.dataset.uid);
+});
+
 
 document.querySelectorAll('.settings-switch input[type="checkbox"]').forEach((input) => {
   input.addEventListener('change', () => {
@@ -2465,6 +2662,7 @@ function refreshSelfCard(){
   const verified = selfProf.verified === true;
   const gold = selfProf.goldVerified === true;
   els.selfName.innerHTML = nameWithBadge(myName || '未設定', verified, gold);
+  els.selfUsername.textContent = selfProf.username ? '@' + selfProf.username : '';
   els.selfAvatar.innerHTML = avatarInner({ icon: myIcon, iconImg: myIconImg, name: myName || myUid });
   const c = avatarColor(myUid || myName);
   els.selfAvatar.style.color = c;
@@ -2488,10 +2686,20 @@ els.iconPicker.addEventListener('click', (e) => {
   updatePreview();
 });
 els.iconInput.addEventListener('input', () => { selectIconBtn(els.iconInput.value.trim()); updatePreview(); });
+function updateNickConfirmState(){
+  els.nickConfirm.disabled = !els.nickInput.value.trim() || !isValidUsername(normalizeUsername(els.usernameInput.value));
+}
 els.nickInput.addEventListener('input', () => {
-  els.nickConfirm.disabled = !els.nickInput.value.trim();
+  updateNickConfirmState();
   els.nickError.style.display = 'none';
   updatePreview();
+});
+els.usernameInput.addEventListener('input', () => {
+  // 半角英数字とアンダースコア以外を打てないよう自動で除去し、小文字に統一する
+  const cleaned = els.usernameInput.value.replace(/^@+/, '').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase().slice(0, 20);
+  if (cleaned !== els.usernameInput.value) els.usernameInput.value = cleaned;
+  updateNickConfirmState();
+  els.usernameError.style.display = 'none';
 });
 els.iconFile.addEventListener('change', async (e) => {
   const file = e.target.files[0];
@@ -2561,13 +2769,15 @@ async function applyForVerification(){
 
 function openNickModal(prefillName, prefillIcon, prefillImg){
   els.nickInput.value = prefillName || '';
+  els.usernameInput.value = (usersCache[myUid] && usersCache[myUid].username) || '';
   els.iconInput.value = prefillIcon || '';
   pendingIconImg = prefillImg || '';
   els.iconFile.value = '';
   selectIconBtn(prefillIcon || '');
   updatePreview();
   els.nickError.style.display = 'none';
-  els.nickConfirm.disabled = !els.nickInput.value.trim();
+  els.usernameError.style.display = 'none';
+  updateNickConfirmState();
   els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
   els.accountPasswordInput.value = '';
   els.accountPasswordInput.placeholder = myName ? '変更する場合のみ入力(空欄なら現状維持)' : '空欄のままならパスワード無しでログイン可';
@@ -2582,18 +2792,20 @@ function openNickModal(prefillName, prefillIcon, prefillImg){
 }
 els.nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !els.nickConfirm.disabled) els.nickConfirm.click(); });
 
-async function claimUsername(newName, uid){
-  const key = normalizeName(newName);
+/** @ユーザー名（一意なハンドル）の予約を取る。表示名(name)はもう一意制約の対象ではない */
+async function claimUsername(newUsername, uid){
+  const key = normalizeUsername(newUsername);
   if (!key) throw new Error('EMPTY');
+  if (!isValidUsername(key)) throw new Error('INVALID');
   await runTransaction(db, async (tx) => {
     const newRef = doc(db, 'usernames', key);
     const newSnap = await tx.get(newRef);
     if (newSnap.exists() && newSnap.data().uid !== uid) throw new Error('TAKEN');
     const userRef = doc(db, 'users', uid);
     const userSnap = await tx.get(userRef);
-    const oldName = userSnap.exists() ? userSnap.data().name : null;
-    if (oldName && normalizeName(oldName) !== key) {
-      tx.delete(doc(db, 'usernames', normalizeName(oldName)));
+    const oldUsername = userSnap.exists() ? userSnap.data().username : null;
+    if (oldUsername && normalizeUsername(oldUsername) !== key) {
+      tx.delete(doc(db, 'usernames', normalizeUsername(oldUsername)));
     }
     tx.set(newRef, { uid });
   });
@@ -2608,12 +2820,19 @@ async function sha256Hex(text){
 
 els.nickConfirm.addEventListener('click', async () => {
   const v = els.nickInput.value.trim();
+  const uKey = normalizeUsername(els.usernameInput.value);
   if (!v || !db || !myUid) return;
+  if (!isValidUsername(uKey)) {
+    els.usernameError.textContent = 'ユーザー名は半角英数字とアンダースコアのみ・3〜20文字で入力してください';
+    els.usernameError.style.display = 'block';
+    return;
+  }
   els.nickConfirm.disabled = true;
   els.nickConfirm.textContent = '確認中…';
   els.nickError.style.display = 'none';
+  els.usernameError.style.display = 'none';
   try {
-    await claimUsername(v, myUid);
+    await claimUsername(uKey, myUid);
     myName = v.slice(0, 20);
     myIcon = els.iconInput.value.trim().slice(0, 4);
     myIconImg = pendingIconImg;
@@ -2621,7 +2840,7 @@ els.nickConfirm.addEventListener('click', async () => {
     localStorage.setItem(ICON_KEY, myIcon);
     localStorage.setItem(ICONIMG_KEY, myIconImg);
     const userDoc = {
-      name: myName, icon: myIcon, iconImg: myIconImg, updatedAt: serverTimestamp()
+      name: myName, username: uKey, icon: myIcon, iconImg: myIconImg, updatedAt: serverTimestamp()
     };
     const pw = els.accountPasswordInput.value;
     if (pw) userDoc.passwordHash = await sha256Hex(pw);
@@ -2632,10 +2851,18 @@ els.nickConfirm.addEventListener('click', async () => {
     startHeartbeat();
     if (currentChannelId) markRead(currentChannelId);
   } catch (e) {
-    els.nickError.textContent = (e && e.message === 'TAKEN') ? 'その名前はすでに使われています' : '保存に失敗しました。もう一度お試しください';
-    els.nickError.style.display = 'block';
+    if (e && e.message === 'TAKEN') {
+      els.usernameError.textContent = 'そのユーザー名はすでに使われています';
+      els.usernameError.style.display = 'block';
+    } else if (e && e.message === 'INVALID') {
+      els.usernameError.textContent = 'ユーザー名は半角英数字とアンダースコアのみ・3〜20文字で入力してください';
+      els.usernameError.style.display = 'block';
+    } else {
+      els.nickError.textContent = '保存に失敗しました。もう一度お試しください';
+      els.nickError.style.display = 'block';
+    }
   } finally {
-    els.nickConfirm.disabled = !els.nickInput.value.trim();
+    updateNickConfirmState();
     els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
   }
 });
@@ -3086,10 +3313,12 @@ function renderMessages(docs){
       row.className = 'msg-row';
       rowElsById.set(d.id, row);
     }
+    const mentionsMe = !mine && Array.isArray(m.mentions) && m.mentions.includes(myUid);
     row.dataset.id = d.id;
     row.classList.toggle('mine', mine);
     row.classList.toggle('grouped', groupedWithPrev);
     row.classList.toggle('chained', groupedWithNext);
+    row.classList.toggle('mentions-me', mentionsMe);
     const canDelete = mine || (isAdmin && currentKind === 'channel');
     row.classList.toggle('has-actions', true);
     if (isNew) row.classList.add('msg-enter'); // 一度だけ付与。以後は消さないので再生が途中で切れない
@@ -3138,7 +3367,7 @@ function renderMessages(docs){
       dispName, dispIcon, dispImg, verified, gold,
       hasText, m.text || '', hasImage, m.img || '', !!m.imgExpired,
       hasPoll, m.poll || null, m.pollResponses || null,
-      metaHtml, receipts, replyHtml, reactionEntries
+      metaHtml, receipts, replyHtml, reactionEntries, mentionsMe
     ]);
 
     if (row.dataset.sig !== sig) {
@@ -3147,7 +3376,7 @@ function renderMessages(docs){
         <div class="msg-avatar" data-uid="${m.uid}" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
         <div class="msg-body">
           ${metaHtml}
-          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${twemojiHtml(escapeHtml(m.text))}</div>` : ''}${pollHtml}</div>
+          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${renderMessageText(m.text)}</div>` : ''}${pollHtml}</div>
         </div>`;
 
       const body = row.querySelector('.msg-body');
@@ -3402,12 +3631,15 @@ els.scheduleConfirm.addEventListener('click', async () => {
   els.scheduleConfirm.disabled = true;
   try {
     const payload = { text, uid: myUid, name: myName, icon: myIcon || '', sendAt, createdAt: serverTimestamp() };
+    const mentionUids = extractMentionUids(text);
+    if (mentionUids.length) payload.mentions = mentionUids;
     if (image) { payload.img = image.dataUrl; payload.imgW = image.w; payload.imgH = image.h; }
     if (replySnapshot) {
       payload.replyTo = { id: replySnapshot.id, name: replySnapshot.name, text: replySnapshot.text || '', img: !!replySnapshot.img };
     }
     await addDoc(collection(db, coll, id, 'scheduled'), payload);
     els.input.value = ''; els.input.style.height = 'auto';
+    closeMentionSuggest();
     clearImagePreview();
     clearReplyTarget();
     closeModal(els.scheduleModal);
@@ -3425,6 +3657,7 @@ async function promoteScheduledMessage(coll, id, schedId){
       if (!snap.exists()) return;
       const data = snap.data();
       const payload = { text: data.text || '', uid: data.uid, name: data.name, icon: data.icon || '', ts: serverTimestamp() };
+      if (data.mentions) payload.mentions = data.mentions;
       if (data.img) { payload.img = data.img; payload.imgW = data.imgW; payload.imgH = data.imgH; }
       if (data.replyTo) payload.replyTo = data.replyTo;
       tx.set(newMsgRef, payload);
@@ -3467,8 +3700,10 @@ async function sendMessage(){
   if ((!text && !image) || !targetId || !db || !myName || !myUid) return;
   if (!canPostInCurrentChannel()) { alert('このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
   const replySnapshot = replyingTo;
+  const mentionUids = extractMentionUids(text);
   els.input.value = '';
   els.input.style.height = 'auto';
+  closeMentionSuggest();
   clearImagePreview();
   clearReplyTarget();
   els.sendBtn.disabled = true;
@@ -3480,6 +3715,7 @@ async function sendMessage(){
   try {
     const payload = { text, uid: myUid, name: myName, icon: myIcon || '', ts: serverTimestamp() };
     if (image) { payload.img = image.dataUrl; payload.imgW = image.w; payload.imgH = image.h; }
+    if (mentionUids.length) payload.mentions = mentionUids;
     if (replySnapshot) {
       payload.replyTo = { id: replySnapshot.id, name: replySnapshot.name, text: replySnapshot.text || '', img: !!replySnapshot.img };
     }
@@ -3495,8 +3731,15 @@ els.input.addEventListener('input', () => {
   els.input.style.height = 'auto';
   els.input.style.height = Math.min(120, els.input.scrollHeight) + 'px';
   pushTyping();
+  updateMentionSuggest();
 });
 els.input.addEventListener('keydown', (e) => {
+  if (mentionActive && mentionItems.length) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); mentionIndex = (mentionIndex + 1) % mentionItems.length; renderMentionSuggest(); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); mentionIndex = (mentionIndex - 1 + mentionItems.length) % mentionItems.length; renderMentionSuggest(); return; }
+    if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); selectMentionItem(mentionIndex); return; }
+    if (e.key === 'Escape') { e.preventDefault(); closeMentionSuggest(); return; }
+  }
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!els.sendBtn.disabled) sendMessage(); }
 });
 els.sendBtn.addEventListener('click', sendMessage);
@@ -3800,6 +4043,7 @@ function openProfileCard(uid){
   els.profileCardAvatar.style.color = avatarColor(uid);
   els.profileCardAvatar.style.borderColor = avatarColor(uid) + '55';
   els.profileCardName.innerHTML = nameWithBadge(name, !!prof.verified, !!prof.goldVerified);
+  els.profileCardUsername.textContent = prof.username ? '@' + prof.username : '';
   const isOnline = lastOnline.some((p) => p.uid === uid);
   els.profileCardDot.classList.toggle('online', isOnline);
   els.profileCardStatusText.textContent = isOnline ? 'オンライン' : 'オフライン';
