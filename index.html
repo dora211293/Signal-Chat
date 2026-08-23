@@ -129,9 +129,9 @@
   #messages, #channel-list, #dm-list, .online-panel, .admin-panel-body, .modal-scrim{
     -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   }
-  #messages{ transition: opacity 0.325s var(--ease-ios); }
-  #topbar-name, #topbar-freq{ transition: opacity 0.325s var(--ease-ios); }
-  #channel-section, #dm-section{ transition: opacity 0.325s var(--ease-ios); }
+  #messages{ transition: opacity .55s var(--ease-ios), transform .55s var(--ease-ios); }
+  #topbar-name, #topbar-freq{ transition: opacity .5s var(--ease-ios); }
+  #channel-section, #dm-section{ transition: opacity .5s var(--ease-ios); }
 
   /* テーマ切替時に主要パーツがふわっとクロスフェードするための共通トランジション */
   #sidebar, #main, #topbar, #composer, #messages, .modal-card, .modal-scrim, .bubble,
@@ -3082,10 +3082,10 @@ function setSidebarTab(tab){
   crossFade([els.channelSection, els.dmSection], () => {
     els.channelSection.style.display = tab === 'channels' ? 'flex' : 'none';
     els.dmSection.style.display = tab === 'dms' ? 'flex' : 'none';
-  }, 130);
+  }, 220);
   shownSection.style.animation = 'none';
   void shownSection.offsetWidth;
-  shownSection.style.animation = 'tabPanelIn .5s var(--ease-spring) both';
+  shownSection.style.animation = 'tabPanelIn .6s var(--ease-spring) both';
   positionTabThumb(els.sidebarTabs);
 }
 els.sidebarTabs.addEventListener('click', (e) => {
@@ -3135,13 +3135,15 @@ function crossFade(elOrList, update, delayMs){
   els_.forEach((el) => { if (el) el.style.opacity = '0'; });
   if (update) update();
   requestAnimationFrame(() => {
-    setTimeout(() => { els_.forEach((el) => { if (el) el.style.opacity = '1'; }); }, delayMs || 150);
+    setTimeout(() => { els_.forEach((el) => { if (el) el.style.opacity = '1'; }); }, delayMs || 260);
   });
 }
 
 /** チャンネル/DM切り替え時にメッセージ欄とトップバーがふわっとクロスフェードするための下準備（実際の差し替えは呼び出し側で行う） */
 function flashConversationSwitch(){
-  crossFade([els.messages, els.topbarName, els.topbarFreq], null, 150);
+  els.messages.style.transform = 'translateY(6px)';
+  crossFade([els.messages, els.topbarName, els.topbarFreq], null, 260);
+  setTimeout(() => { els.messages.style.transform = 'translateY(0)'; }, 260);
 }
 
 function selectDm(otherUid, otherName){
