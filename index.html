@@ -681,6 +681,39 @@
   #schedule-btn:disabled{ opacity:.35; cursor:not-allowed; }
   #schedule-btn.has-pending{ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
 
+  /* ===================== コンポーザーの「＋」メニュー ===================== */
+  .composer-plus-wrap{ position:relative; flex-shrink:0; }
+  #composer-plus-btn{
+    background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
+    width:42px; height:42px; border-radius: var(--radius-pill); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+    transition: transform 0.28s var(--ease-spring), color 0.188s, border-color 0.188s, background-color 0.188s;
+  }
+  #composer-plus-btn:active{ transform: scale(.9); transition-duration: 0.125s; }
+  #composer-plus-btn.open{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); transform: rotate(45deg); }
+  #composer-plus-btn.has-pending:not(.open){ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
+  #composer-menu{
+    position:absolute; left:0; bottom: calc(100% + 12px); min-width: 220px;
+    background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
+    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+    padding: 6px; z-index: 30; display:none; flex-direction:column; gap: 2px;
+  }
+  #composer-menu.open{ display:flex; animation: tabPanelIn .38s var(--ease-spring) both; }
+  .composer-menu-item{
+    display:flex; align-items:center; gap:11px; background:none; border:none; color: var(--text);
+    padding: 10px 11px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight:600; text-align:left;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+    transition: background-color 0.15s ease;
+  }
+  .composer-menu-item .cmi-icon{ display:flex; align-items:center; justify-content:center; color: var(--text-muted); flex-shrink:0; }
+  .composer-menu-item .cmi-label{ flex:1; }
+  .composer-menu-item:active{ transform: scale(.98); }
+  .composer-menu-item:disabled{ opacity:.4; }
+  .composer-menu-item[data-action="schedule"].has-pending .cmi-icon{ color: var(--teal); }
+  .composer-menu-item[data-action="schedule"].has-pending{ color: var(--teal); }
+
   .schedule-modal-desc{ font-size: 12px; color: var(--text-muted); margin: -4px 0 2px; }
   #schedule-datetime-input{
     width:100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
@@ -1145,6 +1178,8 @@
   /* タッチ端末でタップ後に hover の色/変形が残ってしまう「hover 貼り付き」を防ぐため、
      実際にマウスでホバー可能な環境(pointer:fine かつ hover:hover)でのみ hover 演出を適用する。 */
   @media (hover: hover) and (pointer: fine){
+    #composer-plus-btn:hover{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); }
+    .composer-menu-item:hover{ background: var(--surface-3); }
     .edit-name-btn:hover{ color: var(--amber); background: var(--amber-dim); transform: translateY(-1px) scale(1.08); }
     .admin-btn:hover{ background: var(--amber-dim); box-shadow: var(--shadow-sm); }
     .add-channel-btn:hover{ border-color: var(--amber); color: var(--amber); background: var(--amber-dim); transform: rotate(90deg) scale(1.1); }
@@ -1357,15 +1392,36 @@
     </div>
     <div id="composer">
       <input type="file" id="image-file-input" accept="image/*" style="display:none;">
-      <button id="attach-btn" type="button" title="画像を送信">
+      <button id="attach-btn" type="button" title="画像を送信" style="display:none;">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <button id="poll-btn" type="button" title="アンケートを作成">
+      <button id="poll-btn" type="button" title="アンケートを作成" style="display:none;">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M12 19V5M20 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <button id="schedule-btn" type="button" title="送信予約(日時指定)">
+      <button id="schedule-btn" type="button" title="送信予約(日時指定)" style="display:none;">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
+
+      <div class="composer-plus-wrap">
+        <button id="composer-plus-btn" type="button" title="その他の操作">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <div id="composer-menu">
+          <button type="button" class="composer-menu-item" data-action="attach">
+            <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="cmi-label">画像を送信</span>
+          </button>
+          <button type="button" class="composer-menu-item" data-action="poll">
+            <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M12 19V5M20 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="cmi-label">アンケートを作成</span>
+          </button>
+          <button type="button" class="composer-menu-item" data-action="schedule">
+            <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+            <span class="cmi-label">送信予約</span>
+          </button>
+        </div>
+      </div>
+
       <div id="mention-suggest"></div>
       <textarea id="msg-input" rows="1" placeholder="メッセージを入力…(@でメンション)"></textarea>
       <button id="send-btn" disabled title="送信">
@@ -1866,6 +1922,7 @@ const els = {
   typing: $('typing-indicator'),
   input: $('msg-input'), sendBtn: $('send-btn'), mentionSuggest: $('mention-suggest'),
   attachBtn: $('attach-btn'), imageFileInput: $('image-file-input'),
+  composerPlusBtn: $('composer-plus-btn'), composerMenu: $('composer-menu'),
   pollBtn: $('poll-btn'), pollModal: $('poll-modal'), pollQuestionInput: $('poll-question-input'),
   pollOptionCount: $('poll-option-count'), pollOptionsInputs: $('poll-options-inputs'),
   pollAllowFreetext: $('poll-allow-freetext'), pollCreateConfirm: $('poll-create-confirm'), pollCreateCancel: $('poll-create-cancel'),
@@ -2111,6 +2168,44 @@ els.messages.addEventListener('click', (e) => {
   const mention = e.target.closest('.mention');
   if (mention && mention.dataset.uid) openProfileCard(mention.dataset.uid);
 });
+
+/* ------------------------------------------------------------------ */
+/* コンポーザーの「＋」メニュー（画像/アンケート/送信予約をまとめる）         */
+/* ------------------------------------------------------------------ */
+els.composerPlusBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const willOpen = !els.composerMenu.classList.contains('open');
+  els.composerMenu.classList.toggle('open', willOpen);
+  els.composerPlusBtn.classList.toggle('open', willOpen);
+});
+document.addEventListener('click', (e) => {
+  if (!els.composerMenu.classList.contains('open')) return;
+  if (e.target.closest('#composer-menu') || e.target.closest('#composer-plus-btn')) return;
+  els.composerMenu.classList.remove('open');
+  els.composerPlusBtn.classList.remove('open');
+});
+els.composerMenu.querySelectorAll('.composer-menu-item').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    els.composerMenu.classList.remove('open');
+    els.composerPlusBtn.classList.remove('open');
+    const action = btn.dataset.action;
+    if (action === 'attach') els.attachBtn.click();
+    else if (action === 'poll') els.pollBtn.click();
+    else if (action === 'schedule') els.scheduleBtn.click();
+  });
+});
+/** 元の攻撃/アンケート/予約ボタンの有効・無効/バッジ状態を、新しい＋メニュー側にも反映する */
+function syncComposerMenuState(){
+  const attachItem = els.composerMenu.querySelector('.composer-menu-item[data-action="attach"]');
+  const scheduleItem = els.composerMenu.querySelector('.composer-menu-item[data-action="schedule"]');
+  if (attachItem) attachItem.disabled = els.attachBtn.disabled;
+  const pending = els.scheduleBtn.classList.contains('has-pending');
+  if (scheduleItem) scheduleItem.classList.toggle('has-pending', pending);
+  els.composerPlusBtn.classList.toggle('has-pending', pending);
+}
+new MutationObserver(syncComposerMenuState).observe(els.attachBtn, { attributes: true, attributeFilter: ['disabled'] });
+new MutationObserver(syncComposerMenuState).observe(els.scheduleBtn, { attributes: true, attributeFilter: ['class'] });
+syncComposerMenuState();
 
 
 document.querySelectorAll('.settings-switch input[type="checkbox"]').forEach((input) => {
