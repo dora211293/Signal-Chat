@@ -92,7 +92,29 @@
     html{
       cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Ccircle cx='13' cy='13' r='9' fill='none' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='13' cy='13' r='2' fill='%23F0A93F'/%3E%3C/svg%3E") 13 13, auto;
     }
+    /* JS側でカスタムカーソルの初期化に成功した場合は、ネイティブのカーソルを完全に隠す */
+    html.custom-cursor-active, html.custom-cursor-active *{ cursor:none !important; }
   }
+  #custom-cursor{
+    position:fixed; top:0; left:0; width:0; height:0; pointer-events:none; z-index:99999;
+    opacity:0; transition: opacity .22s ease;
+  }
+  #custom-cursor.cc-visible{ opacity:1; }
+  #custom-cursor .cc-ring{
+    position:absolute; top:0; left:0; width:24px; height:24px; margin:-12px 0 0 -12px;
+    border:2px solid var(--amber); border-radius:50%; box-sizing:border-box; background:transparent;
+    transition: width .28s var(--ease-spring), height .28s var(--ease-spring), margin .28s var(--ease-spring),
+                background-color .22s var(--ease-ios), border-color .22s var(--ease-ios), opacity .22s ease;
+  }
+  #custom-cursor .cc-dot{
+    position:absolute; top:0; left:0; width:5px; height:5px; margin:-2.5px 0 0 -2.5px;
+    background: var(--amber); border-radius:50%;
+    transition: width .22s var(--ease-spring), height .22s var(--ease-spring), margin .22s var(--ease-spring), opacity .22s ease;
+  }
+  #custom-cursor.cc-hover .cc-ring{ width:38px; height:38px; margin:-19px 0 0 -19px; background: var(--amber-dim); border-color: var(--amber); }
+  #custom-cursor.cc-hover .cc-dot{ opacity:0; }
+  #custom-cursor.cc-active .cc-ring{ width:18px; height:18px; margin:-9px 0 0 -9px; }
+  #custom-cursor.cc-active.cc-hover .cc-ring{ width:30px; height:30px; margin:-15px 0 0 -15px; }
   body{
     margin:0;
     background: var(--bg-grad);
@@ -4854,6 +4876,54 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+/* ------------------------------------------------------------------ */
+/* カスタムマウスカーソル（マウス環境のみ / JSで自前描画）                    */
+/* ネイティブの cursor:url() 切り替えは Chrome 等で「ホバーでは変わらず       */
+/* クリックした時だけ変わる／再クリックしないと戻らない」という描画バグが      */
+/* 起きやすいため、DOM要素を自前でマウス追従させる方式に変更。                */
+/* ------------------------------------------------------------------ */
+(function initCustomCursor(){
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+  const cursor = document.createElement('div');
+  cursor.id = 'custom-cursor';
+  cursor.innerHTML = '<span class="cc-ring"></span><span class="cc-dot"></span>';
+  document.body.appendChild(cursor);
+  document.documentElement.classList.add('custom-cursor-active');
+
+  let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+  let curX = mouseX, curY = mouseY;
+  let shown = false;
+  let lastTarget = null;
+
+  function isClickable(target){
+    if (!target || target === lastTarget) return cursor.classList.contains('cc-hover');
+    lastTarget = target;
+    const cs = getComputedStyle(target);
+    return !!(cs.cursor && cs.cursor.trim().endsWith('pointer'));
+  }
+
+  window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX; mouseY = e.clientY;
+    if (!shown) { shown = true; cursor.classList.add('cc-visible'); }
+    cursor.classList.toggle('cc-hover', isClickable(e.target));
+  }, { passive: true });
+
+  document.documentElement.addEventListener('mouseleave', () => {
+    shown = false; cursor.classList.remove('cc-visible');
+  });
+  window.addEventListener('mousedown', () => cursor.classList.add('cc-active'));
+  window.addEventListener('mouseup', () => cursor.classList.remove('cc-active'));
+
+  (function raf(){
+    curX += (mouseX - curX) * 0.35;
+    curY += (mouseY - curY) * 0.35;
+    cursor.style.transform = `translate(${curX}px, ${curY}px)`;
+    requestAnimationFrame(raf);
+  })();
+})();
+
 </script>
 </body>
 </html>
