@@ -159,7 +159,7 @@
   #messages, #channel-list, #dm-list, .online-panel, .admin-panel-body, .modal-scrim{
     -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   }
-  #messages{ transition: opacity .55s var(--ease-ios), transform .55s var(--ease-ios); }
+  #messages{ transition: opacity .55s var(--ease-ios); }
   #topbar-name, #topbar-freq{ transition: opacity .5s var(--ease-ios); }
   #channel-section, #dm-section{ transition: opacity .5s var(--ease-ios); }
 
@@ -175,7 +175,11 @@
     outline: none; box-shadow: 0 0 0 3.5px var(--amber-dim), 0 0 0 1.5px var(--amber);
   }
 
-  @keyframes appIn{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform: translateY(0); } }
+  @keyframes appIn{
+    0%{ opacity:0; transform: translateY(16px) scale(.9); filter: blur(4px); }
+    55%{ opacity:1; filter: blur(0); }
+    100%{ opacity:1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
 
   /* ===================== App shell ===================== */
   #app{
@@ -494,7 +498,11 @@
   .msg-row.msg-enter{ animation: msgIn 0.625s var(--ease-spring-soft) both; transform-origin: bottom center; }
   @keyframes avatarPop{ 0%{ opacity:0; transform: scale(.55); } 65%{ transform: scale(1.12); } 100%{ opacity:1; transform: scale(1); } }
   .msg-row.msg-enter .msg-avatar{ animation: avatarPop 0.525s var(--ease-spring-soft) 0.062s both; }
-  @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
+  @keyframes dayIn{
+    0%{ opacity:0; transform: translateY(-6px) scale(.8); }
+    60%{ opacity:1; transform: translateY(0) scale(1.06); }
+    100%{ opacity:1; transform: translateY(0) scale(1); }
+  }
   .day-divider{ animation: dayIn 0.375s ease; }
 
   .msg-actions{
@@ -1110,8 +1118,12 @@
 
   @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.25;} }
   @keyframes pingRing{ 0%{ transform: scale(1); opacity:.7; } 100%{ transform: scale(2.6); opacity:0; } }
-  @keyframes listItemIn{ 0%{ opacity:0; transform: translateX(-14px) scale(.94); } 100%{ opacity:1; transform: translateX(0) scale(1); } }
-  @keyframes tabPanelIn{ 0%{ opacity:0; transform: translateY(10px) scale(.97); } 100%{ opacity:1; transform: translateY(0) scale(1); } }
+  @keyframes listItemIn{ 0%{ opacity:0; transform: translateX(-14px) scale(.82); } 60%{ opacity:1; } 100%{ opacity:1; transform: translateX(0) scale(1); } }
+  @keyframes tabPanelIn{
+    0%{ opacity:0; transform: translateY(18px) scale(.86); }
+    55%{ opacity:1; transform: translateY(-2px) scale(1.03); }
+    100%{ opacity:1; transform: translateY(0) scale(1); }
+  }
   @keyframes bounce{ 0%,60%,100%{ height:3px; } 30%{ height:10px; } }
   @keyframes chipIn{ from{ opacity:0; transform: scale(.5); } to{ opacity:1; transform: scale(1); } }
 
@@ -3272,9 +3284,7 @@ function crossFade(elOrList, update, delayMs){
 
 /** チャンネル/DM切り替え時にメッセージ欄とトップバーがふわっとクロスフェードするための下準備（実際の差し替えは呼び出し側で行う） */
 function flashConversationSwitch(){
-  els.messages.style.transform = 'translateY(6px)';
   crossFade([els.messages, els.topbarName, els.topbarFreq], null, 260);
-  setTimeout(() => { els.messages.style.transform = 'translateY(0)'; }, 260);
 }
 
 function selectDm(otherUid, otherName){
