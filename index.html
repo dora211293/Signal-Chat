@@ -175,11 +175,7 @@
     outline: none; box-shadow: 0 0 0 3.5px var(--amber-dim), 0 0 0 1.5px var(--amber);
   }
 
-  @keyframes appIn{
-    0%{ opacity:0; transform: translateY(16px) scale(.9); filter: blur(4px); }
-    55%{ opacity:1; filter: blur(0); }
-    100%{ opacity:1; transform: translateY(0) scale(1); filter: blur(0); }
-  }
+  @keyframes appIn{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform: translateY(0); } }
 
   /* ===================== App shell ===================== */
   #app{
@@ -498,11 +494,7 @@
   .msg-row.msg-enter{ animation: msgIn 0.625s var(--ease-spring-soft) both; transform-origin: bottom center; }
   @keyframes avatarPop{ 0%{ opacity:0; transform: scale(.55); } 65%{ transform: scale(1.12); } 100%{ opacity:1; transform: scale(1); } }
   .msg-row.msg-enter .msg-avatar{ animation: avatarPop 0.525s var(--ease-spring-soft) 0.062s both; }
-  @keyframes dayIn{
-    0%{ opacity:0; transform: translateY(-6px) scale(.8); }
-    60%{ opacity:1; transform: translateY(0) scale(1.06); }
-    100%{ opacity:1; transform: translateY(0) scale(1); }
-  }
+  @keyframes dayIn{ from{ opacity:0; transform: translateY(-4px); } to{ opacity:1; transform: translateY(0); } }
   .day-divider{ animation: dayIn 0.375s ease; }
 
   .msg-actions{
@@ -701,14 +693,20 @@
   #composer-plus-btn:active{ transform: scale(.9); transition-duration: 0.125s; }
   #composer-plus-btn.open{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); transform: rotate(45deg); }
   #composer-plus-btn.has-pending:not(.open){ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
+  @keyframes menuPopIn{
+    0%{ opacity:0; transform: scale(.28); }
+    60%{ opacity:1; }
+    100%{ opacity:1; transform: scale(1); }
+  }
   #composer-menu{
     position:absolute; left:0; bottom: calc(100% + 12px); min-width: 220px;
+    transform-origin: bottom left;
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
     backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
     border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md);
     padding: 6px; z-index: 30; display:none; flex-direction:column; gap: 2px;
   }
-  #composer-menu.open{ display:flex; animation: tabPanelIn .38s var(--ease-spring) both; }
+  #composer-menu.open{ display:flex; animation: menuPopIn .4s var(--ease-spring) both; }
   .composer-menu-item{
     display:flex; align-items:center; gap:11px; background:none; border:none; color: var(--text);
     padding: 10px 11px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight:600; text-align:left;
@@ -1118,12 +1116,8 @@
 
   @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.25;} }
   @keyframes pingRing{ 0%{ transform: scale(1); opacity:.7; } 100%{ transform: scale(2.6); opacity:0; } }
-  @keyframes listItemIn{ 0%{ opacity:0; transform: translateX(-14px) scale(.82); } 60%{ opacity:1; } 100%{ opacity:1; transform: translateX(0) scale(1); } }
-  @keyframes tabPanelIn{
-    0%{ opacity:0; transform: translateY(18px) scale(.86); }
-    55%{ opacity:1; transform: translateY(-2px) scale(1.03); }
-    100%{ opacity:1; transform: translateY(0) scale(1); }
-  }
+  @keyframes listItemIn{ 0%{ opacity:0; transform: translateX(-14px) scale(.94); } 100%{ opacity:1; transform: translateX(0) scale(1); } }
+  @keyframes tabPanelIn{ 0%{ opacity:0; transform: translateY(10px) scale(.97); } 100%{ opacity:1; transform: translateY(0) scale(1); } }
   @keyframes bounce{ 0%,60%,100%{ height:3px; } 30%{ height:10px; } }
   @keyframes chipIn{ from{ opacity:0; transform: scale(.5); } to{ opacity:1; transform: scale(1); } }
 
