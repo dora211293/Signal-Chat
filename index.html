@@ -694,10 +694,9 @@
   #composer-plus-btn.open{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); transform: rotate(45deg); }
   #composer-plus-btn.has-pending:not(.open){ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
   @keyframes menuPopIn{
-    0%{ opacity:0; transform: scaleY(.1) scaleX(.19); }
-    45%{ opacity:1; transform: scaleY(1) scaleX(.19); }
-    82%{ transform: scaleY(1) scaleX(1.035); }
-    100%{ opacity:1; transform: scaleY(1) scaleX(1); }
+    0%{ opacity:0; clip-path: inset(92% 79% 0 0 round var(--radius-md)); }
+    48%{ opacity:1; clip-path: inset(0 79% 0 0 round var(--radius-md)); }
+    100%{ opacity:1; clip-path: inset(0 0 0 0 round var(--radius-md)); }
   }
   #composer-menu{
     position:absolute; left:0; bottom: calc(100% + 12px); min-width: 220px;
@@ -707,7 +706,7 @@
     border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md);
     padding: 6px; z-index: 30; display:none; flex-direction:column; gap: 2px;
   }
-  #composer-menu.open{ display:flex; animation: menuPopIn .5s var(--ease-spring) both; }
+  #composer-menu.open{ display:flex; animation: menuPopIn .52s var(--ease-ios) both; }
   .composer-menu-item{
     display:flex; align-items:center; gap:11px; background:none; border:none; color: var(--text);
     padding: 10px 11px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight:600; text-align:left;
@@ -772,7 +771,6 @@
   @keyframes modalScrimIn{ from{ opacity:0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); } to{ opacity:1; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); } }
   @keyframes modalCardIn{
     0%{ opacity:0; transform: scale(.14); }
-    62%{ opacity:1; transform: scale(1.03); }
     100%{ opacity:1; transform: scale(1); }
   }
   .modal-scrim{
@@ -782,8 +780,8 @@
   }
   @keyframes modalScrimOut{ from{ opacity:1; } to{ opacity:0; } }
   @keyframes modalCardOut{
-    0%{ opacity:1; transform: translateY(0) scale(1); }
-    100%{ opacity:0; transform: translateY(16px) scale(.95); }
+    0%{ opacity:1; transform: scale(1); }
+    100%{ opacity:0; transform: scale(.9); }
   }
   .modal-scrim.closing{ animation: modalScrimOut 0.275s var(--ease-ios) forwards; }
   .modal-scrim.closing .modal-card, .modal-scrim.closing #lightbox-inner{ animation: modalCardOut 0.25s var(--ease-ios) forwards; }
@@ -2922,7 +2920,7 @@ async function applyForVerification(){
   await setDoc(doc(db, 'verifyRequests', myUid), { name: myName, ts: serverTimestamp(), status: 'pending' }).catch(() => {});
 }
 
-function openNickModal(prefillName, prefillIcon, prefillImg){
+function openNickModal(prefillName, prefillIcon, prefillImg, triggerBtn){
   els.nickInput.value = prefillName || '';
   els.usernameInput.value = (usersCache[myUid] && usersCache[myUid].username) || '';
   els.iconInput.value = prefillIcon || '';
@@ -2942,7 +2940,8 @@ function openNickModal(prefillName, prefillIcon, prefillImg){
     els.myUidDisplay.textContent = '認証中…';
   }
   renderVerifyRow();
-  els.nickModal.classList.remove('closing'); els.nickModal.style.display = 'flex';
+  els.nickModal.classList.remove('closing');
+  popModalFrom(els.nickModal, triggerBtn || null);
   setTimeout(() => els.nickInput.focus(), 50);
 }
 els.nickInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !els.nickConfirm.disabled) els.nickConfirm.click(); });
@@ -3021,8 +3020,8 @@ els.nickConfirm.addEventListener('click', async () => {
     els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
   }
 });
-els.editNameBtn.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg));
-els.selfAvatar.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg));
+els.editNameBtn.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg, els.editNameBtn));
+els.selfAvatar.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg, els.selfAvatar));
 
 /* ------------------------------------------------------------------ */
 /* サイドバー（モバイル開閉）                                            */
@@ -4787,7 +4786,8 @@ els.settingsBackBtn.addEventListener('click', showSettingsMenu);
 els.settingsBtn.addEventListener('click', () => {
   refreshSettingsUI();
   showSettingsMenu();
-  els.settingsModal.classList.remove('closing'); els.settingsModal.style.display = 'flex';
+  els.settingsModal.classList.remove('closing');
+  popModalFrom(els.settingsModal, els.settingsBtn);
 });
 els.settingsClose.addEventListener('click', () => { closeModal(els.settingsModal); });
 els.settingsLogout.addEventListener('click', () => {
