@@ -694,9 +694,10 @@
   #composer-plus-btn.open{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); transform: rotate(45deg); }
   #composer-plus-btn.has-pending:not(.open){ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
   @keyframes menuPopIn{
-    0%{ opacity:0; transform: scale(.28); }
-    60%{ opacity:1; }
-    100%{ opacity:1; transform: scale(1); }
+    0%{ opacity:0; transform: scaleY(.1) scaleX(.19); }
+    45%{ opacity:1; transform: scaleY(1) scaleX(.19); }
+    82%{ transform: scaleY(1) scaleX(1.035); }
+    100%{ opacity:1; transform: scaleY(1) scaleX(1); }
   }
   #composer-menu{
     position:absolute; left:0; bottom: calc(100% + 12px); min-width: 220px;
@@ -706,7 +707,7 @@
     border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md);
     padding: 6px; z-index: 30; display:none; flex-direction:column; gap: 2px;
   }
-  #composer-menu.open{ display:flex; animation: menuPopIn .4s var(--ease-spring) both; }
+  #composer-menu.open{ display:flex; animation: menuPopIn .5s var(--ease-spring) both; }
   .composer-menu-item{
     display:flex; align-items:center; gap:11px; background:none; border:none; color: var(--text);
     padding: 10px 11px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight:600; text-align:left;
@@ -770,9 +771,9 @@
   /* ===================== Modals ===================== */
   @keyframes modalScrimIn{ from{ opacity:0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); } to{ opacity:1; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); } }
   @keyframes modalCardIn{
-    0%{ opacity:0; transform: translateY(30px) scale(.9); }
-    62%{ opacity:1; transform: translateY(-3px) scale(1.025); }
-    100%{ opacity:1; transform: translateY(0) scale(1); }
+    0%{ opacity:0; transform: scale(.14); }
+    62%{ opacity:1; transform: scale(1.03); }
+    100%{ opacity:1; transform: scale(1); }
   }
   .modal-scrim{
     position:fixed; inset:0; background:#060a0ecc; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -2272,6 +2273,21 @@ function closeModal(el){
   };
   el.addEventListener('animationend', finish, { once: true });
   setTimeout(finish, 260);
+}
+/** モーダルを開く際、押したボタンの位置を transform-origin に設定してから表示する。
+    こうすると「押した場所からニュッと膨らんで出てくる」見た目になる */
+function popModalFrom(modalEl, triggerBtn){
+  modalEl.style.display = 'flex';
+  const card = modalEl.querySelector('.modal-card');
+  if (card && triggerBtn) {
+    const cardRect = card.getBoundingClientRect();
+    const btnRect = triggerBtn.getBoundingClientRect();
+    const originX = (btnRect.left + btnRect.width / 2) - cardRect.left;
+    const originY = (btnRect.top + btnRect.height / 2) - cardRect.top;
+    card.style.transformOrigin = `${originX}px ${originY}px`;
+  } else if (card) {
+    card.style.transformOrigin = '';
+  }
 }
 
 /** el の中身を updateFn で差し替える際、内容量による縦サイズの変化を高さアニメーションで滑らかに繋ぐ */
@@ -4327,7 +4343,8 @@ els.friendsPanelBtn.addEventListener('click', () => {
   currentFriendTab = 'list';
   updateFriendTabsUI();
   renderFriendsPanel();
-  els.friendsModal.classList.remove('closing'); els.friendsModal.style.display = 'flex';
+  els.friendsModal.classList.remove('closing');
+  popModalFrom(els.friendsModal, els.friendsPanelBtn);
   requestAnimationFrame(() => positionTabThumb(document.getElementById('friends-tabs')));
 });
 els.friendsClose.addEventListener('click', () => { closeModal(els.friendsModal); });
@@ -4511,7 +4528,8 @@ els.adminPanelBtn.addEventListener('click', () => {
   updateAdminTabsUI();
   renderAdminPanel();
   adminModalOpen = true;
-  els.adminModal.classList.remove('closing'); els.adminModal.style.display = 'flex';
+  els.adminModal.classList.remove('closing');
+  popModalFrom(els.adminModal, els.adminPanelBtn);
   requestAnimationFrame(() => positionTabThumb(document.getElementById('admin-tabs')));
 });
 els.adminClose.addEventListener('click', () => { adminModalOpen = false; closeModal(els.adminModal); });
