@@ -693,20 +693,21 @@
   #composer-plus-btn:active{ transform: scale(.9); transition-duration: 0.125s; }
   #composer-plus-btn.open{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); transform: rotate(45deg); }
   #composer-plus-btn.has-pending:not(.open){ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
-  @keyframes menuPopIn{
-    0%{ opacity:0; clip-path: inset(92% 79% 0 0 round var(--radius-md)); }
-    48%{ opacity:1; clip-path: inset(0 79% 0 0 round var(--radius-md)); }
-    100%{ opacity:1; clip-path: inset(0 0 0 0 round var(--radius-md)); }
-  }
   #composer-menu{
-    position:absolute; left:0; bottom: calc(100% + 12px); min-width: 220px;
-    transform-origin: bottom left;
+    position:absolute; left:0; bottom: calc(100% + 10px); width: 220px;
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
     backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
-    border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md);
-    padding: 6px; z-index: 30; display:none; flex-direction:column; gap: 2px;
+    border: 1px solid var(--border); box-shadow: var(--shadow-md);
+    z-index: 30; display:none; flex-direction:column; gap: 2px; overflow:hidden;
+    transition: width .44s var(--ease-spring-soft), height .44s var(--ease-spring-soft),
+                border-radius .38s var(--ease-ios), padding .38s var(--ease-ios), box-shadow .3s ease;
   }
-  #composer-menu.open{ display:flex; animation: menuPopIn .52s var(--ease-ios) both; }
+  #composer-menu .composer-menu-item{
+    opacity:0; transform: translateX(-4px); transition: opacity .16s ease, transform .16s ease;
+  }
+  #composer-menu.open .composer-menu-item{ opacity:1; transform: translateX(0); transition-delay: .2s; }
+  #composer-menu.open .composer-menu-item:nth-child(2){ transition-delay: .24s; }
+  #composer-menu.open .composer-menu-item:nth-child(3){ transition-delay: .28s; }
   .composer-menu-item{
     display:flex; align-items:center; gap:11px; background:none; border:none; color: var(--text);
     padding: 10px 11px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight:600; text-align:left;
@@ -943,8 +944,20 @@
 
   /* パネルの中身(認証申請待ちの件数など)によって高さが変わっても、切替タブの位置が動いて押しにくくならないよう、
      カードを画面下部に固定し、内容が増えたときは上方向にだけ伸びるようにする */
-  .modal-scrim.bottom-sheet{ align-items: flex-end; }
-  .modal-scrim.bottom-sheet .modal-card{ margin: 0 auto; max-height: calc(100dvh - 40px); display:flex; flex-direction:column; min-height:0; }
+  .modal-scrim.bottom-sheet{ align-items: flex-end; padding: 0; }
+  @keyframes sheetIn{ from{ transform: translateY(100%); } to{ transform: translateY(0); } }
+  @keyframes sheetOut{ from{ transform: translateY(0); } to{ transform: translateY(100%); } }
+  .modal-scrim.bottom-sheet .modal-card{
+    margin: 0 auto; max-height: calc(100dvh - 40px); overflow-y:auto; display:flex; flex-direction:column; min-height:0;
+    width:100%; max-width: 520px; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding-top: 14px; padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    animation: sheetIn .46s var(--ease-ios) both;
+  }
+  .modal-scrim.bottom-sheet.closing .modal-card{ animation: sheetOut .28s var(--ease-ios) forwards; }
+  .modal-scrim.bottom-sheet .modal-card::before{
+    content:''; display:block; flex-shrink:0; width:36px; height:4px; border-radius:2px;
+    background: var(--border); margin: 0 auto 16px;
+  }
   .modal-scrim.bottom-sheet .admin-panel-body{ flex-shrink:1; }
   .modal-scrim.bottom-sheet .admin-tabs{ flex-shrink:0; margin: 14px 0 0; }
 
@@ -1445,7 +1458,7 @@
 </div>
 
 <!-- ===================== プロフィール設定モーダル ===================== -->
-<div class="modal-scrim" id="nick-modal">
+<div class="modal-scrim bottom-sheet" id="nick-modal">
   <div class="modal-card">
     <div class="eyebrow">PROFILE</div>
     <h2>周波数に接続</h2>
@@ -1635,7 +1648,7 @@
   </div>
 </div>
 
-<div class="modal-scrim" id="settings-modal" style="display:none;">
+<div class="modal-scrim bottom-sheet" id="settings-modal" style="display:none;">
   <div class="modal-card settings-card">
     <div class="settings-header">
       <button type="button" class="settings-back-btn" id="settings-back-btn" style="display:none;" aria-label="戻る">‹</button>
@@ -2176,23 +2189,65 @@ els.messages.addEventListener('click', (e) => {
 
 /* ------------------------------------------------------------------ */
 /* コンポーザーの「＋」メニュー（画像/アンケート/送信予約をまとめる）         */
+/* ＋ボタン自身がそのままメニューへとニュッと変形するモーフィングにしている   */
 /* ------------------------------------------------------------------ */
+let composerMenuOpen = false;
+let composerMenuTimer = null;
+function openComposerMenu(){
+  if (composerMenuOpen) return;
+  composerMenuOpen = true;
+  clearTimeout(composerMenuTimer);
+  const el = els.composerMenu;
+  // 最終的な自然サイズを、画面には出さずに一旦計測する
+  el.style.visibility = 'hidden';
+  el.style.display = 'flex';
+  el.style.width = '220px';
+  el.style.height = 'auto';
+  el.style.padding = '6px';
+  const naturalW = el.offsetWidth, naturalH = el.offsetHeight;
+  el.style.visibility = '';
+  // ＋ボタンと同じ 42x42・円形からスタート
+  el.style.width = '42px';
+  el.style.height = '42px';
+  el.style.padding = '0px';
+  el.style.borderRadius = '999px';
+  void el.offsetWidth; // reflow確定
+  el.classList.add('open');
+  els.composerPlusBtn.classList.add('open');
+  requestAnimationFrame(() => {
+    el.style.width = naturalW + 'px';
+    el.style.height = naturalH + 'px';
+    el.style.padding = '6px';
+    el.style.borderRadius = 'var(--radius-md)';
+  });
+}
+function closeComposerMenu(){
+  if (!composerMenuOpen) return;
+  composerMenuOpen = false;
+  const el = els.composerMenu;
+  el.classList.remove('open');
+  els.composerPlusBtn.classList.remove('open');
+  el.style.width = '42px';
+  el.style.height = '42px';
+  el.style.padding = '0px';
+  el.style.borderRadius = '999px';
+  composerMenuTimer = setTimeout(() => {
+    el.style.display = 'none';
+    el.style.width = ''; el.style.height = ''; el.style.padding = ''; el.style.borderRadius = '';
+  }, 460);
+}
 els.composerPlusBtn.addEventListener('click', (e) => {
   e.stopPropagation();
-  const willOpen = !els.composerMenu.classList.contains('open');
-  els.composerMenu.classList.toggle('open', willOpen);
-  els.composerPlusBtn.classList.toggle('open', willOpen);
+  if (composerMenuOpen) closeComposerMenu(); else openComposerMenu();
 });
 document.addEventListener('click', (e) => {
-  if (!els.composerMenu.classList.contains('open')) return;
+  if (!composerMenuOpen) return;
   if (e.target.closest('#composer-menu') || e.target.closest('#composer-plus-btn')) return;
-  els.composerMenu.classList.remove('open');
-  els.composerPlusBtn.classList.remove('open');
+  closeComposerMenu();
 });
 els.composerMenu.querySelectorAll('.composer-menu-item').forEach((btn) => {
   btn.addEventListener('click', () => {
-    els.composerMenu.classList.remove('open');
-    els.composerPlusBtn.classList.remove('open');
+    closeComposerMenu();
     const action = btn.dataset.action;
     if (action === 'attach') els.attachBtn.click();
     else if (action === 'poll') els.pollBtn.click();
@@ -2272,10 +2327,11 @@ function closeModal(el){
   el.addEventListener('animationend', finish, { once: true });
   setTimeout(finish, 260);
 }
-/** モーダルを開く際、押したボタンの位置を transform-origin に設定してから表示する。
-    こうすると「押した場所からニュッと膨らんで出てくる」見た目になる */
+/** モーダルを開く。アクションシート系(bottom-sheet)はそのまま下から出るので何もしない。
+    それ以外は押したボタンの位置を transform-origin に設定してから表示する。 */
 function popModalFrom(modalEl, triggerBtn){
   modalEl.style.display = 'flex';
+  if (modalEl.classList.contains('bottom-sheet')) return;
   const card = modalEl.querySelector('.modal-card');
   if (card && triggerBtn) {
     const cardRect = card.getBoundingClientRect();
