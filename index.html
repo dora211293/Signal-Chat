@@ -797,12 +797,15 @@
   .modal-card .eyebrow{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); letter-spacing:.14em; }
   .modal-card h2{ font-family: var(--font-display); font-size: 21px; margin: 6px 0 4px; }
   .modal-card p{ font-size: 12.5px; color: var(--text-muted); line-height:1.6; margin: 0 0 16px; }
-  .modal-card input{
+  .modal-card input, .modal-card textarea{
     width:100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
     border-radius: var(--radius-sm); padding: 11px 13px; font-size: 14px; outline:none; margin-bottom: 12px;
+    font-family: inherit; resize: vertical;
     transition: border-color 0.225s var(--ease-ios), box-shadow 0.225s var(--ease-ios);
   }
-  .modal-card input:focus{ border-color: var(--amber); box-shadow: 0 0 0 3.5px var(--amber-dim); }
+  .modal-card input:focus, .modal-card textarea:focus{ border-color: var(--amber); box-shadow: 0 0 0 3.5px var(--amber-dim); }
+  .char-counter{ text-align:right; font-size: 11px; color: var(--text-faint); margin: -8px 0 12px; font-family: var(--font-mono); }
+  .char-counter.near-limit{ color: var(--amber); }
   .modal-card button.primary{
     width:100%; background: linear-gradient(150deg, var(--amber), color-mix(in srgb, var(--amber) 65%, black)); border:none; color:#14100a;
     font-weight:600; font-size: 14px; padding: 12px; border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; margin-top: 4px;
@@ -936,9 +939,19 @@
   .profile-card-avatar img{ width:100%; height:100%; object-fit:cover; }
   .profile-card-name{ font-size: 16.5px; font-weight:700; display:flex; align-items:center; gap:5px; }
   .profile-card-username{ font-family: var(--font-mono); font-size: 12px; color: var(--text-faint); margin-top: 1px; }
-  .profile-card-status{ display:flex; align-items:center; gap:6px; font-size: 12px; color: var(--text-muted); margin-top:2px; margin-bottom: 18px; }
+  .profile-card-status{ display:flex; align-items:center; gap:6px; font-size: 12px; color: var(--text-muted); margin-top:2px; margin-bottom: 14px; }
   .profile-card-status .dot{ width:7px; height:7px; border-radius:50%; background: var(--text-faint); }
   .profile-card-status .dot.online{ background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: blink 2.25s infinite; }
+  .profile-card-bio{ width:100%; font-size: 13px; line-height:1.6; color: var(--text); text-align:left; white-space:pre-wrap; word-break:break-word; margin-bottom: 14px; }
+  .profile-card-meta-row{ width:100%; display:flex; flex-direction:column; gap:6px; margin-bottom: 14px; }
+  .profile-card-meta-item{ display:flex; align-items:center; gap:7px; font-size: 12px; color: var(--text-muted); }
+  .profile-card-meta-item svg{ flex-shrink:0; color: var(--text-faint); }
+  .profile-card-meta-item a{ color: var(--amber); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .profile-card-uid-row{
+    display:flex; align-items:center; gap:8px; width:100%; margin-bottom: 14px;
+    background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px;
+  }
+  .profile-card-uid-row code{ flex:1; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); overflow-x:auto; white-space:nowrap; }
   .profile-card-actions{ display:flex; gap:8px; width:100%; }
   .profile-card-actions .mini-btn, .profile-card-actions .mini-btn-outline{ flex:1; padding: 9px 10px; font-size: 12.5px; }
 
@@ -1504,6 +1517,13 @@
     </div>
     <input type="text" id="icon-input" maxlength="4" placeholder="自由入力も可(例: 🐧)" autocomplete="off">
 
+    <div class="field-label">自己紹介(任意)</div>
+    <textarea id="bio-input" maxlength="140" rows="3" placeholder="よろしくお願いします！"></textarea>
+    <div class="char-counter" id="bio-counter">0/140</div>
+
+    <div class="field-label">リンク(任意・X・ウェブサイトなど)</div>
+    <input type="url" id="link-input" maxlength="120" placeholder="https://…" autocomplete="off">
+
     <div class="field-label">認証バッジ</div>
     <div class="verify-row" id="verify-status"></div>
 
@@ -1607,6 +1627,12 @@
     <div class="profile-card-name" id="profile-card-name">–</div>
     <div class="profile-card-username" id="profile-card-username"></div>
     <div class="profile-card-status"><span class="dot" id="profile-card-dot"></span><span id="profile-card-status-text">オフライン</span></div>
+    <div class="profile-card-bio" id="profile-card-bio" style="display:none;"></div>
+    <div class="profile-card-meta-row" id="profile-card-meta-row"></div>
+    <div class="profile-card-uid-row" id="profile-card-uid-row" style="display:none;">
+      <code id="profile-card-uid"></code>
+      <button type="button" class="mini-btn-outline" id="profile-card-uid-copy">コピー</button>
+    </div>
     <div class="profile-card-actions" id="profile-card-actions">
       <button type="button" class="mini-btn" id="profile-dm-btn">DMを送る</button>
       <button type="button" class="mini-btn-outline" id="profile-add-friend-btn">フレンド申請</button>
@@ -1929,6 +1955,8 @@ const els = {
   selfName: $('self-name'), selfAvatar: $('self-avatar'), editNameBtn: $('edit-name-btn'), selfUsername: $('self-username'),
   profileModal: $('profile-modal'), profileCardAvatar: $('profile-card-avatar'), profileCardName: $('profile-card-name'),
   profileCardUsername: $('profile-card-username'),
+  profileCardBio: $('profile-card-bio'), profileCardMetaRow: $('profile-card-meta-row'),
+  profileCardUidRow: $('profile-card-uid-row'), profileCardUid: $('profile-card-uid'), profileCardUidCopy: $('profile-card-uid-copy'),
   profileCardDot: $('profile-card-dot'), profileCardStatusText: $('profile-card-status-text'),
   profileDmBtn: $('profile-dm-btn'), profileAddFriendBtn: $('profile-add-friend-btn'), profileClose: $('profile-close'),
   adminPanelBtn: $('admin-panel-btn'),
@@ -1956,6 +1984,7 @@ const els = {
   lightboxModal: $('lightbox-modal'), lightboxImg: $('lightbox-img'),
   nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
   usernameInput: $('username-input'), usernameError: $('username-error'),
+  bioInput: $('bio-input'), bioCounter: $('bio-counter'), linkInput: $('link-input'),
   accountPasswordInput: $('account-password-input'),
   authGateSignup: $('auth-gate-signup'), authGateLoginOpen: $('auth-gate-login-open'),
   authGateChoices: $('auth-gate-choices'), authGateLoginForm: $('auth-gate-login-form'),
@@ -2910,6 +2939,12 @@ els.usernameInput.addEventListener('input', () => {
   updateNickConfirmState();
   els.usernameError.style.display = 'none';
 });
+function updateBioCounter(){
+  const n = els.bioInput.value.length;
+  els.bioCounter.textContent = `${n}/140`;
+  els.bioCounter.classList.toggle('near-limit', n >= 120);
+}
+els.bioInput.addEventListener('input', updateBioCounter);
 els.iconFile.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -2979,6 +3014,9 @@ async function applyForVerification(){
 function openNickModal(prefillName, prefillIcon, prefillImg, triggerBtn){
   els.nickInput.value = prefillName || '';
   els.usernameInput.value = (usersCache[myUid] && usersCache[myUid].username) || '';
+  els.bioInput.value = (usersCache[myUid] && usersCache[myUid].bio) || '';
+  els.linkInput.value = (usersCache[myUid] && usersCache[myUid].link) || '';
+  updateBioCounter();
   els.iconInput.value = prefillIcon || '';
   pendingIconImg = prefillImg || '';
   els.iconFile.value = '';
@@ -3049,9 +3087,13 @@ els.nickConfirm.addEventListener('click', async () => {
     localStorage.setItem(NAME_KEY, myName);
     localStorage.setItem(ICON_KEY, myIcon);
     localStorage.setItem(ICONIMG_KEY, myIconImg);
+    const bio = els.bioInput.value.trim().slice(0, 140);
+    let link = els.linkInput.value.trim().slice(0, 120);
+    if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
     const userDoc = {
-      name: myName, username: uKey, icon: myIcon, iconImg: myIconImg, updatedAt: serverTimestamp()
+      name: myName, username: uKey, icon: myIcon, iconImg: myIconImg, bio, link, updatedAt: serverTimestamp()
     };
+    if (!usersCache[myUid] || !usersCache[myUid].createdAt) userDoc.createdAt = serverTimestamp();
     const pw = els.accountPasswordInput.value;
     if (pw) userDoc.passwordHash = await sha256Hex(pw);
     await setDoc(doc(db, 'users', myUid), userDoc, { merge: true });
@@ -4268,6 +4310,31 @@ function openProfileCard(uid){
   const isOnline = lastOnline.some((p) => p.uid === uid);
   els.profileCardDot.classList.toggle('online', isOnline);
   els.profileCardStatusText.textContent = isOnline ? 'オンライン' : 'オフライン';
+  // 自己紹介
+  if (prof.bio) {
+    els.profileCardBio.textContent = prof.bio;
+    els.profileCardBio.style.display = '';
+  } else {
+    els.profileCardBio.style.display = 'none';
+  }
+  // リンク・参加日
+  const metaItems = [];
+  if (prof.link) {
+    metaItems.push(`<div class="profile-card-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><a href="${escapeHtml(prof.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(prof.link.replace(/^https?:\/\//i, ''))}</a></div>`);
+  }
+  if (prof.createdAt && prof.createdAt.toDate) {
+    const joined = prof.createdAt.toDate().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+    metaItems.push(`<div class="profile-card-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>${escapeHtml(joined)}から利用</span></div>`);
+  }
+  els.profileCardMetaRow.innerHTML = metaItems.join('');
+  // UID(金認証バッジ保持者のみ・アカウント誤削除時の復旧用)
+  const myProf = usersCache[myUid] || {};
+  if (myProf.goldVerified === true || isAdmin) {
+    els.profileCardUid.textContent = uid;
+    els.profileCardUidRow.style.display = '';
+  } else {
+    els.profileCardUidRow.style.display = 'none';
+  }
   const isFriend = !!friendsCache[uid];
   const isSelf = uid === myUid;
   els.profileDmBtn.style.display = isSelf ? 'none' : '';
@@ -4278,6 +4345,14 @@ function openProfileCard(uid){
   els.profileModal.classList.remove('closing');
   els.profileModal.style.display = 'flex';
 }
+els.profileCardUidCopy.addEventListener('click', () => {
+  const text = els.profileCardUid.textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    els.profileCardUidCopy.textContent = 'コピー済み';
+    setTimeout(() => { els.profileCardUidCopy.textContent = 'コピー'; }, 1400);
+  }).catch(() => {});
+});
 els.profileClose.addEventListener('click', () => { closeModal(els.profileModal); });
 els.profileModal.addEventListener('click', (e) => { if (e.target === els.profileModal) closeModal(els.profileModal); });
 els.profileDmBtn.addEventListener('click', () => {
