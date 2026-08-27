@@ -2310,7 +2310,9 @@ function openComposerMenu(){
   composerMenuOpen = true;
   clearTimeout(composerMenuTimer);
   const inner = els.composerPlusInner;
-  // 最終的な自然サイズを、画面には出さずに一旦計測する（ボタン自体を含む inner ごと測る）
+  // 幅にはトランジションがかかっているため、測定中はそれを止めないと
+  // 「アニメーション開始直後の値」を拾ってしまい、目標サイズが正しく測れない
+  inner.style.transition = 'none';
   inner.style.visibility = 'hidden';
   inner.style.width = '220px';
   inner.style.height = 'auto';
@@ -2320,12 +2322,16 @@ function openComposerMenu(){
   inner.style.width = '42px';
   inner.style.height = '42px';
   inner.style.borderRadius = '999px';
-  void inner.offsetWidth; // reflow確定
+  void inner.offsetWidth; // reflow確定（この時点ではまだ transition:none）
   inner.classList.add('open');
   requestAnimationFrame(() => {
-    inner.style.width = naturalW + 'px';
-    inner.style.height = naturalH + 'px';
-    inner.style.borderRadius = 'var(--radius-md)';
+    inner.style.transition = ''; // ここでCSS本来のトランジションを復活させ
+    requestAnimationFrame(() => {
+      // その次のフレームで初めて目標サイズに変更し、実際にアニメーションさせる
+      inner.style.width = naturalW + 'px';
+      inner.style.height = naturalH + 'px';
+      inner.style.borderRadius = 'var(--radius-md)';
+    });
   });
 }
 function closeComposerMenu(){
