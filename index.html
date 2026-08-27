@@ -147,8 +147,13 @@
   html.compact-mode .msg-meta{ margin-bottom: 1px; }
 
   ::selection{ background: var(--amber-dim); color: var(--text); }
-  ::-webkit-scrollbar{ width: 8px; height: 8px; }
-  ::-webkit-scrollbar-thumb{ background: var(--surface-3); border-radius: 8px; }
+  /* スクロールバーは細め・普段は透明にしておき、実際にそのエリアにカーソルが乗っている
+     間だけうっすら表示する（Firefox / WebKit系の両方に対応） */
+  *{ scrollbar-width: none; scrollbar-color: transparent transparent; }
+  *:hover{ scrollbar-width: thin; scrollbar-color: var(--surface-3) transparent; }
+  ::-webkit-scrollbar{ width: 5px; height: 5px; }
+  ::-webkit-scrollbar-thumb{ background: transparent; border-radius: 8px; }
+  :hover::-webkit-scrollbar-thumb{ background: var(--surface-3); }
   ::-webkit-scrollbar-track{ background: transparent; }
 
   button{ font-family: inherit; transition: background-color 0.225s var(--ease-ios), border-color 0.225s var(--ease-ios), color 0.225s var(--ease-ios), transform 0.4s var(--ease-spring), box-shadow 0.225s var(--ease-ios), opacity 0.2s ease; }
@@ -731,35 +736,41 @@
   #schedule-btn.has-pending{ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
 
   /* ===================== コンポーザーの「＋」メニュー ===================== */
-  .composer-plus-wrap{ position:relative; flex-shrink:0; }
-  #composer-plus-btn{
-    background: var(--surface-2); border:1px solid var(--border); color: var(--text-muted);
-    width:42px; height:42px; border-radius: var(--radius-pill); flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
-    transition: transform 0.28s var(--ease-spring), color 0.188s, border-color 0.188s, background-color 0.188s;
-  }
-  #composer-plus-btn:active{ transform: scale(.9); transition-duration: 0.125s; }
-  #composer-plus-btn.open{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); transform: rotate(45deg); }
-  #composer-plus-btn.has-pending:not(.open){ color: var(--teal); border-color: var(--teal-dim); background: var(--teal-dim); }
-  #composer-menu{
-    position:absolute; left:0; bottom: calc(100% + 10px); width: 220px;
+  .composer-plus-wrap{ position:relative; flex-shrink:0; align-self:flex-end; width:42px; height:42px; }
+  .composer-plus-inner{
+    position:absolute; left:0; bottom:0; width:42px; height:42px; border-radius: var(--radius-pill);
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
     backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
-    border: 1px solid var(--border); box-shadow: var(--shadow-md);
-    z-index: 30; display:none; flex-direction:column; gap: 2px; overflow:hidden;
+    border:1px solid var(--border); overflow:hidden; z-index:25;
+    display:flex; flex-direction:column; justify-content:flex-end;
     transition: width .44s var(--ease-spring-soft), height .44s var(--ease-spring-soft),
-                border-radius .38s var(--ease-ios), padding .38s var(--ease-ios), box-shadow .3s ease;
+                border-radius .38s var(--ease-ios), border-color .25s ease, box-shadow .3s ease;
+  }
+  .composer-plus-inner.open{ border-color: var(--amber-dim); box-shadow: var(--shadow-md); }
+  .composer-plus-inner.has-pending:not(.open){ border-color: var(--teal-dim); }
+  #composer-plus-btn{
+    background:none; border:none; color: var(--text-muted);
+    width:42px; height:42px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+    transition: transform 0.28s var(--ease-spring), color 0.188s;
+  }
+  #composer-plus-btn:active{ transform: scale(.9); transition-duration: 0.125s; }
+  .composer-plus-inner.open #composer-plus-btn{ color: var(--amber); transform: rotate(45deg); }
+  .composer-plus-inner.has-pending:not(.open) #composer-plus-btn{ color: var(--teal); }
+  #composer-menu{
+    display:flex; flex-direction:column; gap: 2px; flex-shrink:0; padding: 6px 6px 2px;
   }
   #composer-menu .composer-menu-item{
     opacity:0; transform: translateX(-4px); transition: opacity .16s ease, transform .16s ease;
   }
-  #composer-menu.open .composer-menu-item{ opacity:1; transform: translateX(0); transition-delay: .2s; }
-  #composer-menu.open .composer-menu-item:nth-child(2){ transition-delay: .24s; }
-  #composer-menu.open .composer-menu-item:nth-child(3){ transition-delay: .28s; }
+  .composer-plus-inner.open #composer-menu .composer-menu-item{ opacity:1; transform: translateX(0); transition-delay: .2s; }
+  .composer-plus-inner.open #composer-menu .composer-menu-item:nth-child(2){ transition-delay: .24s; }
+  .composer-plus-inner.open #composer-menu .composer-menu-item:nth-child(3){ transition-delay: .28s; }
   .composer-menu-item{
     display:flex; align-items:center; gap:11px; background:none; border:none; color: var(--text);
     padding: 10px 11px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight:600; text-align:left;
+    white-space:nowrap;
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
     transition: background-color 0.15s ease;
   }
@@ -1262,7 +1273,7 @@
   /* タッチ端末でタップ後に hover の色/変形が残ってしまう「hover 貼り付き」を防ぐため、
      実際にマウスでホバー可能な環境(pointer:fine かつ hover:hover)でのみ hover 演出を適用する。 */
   @media (hover: hover) and (pointer: fine){
-    #composer-plus-btn:hover{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); }
+    #composer-plus-btn:hover{ color: var(--amber); }
     .composer-menu-item:hover{ background: var(--surface-3); }
     #search-btn:hover{ color: var(--amber); }
     #search-close-btn:hover{ color: var(--text); }
@@ -1501,22 +1512,24 @@
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
 
-      <div class="composer-plus-wrap">
-        <button id="composer-plus-btn" type="button" title="その他の操作">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        </button>
-        <div id="composer-menu">
-          <button type="button" class="composer-menu-item" data-action="attach">
-            <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="cmi-label">画像を送信</span>
-          </button>
-          <button type="button" class="composer-menu-item" data-action="poll">
-            <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M12 19V5M20 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="cmi-label">アンケートを作成</span>
-          </button>
-          <button type="button" class="composer-menu-item" data-action="schedule">
-            <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <span class="cmi-label">送信予約</span>
+      <div class="composer-plus-wrap" id="composer-plus-wrap">
+        <div class="composer-plus-inner" id="composer-plus-inner">
+          <div id="composer-menu">
+            <button type="button" class="composer-menu-item" data-action="attach">
+              <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cmi-label">画像を送信</span>
+            </button>
+            <button type="button" class="composer-menu-item" data-action="poll">
+              <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M12 19V5M20 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cmi-label">アンケートを作成</span>
+            </button>
+            <button type="button" class="composer-menu-item" data-action="schedule">
+              <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+              <span class="cmi-label">送信予約</span>
+            </button>
+          </div>
+          <button id="composer-plus-btn" type="button" title="その他の操作">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           </button>
         </div>
       </div>
@@ -2036,7 +2049,7 @@ const els = {
   typing: $('typing-indicator'),
   input: $('msg-input'), sendBtn: $('send-btn'), mentionSuggest: $('mention-suggest'),
   attachBtn: $('attach-btn'), imageFileInput: $('image-file-input'),
-  composerPlusBtn: $('composer-plus-btn'), composerMenu: $('composer-menu'),
+  composerPlusBtn: $('composer-plus-btn'), composerMenu: $('composer-menu'), composerPlusInner: $('composer-plus-inner'),
   pollBtn: $('poll-btn'), pollModal: $('poll-modal'), pollQuestionInput: $('poll-question-input'),
   pollOptionCount: $('poll-option-count'), pollOptionsInputs: $('poll-options-inputs'),
   pollAllowFreetext: $('poll-allow-freetext'), pollCreateConfirm: $('poll-create-confirm'), pollCreateCancel: $('poll-create-cancel'),
@@ -2296,43 +2309,35 @@ function openComposerMenu(){
   if (composerMenuOpen) return;
   composerMenuOpen = true;
   clearTimeout(composerMenuTimer);
-  const el = els.composerMenu;
-  // 最終的な自然サイズを、画面には出さずに一旦計測する
-  el.style.visibility = 'hidden';
-  el.style.display = 'flex';
-  el.style.width = '220px';
-  el.style.height = 'auto';
-  el.style.padding = '6px';
-  const naturalW = el.offsetWidth, naturalH = el.offsetHeight;
-  el.style.visibility = '';
-  // ＋ボタンと同じ 42x42・円形からスタート
-  el.style.width = '42px';
-  el.style.height = '42px';
-  el.style.padding = '0px';
-  el.style.borderRadius = '999px';
-  void el.offsetWidth; // reflow確定
-  el.classList.add('open');
-  els.composerPlusBtn.classList.add('open');
+  const inner = els.composerPlusInner;
+  // 最終的な自然サイズを、画面には出さずに一旦計測する（ボタン自体を含む inner ごと測る）
+  inner.style.visibility = 'hidden';
+  inner.style.width = '220px';
+  inner.style.height = 'auto';
+  const naturalW = inner.offsetWidth, naturalH = inner.offsetHeight;
+  inner.style.visibility = '';
+  // ＋ボタンと同じ 42x42・円形からスタート（ボタンと完全に重なった状態＝繋がって見える）
+  inner.style.width = '42px';
+  inner.style.height = '42px';
+  inner.style.borderRadius = '999px';
+  void inner.offsetWidth; // reflow確定
+  inner.classList.add('open');
   requestAnimationFrame(() => {
-    el.style.width = naturalW + 'px';
-    el.style.height = naturalH + 'px';
-    el.style.padding = '6px';
-    el.style.borderRadius = 'var(--radius-md)';
+    inner.style.width = naturalW + 'px';
+    inner.style.height = naturalH + 'px';
+    inner.style.borderRadius = 'var(--radius-md)';
   });
 }
 function closeComposerMenu(){
   if (!composerMenuOpen) return;
   composerMenuOpen = false;
-  const el = els.composerMenu;
-  el.classList.remove('open');
-  els.composerPlusBtn.classList.remove('open');
-  el.style.width = '42px';
-  el.style.height = '42px';
-  el.style.padding = '0px';
-  el.style.borderRadius = '999px';
+  const inner = els.composerPlusInner;
+  inner.classList.remove('open');
+  inner.style.width = '42px';
+  inner.style.height = '42px';
+  inner.style.borderRadius = '999px';
   composerMenuTimer = setTimeout(() => {
-    el.style.display = 'none';
-    el.style.width = ''; el.style.height = ''; el.style.padding = ''; el.style.borderRadius = '';
+    inner.style.width = ''; inner.style.height = ''; inner.style.borderRadius = '';
   }, 460);
 }
 els.composerPlusBtn.addEventListener('click', (e) => {
@@ -2341,7 +2346,7 @@ els.composerPlusBtn.addEventListener('click', (e) => {
 });
 document.addEventListener('click', (e) => {
   if (!composerMenuOpen) return;
-  if (e.target.closest('#composer-menu') || e.target.closest('#composer-plus-btn')) return;
+  if (e.target.closest('#composer-plus-inner')) return;
   closeComposerMenu();
 });
 els.composerMenu.querySelectorAll('.composer-menu-item').forEach((btn) => {
@@ -2360,7 +2365,7 @@ function syncComposerMenuState(){
   if (attachItem) attachItem.disabled = els.attachBtn.disabled;
   const pending = els.scheduleBtn.classList.contains('has-pending');
   if (scheduleItem) scheduleItem.classList.toggle('has-pending', pending);
-  els.composerPlusBtn.classList.toggle('has-pending', pending);
+  els.composerPlusInner.classList.toggle('has-pending', pending);
 }
 new MutationObserver(syncComposerMenuState).observe(els.attachBtn, { attributes: true, attributeFilter: ['disabled'] });
 new MutationObserver(syncComposerMenuState).observe(els.scheduleBtn, { attributes: true, attributeFilter: ['class'] });
