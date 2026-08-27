@@ -368,12 +368,10 @@
 
   #topbar{
     display:flex; align-items:center; gap:14px; padding: calc(14px + env(safe-area-inset-top) + var(--safe-top-extra)) 20px 14px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, color-mix(in srgb, var(--surface) calc(72% * var(--panel-alpha)), transparent), color-mix(in srgb, var(--surface) calc(20% * var(--panel-alpha)), transparent));
-    backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
+    background: transparent;
     flex-shrink:0;
   }
-  #menu-btn{ display:none; background:none; border:1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: var(--radius-md); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; font-size:16px; }
+  #menu-btn{ display:none; background: var(--surface-2); border:1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: var(--radius-md); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; font-size:16px; }
   @media (max-width:760px){ #menu-btn{ display:block; } }
 
   #topbar .titles{ min-width:0; flex-shrink:0; }
@@ -496,7 +494,12 @@
   .search-result-item .sri-text mark{ background: var(--amber-dim); color: var(--amber); border-radius:3px; padding:0 1px; }
   .search-result-empty{ padding: 14px 10px; text-align:center; font-size:12.5px; color: var(--text-faint); }
 
-  #messages{ flex:1; min-height: 0; overflow-y:auto; padding: 22px 24px 10px; display:flex; flex-direction:column; scroll-behavior: smooth; }
+  #messages{
+    flex:1; min-height: 0; overflow-y:auto; padding: 22px 24px 10px; display:flex; flex-direction:column; scroll-behavior: smooth;
+    /* 上下端に向けて中身がふわっと透明にフェードし、区切り線なしでトップバー/コンポーザーへ溶け込むように見せる */
+    mask-image: linear-gradient(to bottom, transparent 0, black 32px, black calc(100% - 32px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 32px, black calc(100% - 32px), transparent 100%);
+  }
   .empty-state{ margin:auto; text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 12px; max-width: 280px; line-height:1.7; }
 
   .day-divider{
@@ -686,7 +689,7 @@
     font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
   }
 
-  #composer{ position:relative; display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom) + var(--safe-bottom-extra)); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface) calc(88% * var(--panel-alpha)), transparent); backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); -webkit-backdrop-filter: blur(calc(12px + (1 - var(--panel-alpha)) * 22px)) saturate(180%); flex-shrink:0; }
+  #composer{ position:relative; display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom) + var(--safe-bottom-extra)); background: transparent; flex-shrink:0; }
 
   /* ===================== @メンション ===================== */
   .mention{
@@ -3274,6 +3277,46 @@ els.selfAvatar.addEventListener('click', () => openNickModal(myName, myIcon, myI
 /* ------------------------------------------------------------------ */
 els.menuBtn.addEventListener('click', () => { els.sidebar.classList.add('open'); els.scrim.classList.add('show'); });
 els.scrim.addEventListener('click', () => { els.sidebar.classList.remove('open'); els.scrim.classList.remove('show'); });
+
+/** 画面左端から右へスワイプでサイドバーを開き、開いている状態から左へスワイプで閉じる */
+(function setupSidebarSwipeGesture(){
+  const EDGE_ZONE = 28;   // 画面左端からこの範囲で始まったタッチだけを「開く」スワイプ候補にする
+  const THRESHOLD = 60;   // これだけ横に動いたら開閉を確定させる
+  let startX = 0, startY = 0, tracking = false;
+
+  document.addEventListener('touchstart', (e) => {
+    if (window.innerWidth > 760) return; // モバイルレイアウトのみ
+    if (els.sidebar.classList.contains('open')) return;
+    const t = e.touches[0];
+    if (t.clientX > EDGE_ZONE) return;
+    startX = t.clientX; startY = t.clientY; tracking = true;
+  }, { passive: true });
+  document.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = t.clientY - startY;
+    if (Math.abs(dy) > Math.abs(dx)) { tracking = false; return; } // 縦スクロールとみなして無視
+    if (dx > THRESHOLD) {
+      els.sidebar.classList.add('open'); els.scrim.classList.add('show');
+      tracking = false;
+    }
+  }, { passive: true });
+  document.addEventListener('touchend', () => { tracking = false; });
+
+  let closeStartX = 0, closeTracking = false;
+  els.sidebar.addEventListener('touchstart', (e) => {
+    closeStartX = e.touches[0].clientX; closeTracking = true;
+  }, { passive: true });
+  els.sidebar.addEventListener('touchmove', (e) => {
+    if (!closeTracking) return;
+    const dx = e.touches[0].clientX - closeStartX;
+    if (dx < -THRESHOLD) {
+      els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
+      closeTracking = false;
+    }
+  }, { passive: true });
+  els.sidebar.addEventListener('touchend', () => { closeTracking = false; });
+})();
 
 /* ------------------------------------------------------------------ */
 /* チャンネル                                                          */
