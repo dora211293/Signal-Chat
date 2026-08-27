@@ -377,6 +377,7 @@
 
   #waveform{ flex:1; height: 34px; min-width: 60px; opacity:.85; }
 
+  #topbar-right{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-shrink:0; }
   #schedule-list-btn{
     position:relative;
     background:none; border:1px solid var(--border); color: var(--text-muted);
@@ -441,6 +442,54 @@
   #onair.off{ color: var(--text-faint); border-color: var(--border); }
   #onair.off .dot{ background: var(--text-faint); box-shadow:none; animation:none; }
   #onair.off .dot::after{ display:none; }
+
+  /* ===================== チャット内検索（虫眼鏡アイコン→検索バーへモーフィング） ===================== */
+  #search-wrap{
+    position:relative; display:flex; align-items:center; height:36px; width:36px; flex-shrink:0;
+    background: var(--surface-2); border:1px solid var(--border); border-radius: 999px; overflow:hidden;
+    transition: width .48s var(--ease-spring-soft), border-color .25s ease, background-color .25s ease;
+  }
+  #search-wrap.open{ width: min(280px, 52vw); border-color: var(--amber-dim); background: var(--surface-2); }
+  #search-btn{
+    width:36px; height:36px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    background:none; border:none; color: var(--text-muted); padding:0;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+    transition: color .25s ease, transform .3s var(--ease-spring);
+  }
+  #search-wrap.open #search-btn{ color: var(--amber); }
+  #search-input{
+    flex:1; min-width:0; height:100%; background:none; border:none; outline:none;
+    color: var(--text); font-size:13.5px; font-family: inherit; padding:0; opacity:0;
+    transition: opacity .22s ease;
+  }
+  #search-wrap.open #search-input{ opacity:1; transition-delay:.2s; }
+  #search-input::placeholder{ color: var(--text-faint); }
+  #search-close-btn{
+    width:30px; height:30px; flex-shrink:0; display:none; align-items:center; justify-content:center;
+    background:none; border:none; color: var(--text-faint); margin-right:3px; opacity:0;
+    transition: opacity .18s ease, color .18s ease;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+  }
+  #search-wrap.open #search-close-btn{ display:flex; opacity:1; transition-delay:.24s; }
+  #search-results{
+    position:absolute; top: calc(100% + 10px); right:0; width: min(340px, 84vw); max-height:min(50vh, 420px);
+    overflow-y:auto; display:none; flex-direction:column; gap:2px; padding:6px;
+    background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
+    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-md); z-index:60;
+  }
+  #search-results.show{ display:flex; animation: tabPanelIn .32s var(--ease-spring) both; }
+  .search-result-item{
+    display:flex; flex-direction:column; gap:2px; padding:9px 11px; border-radius: var(--radius-sm); text-align:left;
+    background:none; border:none; color: var(--text);
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+    transition: background-color .15s ease;
+  }
+  .search-result-item .sri-top{ display:flex; align-items:baseline; gap:6px; font-size:11.5px; color: var(--text-faint); }
+  .search-result-item .sri-name{ font-weight:700; color: var(--text-muted); }
+  .search-result-item .sri-text{ font-size:13px; line-height:1.45; color: var(--text); word-break:break-word; }
+  .search-result-item .sri-text mark{ background: var(--amber-dim); color: var(--amber); border-radius:3px; padding:0 1px; }
+  .search-result-empty{ padding: 14px 10px; text-align:center; font-size:12.5px; color: var(--text-faint); }
 
   #messages{ flex:1; min-height: 0; overflow-y:auto; padding: 22px 24px 10px; display:flex; flex-direction:column; scroll-behavior: smooth; }
   .empty-state{ margin:auto; text-align:center; color: var(--text-faint); font-family: var(--font-mono); font-size: 12px; max-width: 280px; line-height:1.7; }
@@ -913,6 +962,10 @@
   .mini-btn{ background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-dim); }
   .mini-btn-outline{ background:none; border: 1px solid var(--border); color: var(--text-muted); }
   .mini-btn-danger{ background:#4a1f1a; color:#ff9d8a; border:1px solid #6b2f26; }
+  .suspended-tag{
+    display:inline-block; margin-left:6px; padding: 1px 7px; border-radius: var(--radius-pill);
+    background:#4a1f1a; color:#ff9d8a; font-size:10.5px; font-weight:700; vertical-align:middle;
+  }
   .mini-btn-gold{ background: var(--gold-dim); color: var(--gold-2); border: 1px solid var(--gold-dim); }
   .mini-btn:active, .mini-btn-outline:active, .mini-btn-gold:active, .mini-btn-danger:active{ transform: scale(.94); transition-duration: 0.125s; }
   @keyframes reqSentPop{ 0%{ transform: scale(1); } 38%{ transform: scale(.8); } 72%{ transform: scale(1.14); } 100%{ transform: scale(1); } }
@@ -1211,6 +1264,9 @@
   @media (hover: hover) and (pointer: fine){
     #composer-plus-btn:hover{ color: var(--amber); border-color: var(--amber-dim); background: var(--amber-dim); }
     .composer-menu-item:hover{ background: var(--surface-3); }
+    #search-btn:hover{ color: var(--amber); }
+    #search-close-btn:hover{ color: var(--text); }
+    .search-result-item:hover{ background: var(--surface-3); }
     .edit-name-btn:hover{ color: var(--amber); background: var(--amber-dim); transform: translateY(-1px) scale(1.08); }
     .admin-btn:hover{ background: var(--amber-dim); box-shadow: var(--shadow-sm); }
     .add-channel-btn:hover{ border-color: var(--amber); color: var(--amber); background: var(--amber-dim); transform: rotate(90deg) scale(1.1); }
@@ -1393,9 +1449,21 @@
         <div class="freq" id="topbar-freq">—</div>
         <h1 id="topbar-name">読み込み中…</h1>
       </div>
-      <canvas id="waveform"></canvas>
-      <button id="schedule-list-btn" title="予約中のメッセージ" style="display:none;">⏰<span class="unread-dot" id="schedule-count-dot">0</span></button>
-      <div id="onair" class="off"><span class="dot"></span><span id="onair-text">接続中</span></div>
+      <canvas id="waveform" style="display:none;"></canvas>
+      <div id="topbar-right">
+        <button id="schedule-list-btn" title="予約中のメッセージ" style="display:none;">⏰<span class="unread-dot" id="schedule-count-dot">0</span></button>
+        <div id="search-wrap">
+          <button id="search-btn" title="チャット内を検索">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <input type="text" id="search-input" placeholder="キーワード" autocomplete="off">
+          <button id="search-close-btn" title="閉じる" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          </button>
+          <div id="search-results"></div>
+        </div>
+      </div>
+      <div id="onair" class="off" style="display:none;"><span class="dot"></span><span id="onair-text">接続中</span></div>
     </header>
 
     <div id="messages">
@@ -2015,6 +2083,8 @@ const els = {
   smiRadiusSub: $('smi-radius-sub'), smiSafeareaSub: $('smi-safearea-sub'),
   maintenanceScreen: $('maintenance-screen'), splashScreen: $('splash-screen'),
   waveform: $('waveform'),
+  searchWrap: $('search-wrap'), searchBtn: $('search-btn'), searchInput: $('search-input'),
+  searchCloseBtn: $('search-close-btn'), searchResults: $('search-results'),
   notifBanner: $('notif-banner'), notifBannerTitle: $('notif-banner-title'), notifBannerBody: $('notif-banner-body'),
   editModeBtn: $('edit-mode-btn'), scopeSwitch: $('scope-switch'),
   sidebarTabs: $('sidebar-tabs'), channelSection: $('channel-section'), dmSection: $('dm-section'), dmTabDot: $('dm-tab-dot'),
@@ -2544,7 +2614,7 @@ function openPollModal(){
 }
 function closePollModal(){ closeModal(els.pollModal); }
 els.pollBtn.addEventListener('click', () => {
-  if (!canPostInCurrentChannel()) { alert('このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
+  if (!canPostInCurrentChannel()) { alert(isSuspended() ? 'アカウントが利用停止されているため投稿できません' : 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
   openPollModal();
 });
 els.pollQuestionInput.addEventListener('input', updatePollCreateButtonState);
@@ -2718,6 +2788,73 @@ function jumpToMessage(id){
 }
 
 /* ------------------------------------------------------------------ */
+/* チャット内検索（今のチャンネル/DMで読み込み済みのメッセージから検索）        */
+/* 虫眼鏡ボタン自体が横に伸びて検索バーになるモーフィング演出つき             */
+/* ------------------------------------------------------------------ */
+let searchOpen = false;
+function openSearch(){
+  if (searchOpen) return;
+  searchOpen = true;
+  els.searchWrap.classList.add('open');
+  setTimeout(() => els.searchInput.focus(), 180);
+}
+function closeSearch(){
+  if (!searchOpen) return;
+  searchOpen = false;
+  els.searchWrap.classList.remove('open');
+  els.searchInput.value = '';
+  els.searchResults.classList.remove('show');
+  els.searchResults.innerHTML = '';
+}
+function runSearch(query){
+  const q = query.trim();
+  if (!q) { els.searchResults.classList.remove('show'); els.searchResults.innerHTML = ''; return; }
+  const qLower = q.toLowerCase();
+  const matches = (lastDocsSnapshot || [])
+    .map((d) => ({ id: d.id, data: d.data() }))
+    .filter((m) => m.data.text && m.data.text.toLowerCase().includes(qLower))
+    .reverse() // 新しいメッセージから順に
+    .slice(0, 30);
+  if (!matches.length) {
+    els.searchResults.innerHTML = `<div class="search-result-empty">「${escapeHtml(q)}」に一致するメッセージが見つかりません</div>`;
+    els.searchResults.classList.add('show');
+    return;
+  }
+  els.searchResults.innerHTML = matches.map((m) => {
+    const text = m.data.text || '';
+    const idx = text.toLowerCase().indexOf(qLower);
+    const snippetStart = Math.max(0, idx - 24);
+    const prefix = snippetStart > 0 ? '…' : '';
+    const snippet = text.slice(snippetStart, idx + qLower.length + 40);
+    const suffix = snippetStart + snippet.length < text.length ? '…' : '';
+    const before = escapeHtml(snippet.slice(0, idx - snippetStart));
+    const hit = escapeHtml(snippet.slice(idx - snippetStart, idx - snippetStart + q.length));
+    const after = escapeHtml(snippet.slice(idx - snippetStart + q.length));
+    const when = m.data.ts && m.data.ts.toDate ? m.data.ts.toDate().toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    return `<button type="button" class="search-result-item" data-id="${escapeHtml(m.id)}">
+      <span class="sri-top"><span class="sri-name">${escapeHtml(m.data.name || 'ユーザー')}</span><span>${escapeHtml(when)}</span></span>
+      <span class="sri-text">${prefix}${before}<mark>${hit}</mark>${after}${suffix}</span>
+    </button>`;
+  }).join('');
+  els.searchResults.classList.add('show');
+}
+els.searchBtn.addEventListener('click', () => { if (searchOpen) closeSearch(); else openSearch(); });
+els.searchCloseBtn.addEventListener('click', closeSearch);
+els.searchInput.addEventListener('input', () => runSearch(els.searchInput.value));
+els.searchInput.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSearch(); });
+els.searchResults.addEventListener('click', (e) => {
+  const item = e.target.closest('.search-result-item');
+  if (!item) return;
+  closeSearch();
+  jumpToMessage(item.dataset.id);
+});
+document.addEventListener('click', (e) => {
+  if (!searchOpen) return;
+  if (e.target.closest('#search-wrap')) return;
+  closeSearch();
+});
+
+/* ------------------------------------------------------------------ */
 /* リアクション機能                                                     */
 /* ------------------------------------------------------------------ */
 let openReactionPickerId = null;
@@ -2854,10 +2991,10 @@ function sweepExpiredImage(docId, coll, baseId, m){
 })();
 
 /* ------------------------------------------------------------------ */
-/* 波形ビジュアライザ（signature element）                              */
+/* 波形ビジュアライザ（廃止・#waveform は display:none。関数は温存のみ）    */
 /* ------------------------------------------------------------------ */
 const canvas = els.waveform;
-const ctx = canvas.getContext('2d');
+const ctx = canvas ? canvas.getContext('2d') : null;
 let barsAmp = new Array(28).fill(0.08);
 let pulseBoost = 0;
 let lastSize = '';
@@ -2890,7 +3027,7 @@ function drawWave(){
   pulseBoost *= 0.90;
   requestAnimationFrame(drawWave);
 }
-requestAnimationFrame(drawWave);
+// #waveform は非表示にしたため描画ループは開始しない（drawWave/requestAnimationFrameの呼び出しをやめて負荷を削減）
 
 /* ------------------------------------------------------------------ */
 /* プロフィール（名前・アイコン・認証）                                   */
@@ -3227,7 +3364,12 @@ function listenChannels(){
 /* ------------------------------------------------------------------ */
 /* チャンネルごとの投稿制限（金バッジのみ 等）                              */
 /* ------------------------------------------------------------------ */
+function isSuspended(){
+  const me = usersCache[myUid] || {};
+  return me.suspended === true && !isAdmin;
+}
 function canPostInCurrentChannel(){
+  if (isSuspended()) return false;
   if (currentKind !== 'channel' || !currentChannelId) return true; // DMは常に投稿可
   const chDoc = channelsCache.find((d) => d.id === currentChannelId);
   const data = chDoc ? chDoc.data() : null;
@@ -3240,7 +3382,10 @@ function updateComposerPermission(){
   const allowed = canPostInCurrentChannel();
   els.input.disabled = !allowed;
   els.attachBtn.disabled = !allowed;
-  if (!allowed) {
+  if (isSuspended()) {
+    els.input.placeholder = 'アカウントが利用停止されています';
+    els.sendBtn.disabled = true;
+  } else if (!allowed) {
     els.input.placeholder = 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます';
     els.sendBtn.disabled = true;
   } else if (currentKind === 'channel') {
@@ -3869,7 +4014,7 @@ els.scheduleBtn.addEventListener('click', () => {
   const text = els.input.value.trim();
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
   if ((!text && !pendingImage) || !targetId) { alert('先に送信するメッセージを入力してください'); return; }
-  if (!canPostInCurrentChannel()) { alert('このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
+  if (!canPostInCurrentChannel()) { alert(isSuspended() ? 'アカウントが利用停止されているため投稿できません' : 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
   const d = new Date(Date.now() + 5 * 60 * 1000);
   d.setSeconds(0, 0);
   const pad = (n) => String(n).padStart(2, '0');
@@ -3961,7 +4106,7 @@ async function sendMessage(){
   const image = pendingImage;
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
   if ((!text && !image) || !targetId || !db || !myName || !myUid) return;
-  if (!canPostInCurrentChannel()) { alert('このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
+  if (!canPostInCurrentChannel()) { alert(isSuspended() ? 'アカウントが利用停止されているため投稿できません' : 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
   const replySnapshot = replyingTo;
   const mentionUids = extractMentionUids(text);
   els.input.value = '';
@@ -4317,14 +4462,10 @@ function openProfileCard(uid){
   } else {
     els.profileCardBio.style.display = 'none';
   }
-  // リンク・参加日
+  // リンク
   const metaItems = [];
   if (prof.link) {
     metaItems.push(`<div class="profile-card-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><a href="${escapeHtml(prof.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(prof.link.replace(/^https?:\/\//i, ''))}</a></div>`);
-  }
-  if (prof.createdAt && prof.createdAt.toDate) {
-    const joined = prof.createdAt.toDate().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-    metaItems.push(`<div class="profile-card-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>${escapeHtml(joined)}から利用</span></div>`);
   }
   els.profileCardMetaRow.innerHTML = metaItems.join('');
   // UID(金認証バッジ保持者のみ・アカウント誤削除時の復旧用)
@@ -4549,6 +4690,12 @@ async function setVerified(uid, val){
 async function setGoldVerified(uid, val){
   await setDoc(doc(db, 'users', uid), { goldVerified: val }, { merge: true }).catch(() => {});
 }
+/** 管理者によるアカウント利用停止(投稿・送信を禁止する)。削除と違い、いつでも解除できる */
+async function setSuspended(uid, val, name){
+  if (!isAdmin || !db) return;
+  if (val && !confirm(`${name} さんのアカウントを停止しますか？(メッセージの送信ができなくなります)`)) return;
+  await setDoc(doc(db, 'users', uid), { suspended: val }, { merge: true }).catch(() => {});
+}
 async function setChannelGoldOnly(channelId, val){
   if (!isAdmin || !db) return;
   await setDoc(doc(db, 'channels', channelId), { postGoldOnly: val }, { merge: true }).catch(() => {});
@@ -4598,17 +4745,20 @@ function renderAdminPanel(){
       const u = usersCache[uid];
       const verified = u.verified === true;
       const gold = u.goldVerified === true;
+      const suspended = u.suspended === true;
       const row = document.createElement('div');
       row.className = 'admin-row';
       row.innerHTML = `<div class="avatar-sm">${avatarInner(u)}</div>
-        <div class="info">${nameWithBadge(u.name || '(無名)', verified, gold)}</div>
+        <div class="info">${nameWithBadge(u.name || '(無名)', verified, gold)}${suspended ? '<span class="suspended-tag">停止中</span>' : ''}</div>
         <div class="actions">
           <button type="button" class="mini-btn-outline" data-act="toggle">${verified ? '認証解除' : '認証付与'}</button>
           <button type="button" class="mini-btn-gold" data-act="toggle-gold">${gold ? '金解除' : '金付与'}</button>
+          <button type="button" class="${suspended ? 'mini-btn-outline' : 'mini-btn-danger'}" data-act="suspend">${suspended ? '停止解除' : '利用停止'}</button>
           <button type="button" class="mini-btn-danger" data-act="del">削除</button>
         </div>`;
       row.querySelector('[data-act="toggle"]').addEventListener('click', () => setVerified(uid, !verified));
       row.querySelector('[data-act="toggle-gold"]').addEventListener('click', () => setGoldVerified(uid, !gold));
+      row.querySelector('[data-act="suspend"]').addEventListener('click', () => setSuspended(uid, !suspended, u.name || '(無名)'));
       row.querySelector('[data-act="del"]').addEventListener('click', () => forceDeleteAccount(uid, u.name || '(無名)'));
       body.appendChild(row);
     });
