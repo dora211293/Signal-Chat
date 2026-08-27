@@ -5224,7 +5224,19 @@ if (els.authGateSignup) {
       dismissAuthGate();
       boot();
     } catch (e) {
-      els.authGateLoginError.textContent = 'UIDが見つからないか、パスワードが違います';
+      console.error('ログインに失敗しました', e);
+      if (e && e.message === 'NOT_FOUND') {
+        els.authGateLoginError.textContent = 'そのUIDのユーザーが見つかりません';
+      } else if (e && e.message === 'BAD_PASSWORD') {
+        els.authGateLoginError.textContent = 'パスワードが違います';
+      } else if (e && (e.code === 'permission-denied' || /permission/i.test(e.message || ''))) {
+        // パスワード未設定のアカウントは passwordHash フィールドが存在しないため、
+        // Firestoreのセキュリティルールの書き方によっては読み取りが拒否されて
+        // ここに来ることがある（例:「passwordHashが存在するドキュメントのみ読み取り許可」等の条件）。
+        els.authGateLoginError.textContent = '読み取りが拒否されました(Firestoreのセキュリティルールを確認してください)';
+      } else {
+        els.authGateLoginError.textContent = 'ログインに失敗しました。もう一度お試しください';
+      }
       els.authGateLoginError.classList.add('show');
     } finally {
       els.authGateLoginSubmit.disabled = false;
