@@ -369,7 +369,7 @@
   #topbar{
     display:flex; align-items:center; gap:14px; padding: calc(14px + env(safe-area-inset-top) + var(--safe-top-extra)) 20px 14px;
     background: transparent;
-    flex-shrink:0;
+    position:absolute; top:0; left:0; right:0; z-index:20;
   }
   #menu-btn{ display:none; background: var(--surface-2); border:1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: var(--radius-md); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; font-size:16px; }
   @media (max-width:760px){ #menu-btn{ display:block; } }
@@ -495,7 +495,8 @@
   .search-result-empty{ padding: 14px 10px; text-align:center; font-size:12.5px; color: var(--text-faint); }
 
   #messages{
-    flex:1; min-height: 0; overflow-y:auto; padding: 22px 24px 10px; display:flex; flex-direction:column; scroll-behavior: smooth;
+    position:absolute; inset:0; overflow-y:auto; display:flex; flex-direction:column; scroll-behavior: smooth;
+    padding: calc(var(--topbar-h, 90px) + 18px) 24px calc(var(--dock-h, 90px) + 14px);
     /* 上下端に向けて中身がふわっと透明にフェードし、区切り線なしでトップバー/コンポーザーへ溶け込むように見せる */
     mask-image: linear-gradient(to bottom, transparent 0, black 110px, black calc(100% - 110px), transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 110px, black calc(100% - 110px), transparent 100%);
@@ -690,6 +691,7 @@
   }
 
   #composer{ position:relative; display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom) + var(--safe-bottom-extra)); background: transparent; flex-shrink:0; }
+  #composer-dock{ position:absolute; left:0; right:0; bottom:0; z-index:20; display:flex; flex-direction:column; }
 
   /* ===================== @メンション ===================== */
   .mention{
@@ -1484,6 +1486,7 @@
       <div class="empty-state" id="empty-state">まだメッセージがありません。<br>最初の一言を送信してみましょう。</div>
     </div>
 
+    <div id="composer-dock">
     <div id="typing-indicator"></div>
 
     <div id="image-preview-strip" style="display:none;">
@@ -1542,6 +1545,7 @@
       <button id="send-btn" disabled title="送信">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11L21 3L13 21L11 13L3 11Z" stroke="#14100a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
       </button>
+    </div>
     </div>
   </main>
 
@@ -3279,6 +3283,26 @@ els.menuBtn.addEventListener('click', () => { els.sidebar.classList.add('open');
 els.scrim.addEventListener('click', () => { els.sidebar.classList.remove('open'); els.scrim.classList.remove('show'); });
 
 /** 画面左端から右へスワイプでサイドバーを開き、開いている状態から左へスワイプで閉じる */
+/** トップバー/コンポーザードックは画面上にフローティング表示なので、
+    実際の高さぶんだけ #messages に余白を持たせて中身が隠れないようにする */
+(function setupOverlayPadding(){
+  const topbarEl = document.getElementById('topbar');
+  const dockEl = document.getElementById('composer-dock');
+  if (!topbarEl || !dockEl) return;
+  const root = document.documentElement;
+  function update(){
+    root.style.setProperty('--topbar-h', topbarEl.offsetHeight + 'px');
+    root.style.setProperty('--dock-h', dockEl.offsetHeight + 'px');
+  }
+  update();
+  if (window.ResizeObserver) {
+    new ResizeObserver(update).observe(topbarEl);
+    new ResizeObserver(update).observe(dockEl);
+  } else {
+    window.addEventListener('resize', update);
+  }
+})();
+
 (function setupSidebarSwipeGesture(){
   const EDGE_ZONE = 28;   // 画面左端からこの範囲で始まったタッチだけを「開く」スワイプ候補にする
   const THRESHOLD = 60;   // これだけ横に動いたら開閉を確定させる
