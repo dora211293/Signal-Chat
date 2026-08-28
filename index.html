@@ -212,8 +212,11 @@
     border-right: 1px solid var(--border);
     display:flex; flex-direction:column;
     min-width: 0; min-height: 0; height: 100%;
+    overflow:hidden;
+    /* 右上の角だけ大きく丸めて、画面の角までまっすぐ伸びずにカーブして切れているように見せる */
+    border-top-right-radius: calc(80px * var(--ui-radius-scale));
   }
-  .brand{ display:flex; align-items:center; padding: calc(14px + env(safe-area-inset-top)) 18px 14px; flex-shrink: 0; }
+  .brand{ display:flex; align-items:center; padding: calc(20px + env(safe-area-inset-top) + var(--safe-top-extra)) 18px 14px; flex-shrink: 0; }
   .brand-text{ display:flex; flex-direction:column; line-height:1.15; }
   .brand-text b{ font-family: var(--font-display); font-size: 17px; letter-spacing: .04em; }
   .brand-text span{ font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); letter-spacing: .06em; }
