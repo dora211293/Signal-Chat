@@ -176,20 +176,6 @@
     transition: background-color 0.438s ease, border-color 0.438s ease, color 0.375s ease, box-shadow 0.438s ease;
   }
 
-  button:focus-visible, input:focus-visible, textarea:focus-visible, .channel-item:focus-visible{
-    outline: none; box-shadow: 0 0 0 3.5px var(--amber-dim), 0 0 0 1.5px var(--amber);
-  }
-  /* 検索バーや＋メニューのように overflow:hidden な丸ピルに内包されたボタンは、
-     フォーカスリングが角丸でクリップされて不自然な縦線に見えてしまうため無効化する
-     （色の変化などですでにフォーカス/操作のフィードバックはある） */
-  #search-btn:focus-visible, #search-close-btn:focus-visible, #composer-plus-btn:focus-visible{
-    box-shadow: none;
-  }
-  /* クリップされない代わりに、外側の丸ピル自体にフォーカスリングを出す */
-  #search-wrap:focus-within, .composer-plus-inner:focus-within{
-    box-shadow: 0 0 0 3.5px var(--amber-dim), 0 0 0 1.5px var(--amber);
-  }
-
   @keyframes appIn{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform: translateY(0); } }
 
   /* ===================== App shell ===================== */
