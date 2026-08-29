@@ -1323,6 +1323,163 @@
     .preset-chip:hover{ transform: translateY(-1px); border-color: var(--amber-dim); color: var(--amber); }
     .friends-btn:hover{ background: var(--teal-dim); box-shadow: var(--shadow-sm); }
     .dm-item:hover{ background: var(--surface-2); transform: translateX(3px) scale(1.01); }
+    .tet-launch-btn:hover{ background: var(--amber-dim); box-shadow: var(--shadow-sm); }
+    .tet-ctrl-btn:hover{ background: var(--surface-3); border-color: var(--amber-dim); }
+    .tet-primary-btn:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 8px 20px color-mix(in srgb, var(--amber) 40%, transparent); }
+    .tet-friend-row:hover{ background: var(--surface-2); }
+    .tetris-invite-chip:hover{ border-color: var(--amber-dim); transform: translateY(-1px); }
+  }
+
+  /* ===================== テトリス99 (SIGNAL BATTLE) ===================== */
+  :root{
+    --tet-I: #3DE0B8; --tet-O: #F0A93F; --tet-T: #C792F2; --tet-S: #6FD66F;
+    --tet-Z: #FF6B5B; --tet-J: #5B9CFF; --tet-L: #F2934A; --tet-G: #55555A;
+  }
+  .tet-launch-btn{ border-color: var(--amber-dim); color: var(--amber); }
+  #tetris-screen{
+    position: fixed; inset: 0; z-index: 900; background: var(--bg-grad);
+    display: none; flex-direction: column; opacity: 0; pointer-events: none;
+    transition: opacity .32s var(--ease-ios);
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra));
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom-extra));
+  }
+  #tetris-screen.show{ opacity: 1; pointer-events: auto; }
+  #tetris-close-btn{
+    position: absolute; top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra) + 10px); right: 14px; z-index: 30;
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--text-muted); font-size: 15px; display:flex; align-items:center; justify-content:center;
+  }
+  .tet-view{ flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ---- ロビー ---- */
+  #tetris-lobby, #tetris-invite-picker, #tetris-result{ align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+  .tet-card{
+    width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 22px 20px; text-align: center;
+  }
+  .tet-card h2{ margin: 0 0 4px; font-size: 19px; font-weight: 700; }
+  .tet-card .tet-sub{ margin: 0 0 16px; font-size: 12.5px; color: var(--text-muted); }
+  #tet-room-code{
+    font-family: var(--font-mono); font-size: 13px; color: var(--amber); background: var(--amber-dim);
+    border-radius: var(--radius-pill); padding: 6px 14px; display:inline-block; margin-bottom: 16px; letter-spacing: .5px;
+  }
+  #tet-lobby-players{ list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+  .tet-player-row{
+    display:flex; align-items:center; gap: 10px; padding: 8px 10px; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: left;
+  }
+  .tet-player-row .msg-avatar{ position: static; width: 32px; height: 32px; font-size: 13px; }
+  .tet-player-row .tet-pname{ font-size: 13.5px; font-weight: 600; flex: 1; }
+  .tet-player-row .tet-host-badge{ font-size: 10.5px; color: var(--amber); background: var(--amber-dim); padding: 2px 7px; border-radius: var(--radius-pill); }
+  .tet-player-row .tet-ready-badge{ font-size: 10.5px; color: var(--teal); }
+  .tet-btn-row{ display:flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .tet-primary-btn, .tet-secondary-btn{
+    padding: 11px 18px; border-radius: var(--radius-pill); border: 1px solid transparent; font-weight: 700; font-size: 13.5px;
+    transition: background-color 0.225s var(--ease-ios), transform 0.35s var(--ease-spring), box-shadow 0.225s var(--ease-ios), opacity .2s ease;
+  }
+  .tet-primary-btn{ background: var(--amber); color: #14100a; }
+  .tet-primary-btn:disabled{ opacity: .4; }
+  .tet-secondary-btn{ background: var(--surface-2); border-color: var(--border); color: var(--text); }
+  .tet-secondary-btn.danger{ color: var(--danger); }
+
+  /* ---- 招待ピッカー ---- */
+  #tetris-invite-picker .tet-card{ max-width: 400px; text-align: left; }
+  #tet-invite-friend-list{ list-style:none; margin: 4px 0 16px; padding:0; max-height: 320px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; }
+  .tet-friend-row{
+    display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .tet-friend-row .msg-avatar{ position:static; width:30px; height:30px; font-size:12px; }
+  .tet-friend-row .tet-fname{ flex:1; font-size: 13px; font-weight: 600; }
+  .tet-friend-row input[type=checkbox]{ width:18px; height:18px; accent-color: var(--amber); }
+  #tet-invite-empty{ font-size: 12.5px; color: var(--text-faint); text-align:center; padding: 18px 0; }
+
+  /* ---- カウントダウン ---- */
+  #tetris-countdown-overlay{
+    position:absolute; inset:0; z-index: 20; display:flex; align-items:center; justify-content:center;
+    background: #000000aa; opacity:0; pointer-events:none; transition: opacity .2s ease;
+  }
+  #tetris-countdown-overlay.show{ opacity:1; }
+  #tet-countdown-num{ font-size: 88px; font-weight: 800; color: var(--amber); font-family: var(--font-mono); }
+  #tet-countdown-num.pulse{ animation: tetCdPulse .78s var(--ease-spring); }
+  @keyframes tetCdPulse{ 0%{ transform: scale(1.8); opacity:0; } 60%{ transform: scale(1); opacity:1; } 100%{ transform: scale(1); opacity:1; } }
+
+  /* ---- ゲーム画面 ---- */
+  #tetris-game{ padding: 6px 10px 10px; gap: 6px; }
+  #tet-hud{ display:flex; align-items:center; justify-content: space-between; padding: 4px 6px; font-size: 12px; color: var(--text-muted); flex-shrink:0; }
+  #tet-hud .tet-alive{ color: var(--teal); font-weight:700; font-family: var(--font-mono); }
+  #tet-hud .tet-myrank{ color: var(--amber); font-weight:700; }
+  #tet-opp-strip{
+    display:flex; gap:6px; overflow-x:auto; padding: 2px 2px 6px; flex-shrink:0; -webkit-overflow-scrolling:touch;
+  }
+  .tet-opp-card{
+    flex-shrink:0; width: 46px; display:flex; flex-direction:column; align-items:center; gap:3px; opacity: .95;
+  }
+  .tet-opp-card.tet-opp-out{ opacity: .32; }
+  .tet-opp-board{
+    width: 40px; aspect-ratio: 1/2; display:grid; grid-template-columns: repeat(10,1fr); grid-template-rows: repeat(20,1fr);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; overflow:hidden;
+  }
+  .tet-opp-board .tet-cell{ border-radius: 0; }
+  .tet-opp-name{ font-size: 8.5px; color: var(--text-muted); max-width: 46px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
+  .tet-opp-card .msg-avatar{ position:static; width:18px; height:18px; font-size:8px; border-width:1px; }
+  #tet-board-area{ flex:1; min-height:0; display:flex; align-items:center; justify-content:center; gap: 10px; }
+  #tet-side-left, #tet-side-right{ display:flex; flex-direction:column; gap:8px; align-items:center; flex-shrink:0; }
+  .tet-mini-box{
+    width: 56px; height: 56px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-xs);
+    display:grid; grid-template-columns: repeat(4,1fr); grid-template-rows: repeat(4,1fr); padding: 4px;
+  }
+  .tet-mini-label{ font-size: 9px; color: var(--text-faint); text-align:center; letter-spacing: .5px; }
+  #tet-board{
+    height: 100%; max-height: 100%; aspect-ratio: 1/2; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 6px; display:grid; grid-template-columns: repeat(10,1fr); grid-template-rows: repeat(20,1fr);
+    overflow:hidden; box-shadow: var(--shadow-sm); position:relative;
+  }
+  .tet-cell{ box-sizing:border-box; border: 1px solid #ffffff08; }
+  .tet-cell.filled{ border-color: #00000040; box-shadow: inset 0 0 0 1px #ffffff22; }
+  .tet-cell.ghost{ background: transparent !important; box-shadow: inset 0 0 0 2px #ffffff33; border-color: transparent; }
+  #tet-garbage-warn{ position:absolute; right:-9px; top:0; bottom:0; width:5px; display:flex; flex-direction:column-reverse; gap:1px; }
+  .tet-garbage-warn-seg{ flex:1; background: var(--danger); border-radius:2px; opacity:.85; }
+  #tet-controls{ flex-shrink:0; display:flex; flex-direction:column; gap: 8px; padding-top: 6px; }
+  .tet-ctrl-row{ display:flex; gap:8px; justify-content:center; }
+  .tet-ctrl-btn{
+    width: 56px; height: 56px; border-radius: 18px; background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text); font-size: 20px; display:flex; align-items:center; justify-content:center;
+    transition: background-color .18s var(--ease-ios), transform .3s var(--ease-spring);
+  }
+  .tet-ctrl-btn:active{ transform: scale(.9); background: var(--amber-dim); }
+  .tet-ctrl-btn.wide{ width: 118px; font-size: 13px; font-weight:700; }
+  .tet-ctrl-btn.tet-hold-btn{ color: var(--teal); }
+  .tet-ctrl-btn.tet-harddrop-btn{ color: var(--danger); font-weight:700; }
+
+  /* ---- 結果画面 ---- */
+  #tetris-result .tet-card{ max-width: 380px; }
+  #tet-result-list{ list-style:none; margin: 12px 0 18px; padding:0; display:flex; flex-direction:column; gap:7px; max-height: 340px; overflow-y:auto; }
+  .tet-result-row{
+    display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius: var(--radius-sm); background: var(--surface-2); border: 1px solid var(--border);
+  }
+  .tet-result-row.tet-rank-1{ border-color: var(--gold-2); background: var(--gold-dim); }
+  .tet-result-rank{ font-family: var(--font-mono); font-weight:700; font-size: 13px; width: 26px; text-align:center; color: var(--text-muted); }
+  .tet-result-row.tet-rank-1 .tet-result-rank{ color: var(--gold-2); }
+  .tet-result-row .msg-avatar{ position:static; width:30px; height:30px; font-size:12px; }
+  .tet-result-name{ flex:1; font-size: 13px; font-weight:600; }
+  .tet-result-lines{ font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+  /* ---- チャット内の招待チップ ---- */
+  .tetris-invite-chip{
+    display:flex; align-items:center; gap:10px; margin-top: 6px; padding: 10px 12px; border-radius: var(--radius-sm);
+    background: var(--surface-2); border: 1px solid var(--border); max-width: 260px;
+  }
+  .tetris-invite-chip .tic-icon{ font-size: 22px; flex-shrink:0; }
+  .tetris-invite-chip .tic-body{ flex:1; min-width:0; }
+  .tetris-invite-chip .tic-title{ font-size: 12.5px; font-weight:700; }
+  .tetris-invite-chip .tic-sub{ font-size: 10.5px; color: var(--text-muted); }
+  .tetris-invite-join-btn{
+    flex-shrink:0; padding: 7px 12px; border-radius: var(--radius-pill); background: var(--amber); color:#14100a;
+    font-size: 11.5px; font-weight:700;
+  }
+  @media (min-width: 720px){
+    #tet-board{ width: auto; }
+    .tet-ctrl-btn:hover{ background: var(--surface-3); }
   }
 </style>
 </head>
@@ -1424,6 +1581,7 @@
 
     <button class="admin-btn" id="admin-panel-btn">管理者パネル</button>
     <button class="friends-btn" id="friends-panel-btn">フレンド<span class="req-dot" id="friend-req-dot">0</span></button>
+    <button class="friends-btn tet-launch-btn" id="tetris-open-btn">🎮 テトリス99<span class="req-dot" id="tetris-invite-dot">0</span></button>
 
     <div class="sidebar-tabs" id="sidebar-tabs">
       <div class="tab-thumb"></div>
@@ -1548,6 +1706,87 @@
     </div>
   </main>
 
+</div>
+
+<!-- ===================== テトリス99 (SIGNAL BATTLE) ===================== -->
+<div id="tetris-screen">
+  <button id="tetris-close-btn" title="閉じる">✕</button>
+
+  <div id="tetris-lobby" class="tet-view">
+    <div class="tet-card">
+      <h2>🎮 テトリス99</h2>
+      <p class="tet-sub">最後まで生き残った1人が勝利。SIGNALのDMで友達を招待しよう。</p>
+      <div id="tet-room-code">ROOM ----</div>
+      <ul id="tet-lobby-players"></ul>
+      <div class="tet-btn-row">
+        <button type="button" class="tet-secondary-btn" id="tet-invite-btn">📨 SIGNALで招待</button>
+        <button type="button" class="tet-primary-btn" id="tet-start-btn" style="display:none;">対戦開始</button>
+        <button type="button" class="tet-secondary-btn danger" id="tet-leave-btn">退出</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tetris-invite-picker" class="tet-view" style="display:none;">
+    <div class="tet-card">
+      <h2>友達を招待</h2>
+      <p class="tet-sub">送るとDMに参加ボタン付きの招待が届きます。</p>
+      <ul id="tet-invite-friend-list"></ul>
+      <div id="tet-invite-empty" style="display:none;">フレンドがいません。先にフレンドを追加してください。</div>
+      <div class="tet-btn-row">
+        <button type="button" class="tet-secondary-btn" id="tet-invite-back-btn">戻る</button>
+        <button type="button" class="tet-primary-btn" id="tet-invite-send-btn">招待を送る</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tetris-game" class="tet-view" style="display:none;">
+    <div id="tetris-countdown-overlay"><span id="tet-countdown-num">3</span></div>
+    <div id="tet-hud">
+      <span>生存 <span class="tet-alive" id="tet-hud-alive">1/1</span></span>
+      <span id="tet-hud-lines">0 ライン</span>
+      <span class="tet-myrank" id="tet-hud-rank" style="display:none;"></span>
+    </div>
+    <div id="tet-opp-strip"></div>
+    <div id="tet-board-area">
+      <div id="tet-side-left">
+        <div class="tet-mini-label">HOLD</div>
+        <div class="tet-mini-box" id="tet-hold-box"></div>
+      </div>
+      <div id="tet-board"><div id="tet-garbage-warn"></div></div>
+      <div id="tet-side-right">
+        <div class="tet-mini-label">NEXT</div>
+        <div class="tet-mini-box" id="tet-next-box-0"></div>
+        <div class="tet-mini-box" id="tet-next-box-1"></div>
+        <div class="tet-mini-box" id="tet-next-box-2"></div>
+      </div>
+    </div>
+    <div id="tet-controls">
+      <div class="tet-ctrl-row">
+        <button type="button" class="tet-ctrl-btn tet-hold-btn" data-act="hold" title="ホールド">HOLD</button>
+        <button type="button" class="tet-ctrl-btn" data-act="ccw" title="左回転">⟲</button>
+        <button type="button" class="tet-ctrl-btn" data-act="cw" title="右回転">⟳</button>
+      </div>
+      <div class="tet-ctrl-row">
+        <button type="button" class="tet-ctrl-btn" data-act="left" title="左へ">◀</button>
+        <button type="button" class="tet-ctrl-btn" data-act="soft" title="ソフトドロップ">▼</button>
+        <button type="button" class="tet-ctrl-btn" data-act="right" title="右へ">▶</button>
+      </div>
+      <div class="tet-ctrl-row">
+        <button type="button" class="tet-ctrl-btn wide tet-harddrop-btn" data-act="hard" title="ハードドロップ">⤓ ハードドロップ</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tetris-result" class="tet-view" style="display:none;">
+    <div class="tet-card">
+      <h2 id="tet-result-title">試合終了</h2>
+      <p class="tet-sub" id="tet-result-sub"></p>
+      <ul id="tet-result-list"></ul>
+      <div class="tet-btn-row">
+        <button type="button" class="tet-primary-btn" id="tet-result-close-btn">閉じる</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ===================== 画像ライトボックス ===================== -->
@@ -3812,11 +4051,13 @@ function renderMessages(docs){
     const hasText = !!(m.text && m.text.trim());
     const hasImage = !!m.img;
     const hasPoll = m.type === 'poll' && !!m.poll;
+    const hasTetInvite = m.type === 'tetris_invite' && !!m.tetrisRoomId;
     const imageHtml = hasImage
       ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}">`
       : (m.imgExpired ? `<div class="msg-image-expired">画像は期限切れです</div>` : '');
     const pollHtml = hasPoll ? renderPollChipHtml(m, d.id) : '';
-    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '');
+    const tetInviteHtml = hasTetInvite ? renderTetrisInviteChipHtml(m, d.id) : '';
+    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '') + (hasTetInvite ? ' has-tet-invite' : '');
 
     // 返信元の引用プレビュー（あれば）
     const replyHtml = m.replyTo
@@ -3852,6 +4093,7 @@ function renderMessages(docs){
       dispName, dispIcon, dispImg, verified, gold,
       hasText, m.text || '', hasImage, m.img || '', !!m.imgExpired,
       hasPoll, m.poll || null, m.pollResponses || null,
+      hasTetInvite, m.tetrisRoomId || null,
       metaHtml, receipts, replyHtml, reactionEntries, mentionsMe
     ]);
 
@@ -3861,7 +4103,7 @@ function renderMessages(docs){
         <div class="msg-avatar" data-uid="${m.uid}" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
         <div class="msg-body">
           ${metaHtml}
-          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${renderMessageText(m.text)}</div>` : ''}${pollHtml}</div>
+          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${renderMessageText(m.text)}</div>` : ''}${pollHtml}${tetInviteHtml}</div>
         </div>`;
 
       const body = row.querySelector('.msg-body');
@@ -3989,6 +4231,11 @@ els.messages.addEventListener('click', (e) => {
   if (pollSummary) {
     const id = pollSummary.dataset.msgId;
     if (id) openPollViewModal(id);
+    return;
+  }
+  const tetJoinBtn = e.target.closest('.tetris-invite-join-btn');
+  if (tetJoinBtn && tetJoinBtn.dataset.roomId) {
+    joinTetrisRoomFromInvite(tetJoinBtn.dataset.roomId);
     return;
   }
   const bubble = e.target.closest('.bubble');
@@ -5410,6 +5657,698 @@ if ('serviceWorker' in navigator) {
     requestAnimationFrame(raf);
   })();
 })();
+
+/* ========================================================================
+   テトリス99 (SIGNAL BATTLE) — オンライン対戦テトリス
+   設計方針:
+   - 落下・移動・回転などの「毎フレーム/毎操作」の処理は完全にローカルで完結させ、
+     Firestoreへは一切書き込まない（相手の操作ごとに読み書きが発生すると
+     無料枠の上限にすぐ到達してしまうため）。
+   - 自分の盤面は一定間隔（TET_SYNC_MS）ごとにまとめてFirestoreへ同期するだけ。
+     同期していない間はローカルの落下処理だけが進む。
+   - 攻撃(おじゃま送信)はライン消去という「そこそこ低頻度なイベント」の時だけ
+     書き込む。受信側はリアルタイムリスナーで即座に反映する。
+   ======================================================================== */
+const TET_SYNC_MS = 1400;
+const TET_BOX = { I:4, O:2, T:3, S:3, Z:3, J:3, L:3 };
+const TET_COLORS = { I:'#3DE0B8', O:'#F0A93F', T:'#C792F2', S:'#6FD66F', Z:'#FF6B5B', J:'#5B9CFF', L:'#F2934A', G:'#55555A' };
+const TET_SHAPES = {
+  I: [ [[1,0],[1,1],[1,2],[1,3]], [[0,2],[1,2],[2,2],[3,2]], [[2,0],[2,1],[2,2],[2,3]], [[0,1],[1,1],[2,1],[3,1]] ],
+  O: [ [[0,0],[0,1],[1,0],[1,1]], [[0,0],[0,1],[1,0],[1,1]], [[0,0],[0,1],[1,0],[1,1]], [[0,0],[0,1],[1,0],[1,1]] ],
+  T: [ [[0,1],[1,0],[1,1],[1,2]], [[0,1],[1,1],[1,2],[2,1]], [[1,0],[1,1],[1,2],[2,1]], [[0,1],[1,0],[1,1],[2,1]] ],
+  S: [ [[0,1],[0,2],[1,0],[1,1]], [[0,1],[1,1],[1,2],[2,2]], [[1,1],[1,2],[2,0],[2,1]], [[0,0],[1,0],[1,1],[2,1]] ],
+  Z: [ [[0,0],[0,1],[1,1],[1,2]], [[0,2],[1,1],[1,2],[2,1]], [[1,0],[1,1],[2,1],[2,2]], [[0,1],[1,0],[1,1],[2,0]] ],
+  J: [ [[0,0],[1,0],[1,1],[1,2]], [[0,1],[0,2],[1,1],[2,1]], [[1,0],[1,1],[1,2],[2,2]], [[0,1],[1,1],[2,0],[2,1]] ],
+  L: [ [[0,2],[1,0],[1,1],[1,2]], [[0,1],[1,1],[2,1],[2,2]], [[1,0],[1,1],[1,2],[2,0]], [[0,0],[0,1],[1,1],[2,1]] ],
+};
+const TET_KICKS = [[0,0],[0,-1],[0,1],[0,-2],[0,2],[-1,0]];
+
+// --- ルーム/セッション状態 ---
+let tetRoomId = null, tetRoomStatus = null, tetIsHost = false, tetHostUid = null;
+let tetRoomUnsub = null, tetPlayersUnsub = null, tetAttacksUnsub = null;
+let tetOtherPlayers = {};   // { uid: {name,icon,iconImg,board,alive,lines,koAtMs} }
+let tetAllPlayersCache = [];
+let tetSeenAttackIds = new Set();
+let tetInviteSelected = new Set();
+let tetCountdownActive = false;
+
+// --- ローカルゲーム状態 ---
+let tetBoard = [];
+let tetCur = null, tetHoldType = null, tetCanHold = true;
+let tetQueue = [];
+let tetLines = 0, tetScore = 0, tetLevel = 1, tetGravityMs = 800;
+let tetCombo = -1, tetLastWasTetris = false;
+let tetPendingGarbage = 0;
+let tetAlive = true, tetGameActive = false;
+let tetSoftDropHeld = false;
+let tetDropAccMs = 0, tetLastTickAt = 0, tetLockDelayMs = 0, tetLockResets = 0;
+let tetLoopTimer = null, tetSyncTimer = null;
+let tetCellEls = [];
+
+function tetShuffledBag(){
+  const arr = ['I','O','T','S','Z','J','L'];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function tetGetAbsCells(piece){
+  return TET_SHAPES[piece.type][piece.rot].map(([r, c]) => [r + piece.r, c + piece.c]);
+}
+function tetCollideAt(piece){
+  for (const [r, c] of tetGetAbsCells(piece)) {
+    if (c < 0 || c >= 10 || r >= 20) return true;
+    if (r >= 0 && tetBoard[r] && tetBoard[r][c]) return true;
+  }
+  return false;
+}
+function tetCanMoveDown(){ return !tetCollideAt({ ...tetCur, r: tetCur.r + 1 }); }
+
+function tetSpawnPiece(){
+  if (tetPendingGarbage > 0) {
+    const n = Math.min(tetPendingGarbage, 8);
+    tetPendingGarbage = 0;
+    tetApplyGarbage(n);
+    if (!tetAlive) return;
+  }
+  if (tetQueue.length < 7) tetQueue.push(...tetShuffledBag());
+  const type = tetQueue.shift();
+  const box = TET_BOX[type];
+  const piece = { type, rot: 0, r: 0, c: Math.floor((10 - box) / 2) };
+  if (tetCollideAt(piece)) { tetHandleKO(); return; }
+  tetCur = piece;
+  tetLockDelayMs = 0; tetLockResets = 0; tetDropAccMs = 0;
+}
+function tetTryMove(dr, dc){
+  if (!tetCur) return false;
+  const np = { ...tetCur, r: tetCur.r + dr, c: tetCur.c + dc };
+  if (tetCollideAt(np)) return false;
+  tetCur = np;
+  if (!tetCanMoveDown()) { tetLockDelayMs = 0; tetLockResets = Math.min(tetLockResets + 1, 15); }
+  else { tetLockDelayMs = 0; }
+  return true;
+}
+function tetTryRotate(dir){
+  if (!tetCur) return false;
+  const newRot = (tetCur.rot + dir + 4) % 4;
+  for (const [kr, kc] of TET_KICKS) {
+    const np = { type: tetCur.type, rot: newRot, r: tetCur.r + kr, c: tetCur.c + kc };
+    if (!tetCollideAt(np)) {
+      tetCur = np;
+      if (!tetCanMoveDown()) { tetLockDelayMs = 0; tetLockResets = Math.min(tetLockResets + 1, 15); }
+      return true;
+    }
+  }
+  return false;
+}
+function tetComputeGhost(){
+  if (!tetCur) return null;
+  let g = tetCur;
+  while (!tetCollideAt({ ...g, r: g.r + 1 })) g = { ...g, r: g.r + 1 };
+  return g;
+}
+function tetHardDrop(){
+  if (!tetCur) return;
+  let moved = true;
+  while (moved) moved = tetTryMove(1, 0);
+  tetLockPiece();
+}
+function tetHold(){
+  if (!tetCanHold || !tetCur) return;
+  tetCanHold = false;
+  const curType = tetCur.type;
+  if (tetHoldType == null) {
+    tetHoldType = curType;
+    tetSpawnPiece();
+  } else {
+    const swapType = tetHoldType;
+    tetHoldType = curType;
+    const box = TET_BOX[swapType];
+    const piece = { type: swapType, rot: 0, r: 0, c: Math.floor((10 - box) / 2) };
+    if (tetCollideAt(piece)) { tetHandleKO(); return; }
+    tetCur = piece;
+    tetLockDelayMs = 0; tetLockResets = 0; tetDropAccMs = 0;
+  }
+}
+function tetClearLines(){
+  let cleared = 0;
+  for (let r = 19; r >= 0; r--) {
+    if (tetBoard[r].every((cell) => cell)) {
+      tetBoard.splice(r, 1);
+      tetBoard.unshift(new Array(10).fill(''));
+      cleared++;
+      r++;
+    }
+  }
+  if (cleared > 0) {
+    tetLines += cleared;
+    tetLevel = Math.floor(tetLines / 10) + 1;
+    tetGravityMs = Math.max(110, 1000 - (tetLevel - 1) * 70);
+    tetScore += [0, 100, 300, 500, 800][cleared] * tetLevel;
+  }
+  return cleared;
+}
+function tetHandleAttackAfterClear(cleared){
+  const ATTACK_TABLE = [0, 0, 1, 2, 4];
+  const COMBO_BONUS = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4];
+  let attack = 0;
+  if (cleared > 0) {
+    tetCombo++;
+    attack = ATTACK_TABLE[cleared] + COMBO_BONUS[Math.min(tetCombo, COMBO_BONUS.length - 1)];
+    if (cleared === 4 && tetLastWasTetris) attack += 1;
+    tetLastWasTetris = cleared === 4;
+  } else {
+    tetCombo = -1;
+  }
+  if (attack > 0) {
+    if (tetPendingGarbage > 0) {
+      const cancel = Math.min(tetPendingGarbage, attack);
+      tetPendingGarbage -= cancel; attack -= cancel;
+    }
+    if (attack > 0) tetSendAttack(attack);
+  }
+}
+function tetLockPiece(){
+  if (!tetCur) return;
+  for (const [r, c] of tetGetAbsCells(tetCur)) { if (r >= 0 && r < 20) tetBoard[r][c] = tetCur.type; }
+  tetCur = null;
+  const cleared = tetClearLines();
+  tetHandleAttackAfterClear(cleared);
+  tetCanHold = true;
+  if (tetAlive) tetSpawnPiece();
+  tetRenderBoard();
+}
+function tetApplyGarbage(n){
+  const gapCol = Math.floor(Math.random() * 10);
+  for (let i = 0; i < n; i++) {
+    const removed = tetBoard.shift();
+    if (removed.some((cell) => cell)) { tetHandleKO(); return; }
+    const row = new Array(10).fill('G');
+    row[gapCol] = '';
+    tetBoard.push(row);
+  }
+}
+async function tetSendAttack(lines){
+  if (!db || !tetRoomId) return;
+  const targets = Object.keys(tetOtherPlayers).filter((uid) => tetOtherPlayers[uid].alive !== false);
+  if (!targets.length) return;
+  const target = targets[Math.floor(Math.random() * targets.length)];
+  try {
+    await addDoc(collection(db, 'tetrisRooms', tetRoomId, 'attacks'), { from: myUid, target, lines, ts: serverTimestamp() });
+  } catch (_) {}
+}
+function tetHandleKO(){
+  if (!tetAlive) return;
+  tetAlive = false;
+  tetGameActive = false;
+  if (tetLoopTimer) { clearInterval(tetLoopTimer); tetLoopTimer = null; }
+  if (tetSyncTimer) { clearInterval(tetSyncTimer); tetSyncTimer = null; }
+  tetSyncToFirestore(true);
+  const rankEl = $('tet-hud-rank');
+  if (rankEl) { rankEl.style.display = ''; rankEl.textContent = '脱落しました（観戦中）'; }
+  tetRenderBoard();
+}
+
+/* ---- 描画 ---- */
+function tetBuildBoardDom(){
+  const boardEl = $('tet-board');
+  if (!boardEl) return;
+  boardEl.querySelectorAll('.tet-cell').forEach((el) => el.remove());
+  tetCellEls = [];
+  for (let i = 0; i < 200; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'tet-cell';
+    boardEl.appendChild(cell);
+    tetCellEls.push(cell);
+  }
+}
+function tetRenderMiniBox(id, type){
+  const box = $(id);
+  if (!box) return;
+  box.innerHTML = '';
+  if (!type) return;
+  TET_SHAPES[type][0].forEach(([r, c]) => {
+    const d = document.createElement('div');
+    d.style.gridRowStart = r + 1; d.style.gridColumnStart = c + 1;
+    d.style.background = TET_COLORS[type]; d.style.borderRadius = '2px';
+    box.appendChild(d);
+  });
+}
+function tetRenderBoard(){
+  if (!tetCellEls.length) return;
+  const ghost = tetComputeGhost();
+  const ghostCells = ghost ? tetGetAbsCells(ghost) : [];
+  const curCells = tetCur ? tetGetAbsCells(tetCur) : [];
+  for (let r = 0; r < 20; r++) {
+    for (let c = 0; c < 10; c++) {
+      const el = tetCellEls[r * 10 + c];
+      const locked = tetBoard[r] && tetBoard[r][c];
+      let type = locked || '';
+      let isGhost = false;
+      if (!type) {
+        if (curCells.some(([cr, cc]) => cr === r && cc === c)) type = tetCur.type;
+        else if (ghostCells.some(([cr, cc]) => cr === r && cc === c)) isGhost = true;
+      }
+      if (type) { el.className = 'tet-cell filled'; el.style.background = TET_COLORS[type]; }
+      else if (isGhost) { el.className = 'tet-cell ghost'; el.style.background = ''; }
+      else { el.className = 'tet-cell'; el.style.background = ''; }
+    }
+  }
+  tetRenderMiniBox('tet-hold-box', tetHoldType);
+  for (let i = 0; i < 3; i++) tetRenderMiniBox('tet-next-box-' + i, tetQueue[i]);
+  const linesEl = $('tet-hud-lines');
+  if (linesEl) linesEl.textContent = tetLines + ' ライン';
+}
+function tetMiniBoardHtml(str){
+  if (!str) return '';
+  let html = '';
+  for (let i = 0; i < 200; i++) {
+    const ch = str[i];
+    html += (ch && ch !== '.') ? `<div class="tet-cell" style="background:${TET_COLORS[ch] || '#666'}"></div>` : `<div class="tet-cell"></div>`;
+  }
+  return html;
+}
+function tetRenderOppStrip(){
+  const strip = $('tet-opp-strip');
+  if (!strip) return;
+  strip.innerHTML = Object.keys(tetOtherPlayers).map((uid) => {
+    const p = tetOtherPlayers[uid];
+    const out = p.alive === false;
+    const c = avatarColor(uid);
+    return `<div class="tet-opp-card${out ? ' tet-opp-out' : ''}">
+      <div class="msg-avatar" style="color:${c};border:1px solid ${c}55">${avatarInner({ icon: p.icon, iconImg: p.iconImg, name: p.name })}</div>
+      <div class="tet-opp-board">${tetMiniBoardHtml(p.board)}</div>
+      <div class="tet-opp-name">${escapeHtml(p.name || '?')}${out ? ' 💀' : ''}</div>
+    </div>`;
+  }).join('');
+  parseEmoji(strip);
+}
+function tetUpdateHud(){
+  const total = Object.keys(tetOtherPlayers).length + 1;
+  const aliveCount = Object.values(tetOtherPlayers).filter((p) => p.alive !== false).length + (tetAlive ? 1 : 0);
+  const el = $('tet-hud-alive');
+  if (el) el.textContent = aliveCount + '/' + total;
+}
+
+/* ---- ループ / 同期 ---- */
+function tetTick(){
+  if (!tetGameActive) return;
+  const now = Date.now();
+  const dt = tetLastTickAt ? now - tetLastTickAt : 16;
+  tetLastTickAt = now;
+  const gravity = tetSoftDropHeld ? Math.max(24, Math.floor(tetGravityMs / 15)) : tetGravityMs;
+  tetDropAccMs += dt;
+  if (tetDropAccMs >= gravity) {
+    tetDropAccMs = 0;
+    if (tetCur) {
+      const moved = tetTryMove(1, 0);
+      if (!moved) {
+        tetLockDelayMs += gravity;
+        if (tetLockDelayMs >= 450 || tetLockResets >= 15) tetLockPiece();
+      }
+    }
+  }
+  tetRenderBoard();
+}
+function tetEncodeBoard(){
+  const copy = tetBoard.map((row) => row.slice());
+  if (tetCur) { for (const [r, c] of tetGetAbsCells(tetCur)) { if (r >= 0 && r < 20 && c >= 0 && c < 10) copy[r][c] = tetCur.type; } }
+  return copy.map((row) => row.map((cell) => cell || '.').join('')).join('');
+}
+async function tetSyncToFirestore(isKo){
+  if (!db || !tetRoomId || !myUid) return;
+  const payload = { board: tetEncodeBoard(), lines: tetLines, score: tetScore, level: tetLevel, updatedAt: serverTimestamp() };
+  if (isKo) { payload.alive = false; payload.koAtMs = Date.now(); }
+  try { await setDoc(doc(db, 'tetrisRooms', tetRoomId, 'players', myUid), payload, { merge: true }); } catch (_) {}
+}
+function tetListenAttacks(roomId){
+  if (tetAttacksUnsub) tetAttacksUnsub();
+  const q = query(collection(db, 'tetrisRooms', roomId, 'attacks'), where('target', '==', myUid));
+  tetAttacksUnsub = onSnapshot(q, (snap) => {
+    snap.docChanges().forEach((chg) => {
+      if (chg.type !== 'added') return;
+      if (tetSeenAttackIds.has(chg.doc.id)) return;
+      tetSeenAttackIds.add(chg.doc.id);
+      const data = chg.doc.data();
+      if (data.from === myUid) return;
+      tetPendingGarbage += (data.lines || 0);
+    });
+  });
+}
+
+/* ---- ゲーム開始/終了/画面遷移 ---- */
+function tetBeginLocalGame(){
+  tetBoard = Array.from({ length: 20 }, () => new Array(10).fill(''));
+  tetQueue = []; tetHoldType = null; tetCanHold = true;
+  tetLines = 0; tetScore = 0; tetLevel = 1; tetGravityMs = 800;
+  tetCombo = -1; tetLastWasTetris = false; tetPendingGarbage = 0;
+  tetSeenAttackIds = new Set();
+  tetAlive = true; tetGameActive = true;
+  tetLockDelayMs = 0; tetLockResets = 0; tetDropAccMs = 0; tetLastTickAt = 0;
+  tetBuildBoardDom();
+  tetSpawnPiece();
+  tetRenderBoard();
+  const rankEl = $('tet-hud-rank'); if (rankEl) rankEl.style.display = 'none';
+  if (tetLoopTimer) clearInterval(tetLoopTimer);
+  tetLoopTimer = setInterval(tetTick, 16);
+  if (tetSyncTimer) clearInterval(tetSyncTimer);
+  tetSyncTimer = setInterval(() => tetSyncToFirestore(false), TET_SYNC_MS);
+  tetListenAttacks(tetRoomId);
+  tetSyncToFirestore(false);
+}
+function tetBeginCountdown(startAtMs){
+  if (tetCountdownActive || !startAtMs) return;
+  tetCountdownActive = true;
+  const overlay = $('tetris-countdown-overlay'); const numEl = $('tet-countdown-num');
+  if (overlay) overlay.classList.add('show');
+  const tick = () => {
+    const remain = Math.ceil((startAtMs - Date.now()) / 1000);
+    if (remain <= 0) {
+      if (overlay) overlay.classList.remove('show');
+      tetCountdownActive = false;
+      tetBeginLocalGame();
+      if (tetIsHost && db) updateDoc(doc(db, 'tetrisRooms', tetRoomId), { status: 'playing' }).catch(() => {});
+      return;
+    }
+    if (numEl) { numEl.textContent = String(remain); numEl.classList.remove('pulse'); void numEl.offsetWidth; numEl.classList.add('pulse'); }
+    setTimeout(tick, 1000);
+  };
+  tick();
+}
+function tetShowView(name){
+  const map = { lobby: 'tetris-lobby', invite: 'tetris-invite-picker', game: 'tetris-game', result: 'tetris-result' };
+  Object.entries(map).forEach(([k, id]) => { const el = $(id); if (el) el.style.display = k === name ? 'flex' : 'none'; });
+}
+function tetShowScreen(){
+  const scr = $('tetris-screen');
+  if (!scr) return;
+  scr.style.display = 'flex';
+  requestAnimationFrame(() => scr.classList.add('show'));
+  if (els.sidebar) els.sidebar.classList.remove('open');
+  if (els.scrim) els.scrim.classList.remove('show');
+}
+function tetCloseScreen(){
+  const scr = $('tetris-screen');
+  if (!scr) return;
+  scr.classList.remove('show');
+  setTimeout(() => { scr.style.display = 'none'; }, 340);
+  tetShowView('lobby');
+}
+function tetRenderLobby(players){
+  const list = $('tet-lobby-players');
+  if (!list) return;
+  list.innerHTML = players.map((p) => {
+    const c = avatarColor(p.uid);
+    return `<li class="tet-player-row">
+      <div class="msg-avatar" style="color:${c};border:1px solid ${c}55">${avatarInner({ icon: p.icon, iconImg: p.iconImg, name: p.name })}</div>
+      <span class="tet-pname">${escapeHtml(p.name || '?')}</span>
+      ${p.uid === tetHostUid ? '<span class="tet-host-badge">ホスト</span>' : ''}
+    </li>`;
+  }).join('');
+  parseEmoji(list);
+  const startBtn = $('tet-start-btn');
+  if (startBtn) startBtn.style.display = tetIsHost ? '' : 'none';
+}
+function tetCheckEndCondition(allPlayers){
+  if (!tetRoomStatus || tetRoomStatus === 'waiting' || tetRoomStatus === 'ended') return;
+  const aliveList = allPlayers.filter((p) => p.alive !== false);
+  const shouldEnd = (allPlayers.length >= 2 && aliveList.length <= 1) || (allPlayers.length === 1 && aliveList.length === 0);
+  if (shouldEnd) {
+    tetRoomStatus = 'ended';
+    if (db && tetRoomId) updateDoc(doc(db, 'tetrisRooms', tetRoomId), { status: 'ended', endedAt: serverTimestamp() }).catch(() => {});
+    tetShowResult(allPlayers);
+  }
+}
+function tetShowResult(allPlayers){
+  tetGameActive = false;
+  if (tetLoopTimer) { clearInterval(tetLoopTimer); tetLoopTimer = null; }
+  if (tetSyncTimer) { clearInterval(tetSyncTimer); tetSyncTimer = null; }
+  const sorted = [...allPlayers].sort((a, b) => {
+    const aAlive = a.alive !== false, bAlive = b.alive !== false;
+    if (aAlive !== bAlive) return aAlive ? -1 : 1;
+    return (b.koAtMs || 0) - (a.koAtMs || 0);
+  });
+  const myRank = sorted.findIndex((p) => p.uid === myUid) + 1;
+  const titleEl = $('tet-result-title'), subEl = $('tet-result-sub'), listEl = $('tet-result-list');
+  if (titleEl) titleEl.textContent = myRank === 1 ? '🏆 勝利！' : '試合終了';
+  if (subEl) subEl.textContent = myRank ? `あなたの順位: ${myRank} / ${sorted.length}` : '';
+  if (listEl) {
+    listEl.innerHTML = sorted.map((p, i) => {
+      const c = avatarColor(p.uid);
+      return `<li class="tet-result-row${i === 0 ? ' tet-rank-1' : ''}">
+        <span class="tet-result-rank">${i + 1}</span>
+        <div class="msg-avatar" style="color:${c};border:1px solid ${c}55">${avatarInner({ icon: p.icon, iconImg: p.iconImg, name: p.name })}</div>
+        <span class="tet-result-name">${escapeHtml(p.name || '?')}</span>
+        <span class="tet-result-lines">${p.lines || 0}ライン</span>
+      </li>`;
+    }).join('');
+    parseEmoji(listEl);
+  }
+  tetShowView('result');
+}
+
+/* ---- Firestoreリスナー ---- */
+function tetListenRoom(roomId){
+  if (tetRoomUnsub) tetRoomUnsub();
+  tetRoomUnsub = onSnapshot(doc(db, 'tetrisRooms', roomId), (snap) => {
+    if (!snap.exists()) { tetLeaveRoom(true); return; }
+    const room = snap.data();
+    tetRoomStatus = room.status; tetHostUid = room.hostUid; tetIsHost = room.hostUid === myUid;
+    const codeEl = $('tet-room-code');
+    if (codeEl) codeEl.textContent = 'ROOM ' + roomId.slice(0, 6).toUpperCase();
+    if (room.status === 'waiting') {
+      tetShowView('lobby');
+      tetRenderLobby(tetAllPlayersCache);
+    } else if (room.status === 'countdown') {
+      tetShowView('game');
+      tetBeginCountdown(room.startAtMs);
+    } else if (room.status === 'playing') {
+      tetShowView('game');
+      if (!tetGameActive && tetAlive && !tetCountdownActive) tetBeginLocalGame();
+    } else if (room.status === 'ended') {
+      tetShowResult(tetAllPlayersCache);
+    }
+  });
+}
+function tetListenPlayers(roomId){
+  if (tetPlayersUnsub) tetPlayersUnsub();
+  tetPlayersUnsub = onSnapshot(collection(db, 'tetrisRooms', roomId, 'players'), (snap) => {
+    tetOtherPlayers = {};
+    const allPlayers = [];
+    snap.forEach((d) => {
+      const data = d.data();
+      allPlayers.push({ uid: d.id, ...data });
+      if (d.id !== myUid) tetOtherPlayers[d.id] = data;
+    });
+    tetAllPlayersCache = allPlayers;
+    if ($('tetris-lobby') && $('tetris-lobby').style.display !== 'none') tetRenderLobby(allPlayers);
+    tetRenderOppStrip();
+    tetUpdateHud();
+    tetCheckEndCondition(allPlayers);
+  });
+}
+function tetTeardown(){
+  if (tetRoomUnsub) { tetRoomUnsub(); tetRoomUnsub = null; }
+  if (tetPlayersUnsub) { tetPlayersUnsub(); tetPlayersUnsub = null; }
+  if (tetAttacksUnsub) { tetAttacksUnsub(); tetAttacksUnsub = null; }
+  if (tetLoopTimer) { clearInterval(tetLoopTimer); tetLoopTimer = null; }
+  if (tetSyncTimer) { clearInterval(tetSyncTimer); tetSyncTimer = null; }
+  tetGameActive = false; tetRoomId = null; tetOtherPlayers = {}; tetRoomStatus = null; tetCountdownActive = false;
+}
+function tetLeaveRoom(silent){
+  if (tetRoomId && myUid && db) deleteDoc(doc(db, 'tetrisRooms', tetRoomId, 'players', myUid)).catch(() => {});
+  tetTeardown();
+  if (!silent) tetCloseScreen();
+}
+function tetAttachRoom(roomId){
+  tetRoomId = roomId;
+  tetListenRoom(roomId);
+  tetListenPlayers(roomId);
+}
+async function tetJoinRoomCore(roomId){
+  await setDoc(doc(db, 'tetrisRooms', roomId, 'players', myUid), {
+    uid: myUid, name: myName || (usersCache[myUid] && usersCache[myUid].name) || '名無し',
+    icon: myIcon || '', iconImg: myIconImg || '', alive: true, board: '.'.repeat(200),
+    lines: 0, score: 0, joinedAt: serverTimestamp()
+  }, { merge: true });
+}
+async function tetCreateRoom(){
+  if (!db || !myUid) { alert('接続準備中です。少し待ってから再度お試しください'); return; }
+  try {
+    const roomRef = await addDoc(collection(db, 'tetrisRooms'), { hostUid: myUid, status: 'waiting', createdAt: serverTimestamp() });
+    await tetJoinRoomCore(roomRef.id);
+    tetAttachRoom(roomRef.id);
+    tetShowScreen(); tetShowView('lobby');
+  } catch (e) { console.error('テトリスルーム作成に失敗しました', e); alert('ルーム作成に失敗しました'); }
+}
+function joinTetrisRoomFromInvite(roomId){
+  if (!db || !myUid) { alert('接続準備中です。少し待ってから再度お試しください'); return; }
+  getDoc(doc(db, 'tetrisRooms', roomId)).then((roomSnap) => {
+    if (!roomSnap.exists()) { alert('このルームは見つかりません（終了した可能性があります）'); return; }
+    const room = roomSnap.data();
+    if (room.status !== 'waiting') { alert('この対戦はすでに開始または終了しています'); return; }
+    return tetJoinRoomCore(roomId).then(() => { tetAttachRoom(roomId); tetShowScreen(); tetShowView('lobby'); });
+  }).catch((e) => { console.error('テトリス参加に失敗しました', e); alert('参加に失敗しました'); });
+}
+async function tetSendInviteDm(otherUid, roomId){
+  if (!db || !myUid) return;
+  const dmId = dmIdFor(myUid, otherUid);
+  await setDoc(doc(db, 'dms', dmId), { participants: [myUid, otherUid], lastText: '🎮 テトリス99の招待', updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+  await addDoc(collection(db, 'dms', dmId, 'messages'), {
+    type: 'tetris_invite', uid: myUid, name: myName || '', icon: myIcon || '', ts: serverTimestamp(), tetrisRoomId: roomId
+  }).catch(() => {});
+}
+function renderTetrisInviteChipHtml(m, msgId){
+  return `<div class="tetris-invite-chip">
+    <div class="tic-icon">🎮</div>
+    <div class="tic-body">
+      <div class="tic-title">テトリス99 招待</div>
+      <div class="tic-sub">${escapeHtml(m.name || 'メンバー')}からの招待</div>
+    </div>
+    <button type="button" class="tetris-invite-join-btn" data-room-id="${escapeHtml(m.tetrisRoomId)}">参加する</button>
+  </div>`;
+}
+
+/* ---- 招待ピッカー ---- */
+function tetOpenInvitePicker(){
+  tetInviteSelected = new Set();
+  const listEl = $('tet-invite-friend-list'), emptyEl = $('tet-invite-empty');
+  const uids = Object.keys(friendsCache || {});
+  if (emptyEl) emptyEl.style.display = uids.length ? 'none' : 'block';
+  if (listEl) {
+    listEl.innerHTML = uids.map((uid) => {
+      const f = friendsCache[uid]; const c = avatarColor(uid);
+      return `<li class="tet-friend-row" data-uid="${uid}">
+        <div class="msg-avatar" style="color:${c};border:1px solid ${c}55">${avatarInner({ icon: f.icon, iconImg: f.iconImg, name: f.name })}</div>
+        <span class="tet-fname">${escapeHtml(f.name || '?')}</span>
+        <input type="checkbox" data-uid="${uid}">
+      </li>`;
+    }).join('');
+    parseEmoji(listEl);
+  }
+  tetShowView('invite');
+}
+
+/* ---- 操作 (タッチ / スワイプ / キーボード補助) ---- */
+function tetHandleAction(act){
+  if (!tetGameActive || !tetAlive) return;
+  switch (act) {
+    case 'left': tetTryMove(0, -1); break;
+    case 'right': tetTryMove(0, 1); break;
+    case 'soft-once': tetTryMove(1, 0); tetDropAccMs = 0; break;
+    case 'cw': tetTryRotate(1); break;
+    case 'ccw': tetTryRotate(-1); break;
+    case 'hard': tetHardDrop(); break;
+    case 'hold': tetHold(); break;
+  }
+  tetRenderBoard();
+}
+function tetBindRepeatable(btn, act){
+  if (!btn) return;
+  let repTimer = null, dasTimer = null;
+  const start = (e) => {
+    if (e.cancelable) e.preventDefault();
+    tetHandleAction(act);
+    dasTimer = setTimeout(() => { repTimer = setInterval(() => tetHandleAction(act), 60); }, 180);
+  };
+  const stop = () => { clearTimeout(dasTimer); clearInterval(repTimer); };
+  btn.addEventListener('touchstart', start, { passive: false });
+  btn.addEventListener('touchend', stop);
+  btn.addEventListener('touchcancel', stop);
+  btn.addEventListener('mousedown', start);
+  btn.addEventListener('mouseup', stop);
+  btn.addEventListener('mouseleave', stop);
+}
+document.querySelectorAll('#tet-controls .tet-ctrl-btn').forEach((btn) => {
+  const act = btn.dataset.act;
+  if (act === 'left' || act === 'right') { tetBindRepeatable(btn, act); }
+  else if (act === 'soft') {
+    btn.addEventListener('touchstart', (e) => { e.preventDefault(); tetSoftDropHeld = true; }, { passive: false });
+    btn.addEventListener('touchend', () => { tetSoftDropHeld = false; });
+    btn.addEventListener('touchcancel', () => { tetSoftDropHeld = false; });
+    btn.addEventListener('mousedown', () => { tetSoftDropHeld = true; });
+    btn.addEventListener('mouseup', () => { tetSoftDropHeld = false; });
+    btn.addEventListener('mouseleave', () => { tetSoftDropHeld = false; });
+  } else {
+    btn.addEventListener('click', () => tetHandleAction(act));
+  }
+});
+(function bindBoardSwipe(){
+  const boardArea = $('tet-board-area');
+  if (!boardArea) return;
+  let sx = 0, sy = 0, tracking = false, moved = false;
+  const THRESH = 26;
+  boardArea.addEventListener('touchstart', (e) => {
+    if (!tetGameActive) return;
+    const t = e.touches[0]; sx = t.clientX; sy = t.clientY; tracking = true; moved = false;
+  }, { passive: true });
+  boardArea.addEventListener('touchmove', (e) => {
+    if (!tracking) return;
+    const t = e.touches[0]; const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > THRESH) { tetHandleAction(dx > 0 ? 'right' : 'left'); sx = t.clientX; moved = true; }
+    else if (dy > THRESH * 1.6) { tetHandleAction('soft-once'); sy = t.clientY; moved = true; }
+  }, { passive: true });
+  boardArea.addEventListener('touchend', () => {
+    if (!tracking) return; tracking = false;
+    if (!moved) tetHandleAction('cw');
+  });
+})();
+document.addEventListener('keydown', (e) => {
+  const scr = $('tetris-screen');
+  if (!scr || scr.style.display === 'none' || !tetGameActive) return;
+  if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) e.preventDefault();
+  if (e.key === 'ArrowLeft') tetHandleAction('left');
+  else if (e.key === 'ArrowRight') tetHandleAction('right');
+  else if (e.key === 'ArrowDown') tetHandleAction('soft-once');
+  else if (e.key === 'ArrowUp' || e.key === 'x' || e.key === 'X') tetHandleAction('cw');
+  else if (e.key === 'z' || e.key === 'Z') tetHandleAction('ccw');
+  else if (e.key === 'c' || e.key === 'C') tetHandleAction('hold');
+  else if (e.key === ' ') tetHandleAction('hard');
+});
+
+/* ---- 画面全体のボタン配線 ---- */
+const tetOpenBtn = $('tetris-open-btn');
+if (tetOpenBtn) tetOpenBtn.addEventListener('click', () => {
+  if (tetRoomId) { tetShowScreen(); tetShowView(tetRoomStatus === 'ended' ? 'result' : (tetGameActive ? 'game' : 'lobby')); return; }
+  tetCreateRoom();
+});
+const tetCloseBtn = $('tetris-close-btn');
+if (tetCloseBtn) tetCloseBtn.addEventListener('click', () => {
+  if (tetGameActive) {
+    if (!confirm('対戦中です。退出すると脱落扱いになります。よろしいですか？')) return;
+    tetHandleKO();
+  }
+  tetLeaveRoom();
+});
+const tetInviteBtn = $('tet-invite-btn');
+if (tetInviteBtn) tetInviteBtn.addEventListener('click', tetOpenInvitePicker);
+const tetInviteBackBtn = $('tet-invite-back-btn');
+if (tetInviteBackBtn) tetInviteBackBtn.addEventListener('click', () => tetShowView('lobby'));
+const tetInviteList = $('tet-invite-friend-list');
+if (tetInviteList) tetInviteList.addEventListener('click', (e) => {
+  const row = e.target.closest('.tet-friend-row');
+  if (!row) return;
+  const cb = row.querySelector('input[type=checkbox]');
+  if (e.target !== cb) cb.checked = !cb.checked;
+});
+const tetInviteSendBtn = $('tet-invite-send-btn');
+if (tetInviteSendBtn) tetInviteSendBtn.addEventListener('click', async () => {
+  const checked = [...document.querySelectorAll('#tet-invite-friend-list input:checked')].map((cb) => cb.dataset.uid);
+  tetInviteSendBtn.disabled = true;
+  for (const uid of checked) { await tetSendInviteDm(uid, tetRoomId); }
+  tetInviteSendBtn.disabled = false;
+  tetShowView('lobby');
+});
+const tetStartBtn = $('tet-start-btn');
+if (tetStartBtn) tetStartBtn.addEventListener('click', () => {
+  if (!tetIsHost || !tetRoomId || !db) return;
+  updateDoc(doc(db, 'tetrisRooms', tetRoomId), { status: 'countdown', startAtMs: Date.now() + 3200 }).catch(() => {});
+});
+const tetLeaveBtn = $('tet-leave-btn');
+if (tetLeaveBtn) tetLeaveBtn.addEventListener('click', () => tetLeaveRoom());
+const tetResultCloseBtn = $('tet-result-close-btn');
+if (tetResultCloseBtn) tetResultCloseBtn.addEventListener('click', () => tetLeaveRoom());
 
 </script>
 </body>
