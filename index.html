@@ -5851,8 +5851,9 @@ function tetCanMoveDown(){ return !tetCollideAt({ ...tetCur, r: tetCur.r + 1 });
 function tetSpawnPiece(){
   if (tetPendingGarbage > 0) {
     const n = Math.min(tetPendingGarbage, 8);
-    tetPendingGarbage = 0;
+    tetPendingGarbage -= n;
     tetApplyGarbage(n);
+    tetRenderGarbageWarn();
     if (!tetAlive) return;
   }
   if (tetQueue.length < 7) tetQueue.push(...tetShuffledBag());
@@ -6024,6 +6025,18 @@ function tetApplyGarbage(n){
     tetBoard.push(row);
   }
   tetTriggerBoardFx('shake');
+  tetShowClearPopup(`⚠️ おじゃま +${n}`, true);
+}
+function tetRenderGarbageWarn(){
+  const warnEl = $('tet-garbage-warn');
+  if (!warnEl) return;
+  const n = Math.min(tetPendingGarbage, 20);
+  warnEl.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'tet-garbage-warn-seg';
+    warnEl.appendChild(seg);
+  }
 }
 async function tetSendAttack(lines){
   if (!db || !tetRoomId) return;
@@ -6032,9 +6045,10 @@ async function tetSendAttack(lines){
   const target = targets[Math.floor(Math.random() * targets.length)];
   tetLastAttackedUid = target;
   tetRenderOppStrip();
+  tetShowClearPopup(`▶ こうげき +${lines}`, false);
   try {
     await addDoc(collection(db, 'tetrisRooms', tetRoomId, 'attacks'), { from: myUid, target, lines, ts: serverTimestamp() });
-  } catch (_) {}
+  } catch (e) { console.error('テトリス攻撃の送信に失敗しました', e); }
 }
 function tetHandleKO(){
   if (!tetAlive) return;
@@ -6237,6 +6251,7 @@ function tetListenAttacks(roomId){
       const data = chg.doc.data();
       if (data.from === myUid) return;
       tetPendingGarbage += (data.lines || 0);
+      tetRenderGarbageWarn();
     });
   });
 }
@@ -6248,7 +6263,6 @@ function tetBeginLocalGame(){
   tetBaseGravityMs = TET_SPEED_GRAVITY[tetRoomSettings.speed] || 800;
   tetLines = 0; tetScore = 0; tetLevel = 1; tetGravityMs = tetBaseGravityMs;
   tetCombo = -1; tetLastWasDifficult = false; tetPendingGarbage = 0;
-  tetSeenAttackIds = new Set();
   tetAlive = true; tetGameActive = true;
   tetLastActionWasRotate = false;
   tetSpectateUid = null;
@@ -6258,6 +6272,7 @@ function tetBeginLocalGame(){
   const boardEl = $('tet-board'); if (boardEl) boardEl.classList.remove('tet-spectate-mode');
   const bar = $('tet-spectate-bar'); if (bar) bar.style.display = 'none';
   const clearPopup = $('tet-clear-popup'); if (clearPopup) clearPopup.innerHTML = '';
+  tetRenderGarbageWarn();
   tetSpawnPiece();
   tetRenderBoard();
   tetUpdateScoreHud();
@@ -6266,7 +6281,7 @@ function tetBeginLocalGame(){
   tetLoopTimer = setInterval(tetTick, 16);
   if (tetSyncTimer) clearInterval(tetSyncTimer);
   tetSyncTimer = setInterval(() => tetSyncToFirestore(false), TET_SYNC_MS);
-  tetListenAttacks(tetRoomId);
+  if (!tetAttacksUnsub) tetListenAttacks(tetRoomId);
   tetSyncToFirestore(false);
 }
 function tetBeginCountdown(startAtMs){
@@ -6420,6 +6435,8 @@ function tetResetForNewRound(){
   const ko = $('tet-ko-banner'); if (ko) ko.classList.remove('show');
   const boardEl = $('tet-board'); if (boardEl) boardEl.classList.remove('tet-spectate-mode');
   const bar = $('tet-spectate-bar'); if (bar) bar.style.display = 'none';
+  tetPendingGarbage = 0;
+  tetRenderGarbageWarn();
 }
 
 /* ---- Firestoreリスナー ---- */
@@ -6471,7 +6488,8 @@ function tetTeardown(){
   if (tetLoopTimer) { clearInterval(tetLoopTimer); tetLoopTimer = null; }
   if (tetSyncTimer) { clearInterval(tetSyncTimer); tetSyncTimer = null; }
   tetGameActive = false; tetRoomId = null; tetOtherPlayers = {}; tetRoomStatus = null; tetCountdownActive = false;
-  tetRoundEndedFlag = false; tetResultShownForRoom = null;
+  tetRoundEndedFlag = false; tetResultShownForRoom = null; tetPendingGarbage = 0;
+  tetSeenAttackIds = new Set();
 }
 function tetLeaveRoom(silent){
   if (tetRoomId && myUid && db) deleteDoc(doc(db, 'tetrisRooms', tetRoomId, 'players', myUid)).catch(() => {});
@@ -6482,6 +6500,7 @@ function tetAttachRoom(roomId){
   tetRoomId = roomId;
   tetListenRoom(roomId);
   tetListenPlayers(roomId);
+  tetListenAttacks(roomId);
 }
 async function tetJoinRoomCore(roomId){
   await setDoc(doc(db, 'tetrisRooms', roomId, 'players', myUid), {
