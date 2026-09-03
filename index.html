@@ -22,6 +22,8 @@
 <style>
   :root{
     --bg: #000000;
+    --segment-active: #F0A93F;
+    --segment-active-text: #14100a;
     --bg-glow-1: #0d1f1c4a;
     --bg-grad: radial-gradient(900px 500px at 10% -10%, var(--bg-glow-1) 0%, transparent 55%), var(--bg);
     --surface: #121214;
@@ -284,14 +286,14 @@
   .scope-switch.show{ display:flex; }
   .scope-switch .tab-thumb{
     position:absolute; top:3px; bottom:3px; left:3px; width: 40px;
-    background: var(--amber); border-radius: var(--radius-pill);
+    background: var(--segment-active); border-radius: var(--radius-pill);
     transition: width 0.375s var(--ease-ios); z-index:0;
   }
   .scope-switch button{
     position:relative; z-index:1; flex:1; border:none; background:none; color: var(--text-muted); font-size: 10.5px; padding: 6px 4px;
     border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; transition: color 0.312s var(--ease-ios);
   }
-  .scope-switch button.active{ color:#14100a; font-weight:700; }
+  .scope-switch button.active{ color: var(--segment-active-text); font-weight:700; }
 
   /* ===================== チャンネル/DM 切り替えタブ ===================== */
   .sidebar-tabs{
@@ -301,7 +303,7 @@
   }
   .sidebar-tabs .tab-thumb{
     position:absolute; top:3px; bottom:3px; left:3px; width: calc(50% - 3px);
-    background: var(--amber); border-radius: var(--radius-pill);
+    background: var(--segment-active); border-radius: var(--radius-pill);
     transition: width 0.375s var(--ease-ios); z-index:0;
   }
   .sidebar-tabs button{
@@ -309,7 +311,7 @@
     font-size: 12px; font-weight:600; padding: 8px 6px; border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
     transition: color 0.312s var(--ease-ios); display:flex; align-items:center; justify-content:center; gap:5px;
   }
-  .sidebar-tabs button.active{ color:#14100a; }
+  .sidebar-tabs button.active{ color: var(--segment-active-text); }
   .sidebar-tabs .req-dot{
     min-width:16px; height:16px; padding:0 3px; border-radius: var(--radius-pill); background: var(--danger); color:#fff;
     font-family: var(--font-mono); font-size: 9.5px; line-height:16px; text-align:center; display:none;
@@ -1058,11 +1060,11 @@
   .admin-tabs{ position:relative; display:flex; gap:4px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 4px; }
   .admin-tabs .tab-thumb{
     position:absolute; top:4px; bottom:4px; left:4px; width: 40px;
-    background: linear-gradient(150deg, var(--amber), color-mix(in srgb, var(--amber) 65%, black)); border-radius: var(--radius-pill);
+    background: var(--segment-active); border-radius: var(--radius-pill);
     transition: width 0.375s var(--ease-ios); z-index:0;
   }
   .admin-tab{ position:relative; z-index:1; flex:1; background:none; border:none; color: var(--text-muted); padding: 8px; border-radius: var(--radius-pill); font-size: 12px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; transition: color 0.312s var(--ease-ios); }
-  .admin-tab.active{ border-color: transparent; color: #14100a; font-weight:600; }
+  .admin-tab.active{ border-color: transparent; color: var(--segment-active-text); font-weight:600; }
   .admin-panel-body{ max-height: 48vh; overflow-y:auto; }
   .admin-row{ display:flex; align-items:center; gap:8px; padding: 9px 0; border-bottom: 1px solid var(--border); }
   .admin-row:last-child{ border-bottom:none; }
@@ -1169,7 +1171,7 @@
   }
   .preset-row .tab-thumb{
     position:absolute; top:3px; bottom:3px; left:3px; width: calc(25% - 3px);
-    background: var(--amber); border-radius: var(--radius-pill);
+    background: var(--segment-active); border-radius: var(--radius-pill);
     transition: width 0.375s var(--ease-ios); z-index:0;
   }
   .preset-chip{
@@ -1178,7 +1180,7 @@
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
     transition: color 0.312s var(--ease-ios);
   }
-  .preset-chip.active{ color:#14100a; }
+  .preset-chip.active{ color: var(--segment-active-text); }
 
 
   /* DM / Friends */
@@ -1347,7 +1349,7 @@
     .settings-back-btn:hover{ background: var(--surface-3); }
     .settings-menu-item:hover{ background: var(--surface-3); }
     .color-target-row:hover{ background: var(--surface-2); }
-    .preset-chip:not(.active):hover{ color: var(--amber); }
+    .preset-chip:not(.active):hover{ color: var(--segment-active); }
     .friends-btn:hover{ background: var(--teal-dim); box-shadow: var(--shadow-sm); }
     .dm-item:hover{ background: var(--surface-2); transform: translateX(3px) scale(1.01); }
     .tet-launch-btn:hover{ background: var(--amber-dim); box-shadow: var(--shadow-sm); }
@@ -5371,6 +5373,7 @@ els.adminClose.addEventListener('click', () => { adminModalOpen = false; closeMo
 const UI_SETTINGS_KEY = 'signal_ui_settings';
 const COLOR_TARGETS = [
   { key: 'accent',    cssVar: '--amber',      label: 'アクセントカラー（ボタン・強調）',    dark: '#F0A93F', light: '#B9701C' },
+  { key: 'segment',   special: 'segment',     label: 'セグメントコントロールの色（チャンネル/DM切替など）', dark: '#F0A93F', light: '#B9701C' },
   { key: 'teal',      cssVar: '--teal',       label: 'サブアクセント（青バッジ等）',       dark: '#3DE0B8', light: '#0F8A73' },
   { key: 'gold',      cssVar: '--gold',       label: '金バッジカラー',                   dark: '#F2C766', light: '#9C6E17' },
   { key: 'danger',    cssVar: '--danger',     label: '警告・削除カラー',                 dark: '#FF6B5B', light: '#FF6B5B' },
@@ -5425,6 +5428,16 @@ function applyUiSettings(){
         document.documentElement.style.removeProperty('--mine-bubble-1');
         document.documentElement.style.removeProperty('--mine-bubble-2');
         document.documentElement.style.removeProperty('--mine-bubble-text');
+      }
+      return;
+    }
+    if (t.special === 'segment') {
+      if (v) {
+        document.documentElement.style.setProperty('--segment-active', v);
+        document.documentElement.style.setProperty('--segment-active-text', contrastTextFor(v));
+      } else {
+        document.documentElement.style.removeProperty('--segment-active');
+        document.documentElement.style.removeProperty('--segment-active-text');
       }
       return;
     }
