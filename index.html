@@ -22,11 +22,8 @@
 <style>
   :root{
     --bg: #000000;
-    --bg-glow-1: #0d1f1c66;
-    --bg-glow-2: #241c0d66;
-    --bg-grad: radial-gradient(1000px 560px at 12% -12%, var(--bg-glow-1) 0%, transparent 58%),
-                radial-gradient(820px 460px at 112% 6%, var(--bg-glow-2) 0%, transparent 55%),
-                var(--bg);
+    --bg-glow-1: #0d1f1c4a;
+    --bg-grad: radial-gradient(900px 500px at 10% -10%, var(--bg-glow-1) 0%, transparent 55%), var(--bg);
     --surface: #121214;
     --surface-2: #1C1C1E;
     --surface-3: #2C2C2E;
@@ -550,7 +547,7 @@
   }
   .msg-row.chained .bubble{ border-radius: 12px 24px 24px 12px; }
   .msg-row.mine .bubble{
-    background: linear-gradient(155deg, var(--mine-bubble-1), var(--mine-bubble-2)); border: 1px solid var(--border);
+    background: var(--mine-bubble-1); border: 1px solid var(--border);
     border-radius: 24px 12px 24px 24px; color: var(--mine-bubble-text);
     box-shadow: var(--shadow-sm), inset 0 1px 0 #ffffff12;
   }
@@ -684,7 +681,7 @@
   }
   .bubble.has-image{ padding: 5px !important; background: transparent !important; border: none !important; box-shadow:none !important; }
   .bubble.has-image.has-text{ padding: 5px 5px 9px !important; background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-sm) !important; }
-  .msg-row.mine .bubble.has-image.has-text{ background: linear-gradient(155deg, var(--mine-bubble-1), var(--mine-bubble-2)) !important; border-color: var(--border) !important; }
+  .msg-row.mine .bubble.has-image.has-text{ background: var(--mine-bubble-1) !important; border-color: var(--border) !important; }
   .bubble.has-image.has-text .msg-image{ margin-bottom: 6px; }
   .bubble.has-image .msg-image-expired{
     display:flex; align-items:center; justify-content:center; width:180px; height:110px;
@@ -830,7 +827,7 @@
   #msg-input:disabled{ opacity:.5; cursor:not-allowed; }
   #attach-btn:disabled{ opacity:.35; cursor:not-allowed; }
   #send-btn{
-    position:relative; background: linear-gradient(150deg, var(--amber), color-mix(in srgb, var(--amber) 65%, black)); border:none; color: #14100a;
+    position:relative; background: var(--amber); border:none; color: #14100a;
     width: 42px; height: 42px; border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
     box-shadow: 0 4px 14px color-mix(in srgb, var(--amber) 26%, transparent);
@@ -885,7 +882,7 @@
   .char-counter{ text-align:right; font-size: 11px; color: var(--text-faint); margin: -8px 0 12px; font-family: var(--font-mono); }
   .char-counter.near-limit{ color: var(--amber); }
   .modal-card button.primary{
-    width:100%; background: linear-gradient(150deg, var(--amber), color-mix(in srgb, var(--amber) 65%, black)); border:none; color:#14100a;
+    width:100%; background: var(--amber); border:none; color:#14100a;
     font-weight:600; font-size: 14px; padding: 12px; border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; margin-top: 4px;
     transition: transform 0.35s var(--ease-spring), box-shadow 0.225s var(--ease-ios), opacity 0.2s ease;
   }
@@ -1166,12 +1163,22 @@
   .settings-switch.anim-on span::before{ animation: toggleOnSquish 0.575s var(--ease-ios) forwards; }
   .settings-switch.anim-off span::before{ animation: toggleOffSquish 0.575s var(--ease-ios) forwards; }
 
-  .preset-row{ display:flex; gap:7px; flex-wrap:wrap; }
-  .preset-chip{
-    background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted);
-    font-size: 11.5px; padding: 7px 13px; border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
-    transition: transform 0.188s var(--ease-spring), border-color 0.188s ease, color 0.188s ease;
+  .preset-row{
+    display:flex; align-items:center; gap:0; background: var(--surface-2);
+    border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 3px; position: relative;
   }
+  .preset-row .tab-thumb{
+    position:absolute; top:3px; bottom:3px; left:3px; width: calc(25% - 3px);
+    background: var(--amber); border-radius: var(--radius-pill);
+    transition: width 0.375s var(--ease-ios); z-index:0;
+  }
+  .preset-chip{
+    position:relative; z-index:1; flex:1; background:none; border:none; color: var(--text-muted);
+    font-size: 11px; font-weight:600; padding: 8px 4px; border-radius: var(--radius-pill); text-align:center;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+    transition: color 0.312s var(--ease-ios);
+  }
+  .preset-chip.active{ color:#14100a; }
 
 
   /* DM / Friends */
@@ -1340,7 +1347,7 @@
     .settings-back-btn:hover{ background: var(--surface-3); }
     .settings-menu-item:hover{ background: var(--surface-3); }
     .color-target-row:hover{ background: var(--surface-2); }
-    .preset-chip:hover{ transform: translateY(-1px); border-color: var(--amber-dim); color: var(--amber); }
+    .preset-chip:not(.active):hover{ color: var(--amber); }
     .friends-btn:hover{ background: var(--teal-dim); box-shadow: var(--shadow-sm); }
     .dm-item:hover{ background: var(--surface-2); transform: translateX(3px) scale(1.01); }
     .tet-launch-btn:hover{ background: var(--amber-dim); box-shadow: var(--shadow-sm); }
@@ -1355,12 +1362,7 @@
     --tet-I: #3DE0B8; --tet-O: #F0A93F; --tet-T: #C792F2; --tet-S: #6FD66F;
     --tet-Z: #FF6B5B; --tet-J: #5B9CFF; --tet-L: #F2934A; --tet-G: #55555A;
   }
-  .tet-launch-btn{ border-color: var(--amber-dim); color: var(--amber); position:relative; overflow:hidden; }
-  .tet-launch-btn::after{
-    content:''; position:absolute; inset:0; background: radial-gradient(60% 140% at 20% 50%, color-mix(in srgb, var(--amber) 22%, transparent), transparent 70%);
-    opacity:0; transition: opacity .3s var(--ease-ios);
-  }
-  .tet-launch-btn:hover::after{ opacity:1; }
+  .tet-launch-btn{ border-color: var(--amber-dim); color: var(--amber); }
   #tetris-screen{
     position: fixed; inset: 0; z-index: 900; background: #030302;
     display: none; flex-direction: column; opacity: 0; pointer-events: none;
@@ -2361,6 +2363,7 @@
       <div id="settings-panel-presets" class="settings-panel" style="display:none;">
         <div class="settings-group">
           <div class="preset-row" id="preset-row">
+            <div class="tab-thumb"></div>
             <button type="button" class="preset-chip" data-preset="default">標準</button>
             <button type="button" class="preset-chip" data-preset="mono">モノクローム</button>
             <button type="button" class="preset-chip" data-preset="neon">ネオン</button>
@@ -2887,6 +2890,7 @@ window.addEventListener('resize', () => {
   positionTabThumb(els.scopeSwitch);
   positionTabThumb(document.getElementById('admin-tabs'));
   positionTabThumb(document.getElementById('friends-tabs'));
+  if (els.presetRow && els.presetRow.closest('.settings-panel').style.display !== 'none') positionTabThumb(els.presetRow);
 });
 
 /** モーダル(.modal-scrim)を、閉じるアニメーションを再生してから非表示にする */
@@ -5393,7 +5397,7 @@ function contrastTextFor(hex){
   const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return lum > 0.6 ? '#2B2410' : '#F1E6D2';
 }
-const DEFAULT_UI_SETTINGS = { colors: {}, scale: 100, opacity: 100, radius: 100, safeTop: 0, safeBottom: 0, reduceMotion: false, compact: false };
+const DEFAULT_UI_SETTINGS = { colors: {}, scale: 100, opacity: 100, radius: 100, safeTop: 0, safeBottom: 0, reduceMotion: false, compact: false, activePreset: 'default' };
 function loadUiSettings(){
   try {
     const raw = localStorage.getItem(UI_SETTINGS_KEY);
@@ -5548,19 +5552,21 @@ els.presetRow.addEventListener('click', (e) => {
   if (!btn) return;
   const preset = UI_PRESETS[btn.dataset.preset];
   if (!preset) return;
-  uiSettings = { ...uiSettings, ...preset, colors: { ...preset.colors } };
+  uiSettings = { ...uiSettings, ...preset, colors: { ...preset.colors }, activePreset: btn.dataset.preset };
   refreshSettingsUI();
   applyUiSettings();
   saveUiSettings();
+  positionTabThumb(els.presetRow);
 });
 
 els.settingsReset.addEventListener('click', () => {
   if (!confirm('カスタマイズ設定をすべてリセットしますか？')) return;
-  uiSettings = { ...DEFAULT_UI_SETTINGS, colors: {} };
+  uiSettings = { ...DEFAULT_UI_SETTINGS, colors: {}, activePreset: 'default' };
   selectedColorKeys.clear();
   refreshSettingsUI();
   applyUiSettings();
   saveUiSettings();
+  positionTabThumb(els.presetRow);
 });
 
 function refreshSettingsUI(){
@@ -5578,6 +5584,11 @@ function refreshSettingsUI(){
   els.smiOpacitySub.textContent = uiSettings.opacity + '%';
   els.smiRadiusSub.textContent = uiSettings.radius + '%';
   els.smiSafeareaSub.textContent = `上${uiSettings.safeTop || 0}px・下${uiSettings.safeBottom || 0}px`;
+
+  const activePreset = uiSettings.activePreset || 'default';
+  els.presetRow.querySelectorAll('.preset-chip').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.preset === activePreset);
+  });
 }
 
 /* ---- 設定モーダル：一覧 ⇔ 詳細パネルのナビゲーション ---- */
@@ -5603,6 +5614,7 @@ function showSettingsPanel(key){
   els.settingsEyebrow.textContent = 'SETTINGS';
   els.settingsTitle.textContent = SETTINGS_PANEL_TITLES[key] || '設定';
   els.settingsBody.scrollTop = 0;
+  if (key === 'presets') positionTabThumb(els.presetRow);
 }
 els.settingsMenuView.addEventListener('click', (e) => {
   const item = e.target.closest('.settings-menu-item');
