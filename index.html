@@ -43,8 +43,7 @@
     --gold-dim: #F2C76630;
     --gold-2: #D9A73C;
     --mine-bubble-1: #2a2115;
-    --mine-bubble-2: #1c1712;
-    --mine-bubble-text: #F1E6D2;
+    --mine-bubble-text: #F2F2F7;
     --shadow-sm: 0 3px 14px #00000030, 0 1px 3px #00000030;
     --shadow-md: 0 22px 52px #00000055, 0 8px 22px #00000038;
     --radius-lg: calc(34px * var(--ui-radius-scale));
@@ -5393,12 +5392,12 @@ function shadeColor(hex, percent){
   r = Math.max(Math.min(255, r), 0); g = Math.max(Math.min(255, g), 0); b = Math.max(Math.min(255, b), 0);
   return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
 }
-/** 背景色に対して読みやすい文字色（黒or白寄り）を返す */
+/** 背景色に対して読みやすい文字色（アプリ標準の白/黒寄り）を返す */
 function contrastTextFor(hex){
   const num = parseInt(hex.replace('#', ''), 16);
   const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
   const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return lum > 0.6 ? '#2B2410' : '#F1E6D2';
+  return lum > 0.6 ? '#141416' : '#F2F2F7';
 }
 const DEFAULT_UI_SETTINGS = { colors: {}, scale: 100, opacity: 100, radius: 100, safeTop: 0, safeBottom: 0, reduceMotion: false, compact: false, activePreset: 'default' };
 function loadUiSettings(){
@@ -5421,12 +5420,10 @@ function applyUiSettings(){
     const v = uiSettings.colors[t.key];
     if (t.special === 'mineBubble') {
       if (v) {
-        document.documentElement.style.setProperty('--mine-bubble-1', shadeColor(v, 18));
-        document.documentElement.style.setProperty('--mine-bubble-2', shadeColor(v, -18));
+        document.documentElement.style.setProperty('--mine-bubble-1', v);
         document.documentElement.style.setProperty('--mine-bubble-text', contrastTextFor(v));
       } else {
         document.documentElement.style.removeProperty('--mine-bubble-1');
-        document.documentElement.style.removeProperty('--mine-bubble-2');
         document.documentElement.style.removeProperty('--mine-bubble-text');
       }
       return;
