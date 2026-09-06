@@ -7261,6 +7261,7 @@ function renderModList(){
       </div>
       <div class="mod-row-actions">
         <label class="settings-switch"><input type="checkbox" data-mod-toggle="${mod.id}" ${mod.enabled ? 'checked' : ''}><span></span></label>
+        <button type="button" class="mini-btn-outline" data-mod-rename="${mod.id}">✎</button>
         <button type="button" class="mini-btn-outline" data-mod-export="${mod.id}">.zip</button>
         <button type="button" class="mini-btn-danger" data-mod-delete="${mod.id}">削除</button>
       </div>`;
@@ -7301,6 +7302,19 @@ els.modList?.addEventListener('change', (e) => {
   }
 });
 els.modList?.addEventListener('click', (e) => {
+  const renameBtn = e.target.closest('[data-mod-rename]');
+  if (renameBtn) {
+    const mod = installedMods.find((m) => m.id === renameBtn.dataset.modRename);
+    if (!mod) return;
+    const next = prompt('MODの名前を入力してください', mod.name);
+    if (next === null) return;
+    const trimmed = next.trim();
+    if (!trimmed) return;
+    mod.name = trimmed;
+    saveMods();
+    renderModList();
+    return;
+  }
   const delBtn = e.target.closest('[data-mod-delete]');
   if (delBtn) {
     const mod = installedMods.find((m) => m.id === delBtn.dataset.modDelete);
