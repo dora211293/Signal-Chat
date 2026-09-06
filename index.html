@@ -1190,6 +1190,21 @@
   }
   .preset-chip.active{ color: var(--segment-active-text); }
 
+  .mod-row{
+    display:flex; align-items:center; gap:10px; padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .mod-row:last-child{ border-bottom:none; }
+  .mod-row-info{ min-width:0; flex:1; }
+  .mod-row-name{ font-size: 13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mod-row-meta{ font-size: 10.5px; color: var(--text-faint); font-family: var(--font-mono); margin-top:1px; }
+  .mod-row-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .mod-row-actions .mini-btn-outline, .mod-row-actions .mini-btn-danger{ padding: 6px 10px; font-size: 11px; }
+  .mod-safemode-banner{
+    display:flex; align-items:center; gap:8px; padding: 8px 12px; margin: 0 0 10px;
+    background: var(--danger-dim, #4a1f1a); border: 1px solid #6b2f26; border-radius: var(--radius-sm);
+    color: #ff9d8a; font-size: 12px; font-weight:600;
+  }
+
 
   /* DM / Friends */
   .friends-btn{
@@ -2284,6 +2299,11 @@
             <span class="smi-text"><span class="smi-label">プリセット</span><span class="smi-sub">まとめて配色を切り替え</span></span>
             <span class="smi-chev">›</span>
           </button>
+          <button type="button" class="settings-menu-item" data-panel="mods">
+            <span class="smi-icon">🧩</span>
+            <span class="smi-text"><span class="smi-label">MOD</span><span class="smi-sub" id="smi-mods-sub">.sxgファイルを読み込み</span></span>
+            <span class="smi-chev">›</span>
+          </button>
         </div>
       </div>
 
@@ -2379,6 +2399,35 @@
             <button type="button" class="preset-chip" data-preset="neon">ネオン</button>
             <button type="button" class="preset-chip" data-preset="black">ブラック</button>
           </div>
+        </div>
+      </div>
+
+      <!-- ===== MOD ===== -->
+      <div id="settings-panel-mods" class="settings-panel" style="display:none;">
+        <div class="settings-group">
+          <p class="settings-hint">
+            .sxg ファイル（中身は mod.js を含むzip）を読み込むと、書かれているコードがこのSIGNAL上でそのまま実行されます。
+            見た目・動作をほぼ何でも上書きできる代わり、信頼できる作者のMOD以外は入れないでください。
+          </p>
+          <input type="file" id="mod-file-input" accept=".sxg" style="display:none;">
+          <button type="button" class="mini-btn" id="mod-add-btn" style="width:100%;">＋ MODファイルを選択（.sxg）</button>
+        </div>
+        <div class="settings-group">
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-group-title" style="margin:0;">🛟 セーフモード</div>
+              <p class="settings-hint" style="margin:2px 0 0;">ONの間はどのMODも実行されません。JSがバグった時はこれを付けて再読み込み</p>
+            </div>
+            <label class="settings-switch"><input type="checkbox" id="mod-safemode-toggle"><span></span></label>
+          </div>
+          <p class="settings-hint" style="margin:6px 0 0;">
+            画面が壊れてこのトグルまで辿り着けない場合は、アドレスの末尾に <code>?safemode=1</code> を付けて開いてください。
+          </p>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-title">導入済みMOD</div>
+          <div id="mod-list"></div>
+          <p class="settings-hint" id="mod-empty-hint" style="display:none;">まだMODは読み込まれていません</p>
         </div>
       </div>
 
@@ -2569,6 +2618,8 @@ const els = {
   uiRadiusSlider: $('ui-radius-slider'), uiRadiusVal: $('ui-radius-val'),
   reduceMotionToggle: $('reduce-motion-toggle'),
   compactToggle: $('compact-toggle'), presetRow: $('preset-row'),
+  modFileInput: $('mod-file-input'), modAddBtn: $('mod-add-btn'), modSafeModeToggle: $('mod-safemode-toggle'),
+  modList: $('mod-list'), modEmptyHint: $('mod-empty-hint'), smiModsSub: $('smi-mods-sub'),
   safeTopSlider: $('safe-top-slider'), safeTopVal: $('safe-top-val'),
   safeBottomSlider: $('safe-bottom-slider'), safeBottomVal: $('safe-bottom-val'),
   settingsBody: $('settings-body'), settingsBackBtn: $('settings-back-btn'), settingsTitle: $('settings-title'),
@@ -5613,7 +5664,7 @@ function refreshSettingsUI(){
 /* ---- 設定モーダル：一覧 ⇔ 詳細パネルのナビゲーション ---- */
 const SETTINGS_PANEL_TITLES = {
   colors: '🖌 配色', scale: '🔍 UIの大きさ', opacity: '👻 透明度', radius: '◻ 角丸の強さ',
-  safearea: '📱 セーフエリア', behavior: '🎬 動作設定', presets: '🎨 プリセット',
+  safearea: '📱 セーフエリア', behavior: '🎬 動作設定', presets: '🎨 プリセット', mods: '🧩 MOD',
 };
 function showSettingsMenu(){
   document.querySelectorAll('.settings-panel').forEach((p) => { p.style.display = 'none'; p.classList.remove('slide-in'); });
@@ -7057,6 +7108,243 @@ async function tetRematch(){
 }
 const tetRematchBtn = $('tet-rematch-btn');
 if (tetRematchBtn) tetRematchBtn.addEventListener('click', tetRematch);
+
+/* ===================== MODシステム (.sxg) =====================
+   .sxg は中身がzipの独自拡張子。中に入っている mod.js が、このページの
+   グローバルスコープに準じた権限でそのまま実行され、見た目・動作をほぼ
+   何でも上書きできる。信頼できる作者のMOD以外は読み込まないこと。
+   何か壊れた時のために、下部で「セーフモード」を用意している。 */
+const MOD_STORAGE_KEY = 'signal_mods_v1';
+const MOD_SAFEMODE_KEY = 'signal_safe_mode';
+let installedMods = [];
+try { installedMods = JSON.parse(localStorage.getItem(MOD_STORAGE_KEY) || '[]'); } catch (_) { installedMods = []; }
+
+function isSafeModeActive(){
+  try { if (new URLSearchParams(location.search).get('safemode') === '1') return true; } catch (_) {}
+  return localStorage.getItem(MOD_SAFEMODE_KEY) === '1';
+}
+function saveMods(){
+  try { localStorage.setItem(MOD_STORAGE_KEY, JSON.stringify(installedMods)); } catch (e) { console.warn('MODの保存に失敗', e); }
+}
+let jsZipLoadPromise = null;
+function loadJSZip(){
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  if (jsZipLoadPromise) return jsZipLoadPromise;
+  jsZipLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    s.onload = () => resolve(window.JSZip);
+    s.onerror = () => reject(new Error('zip解凍ライブラリの読み込みに失敗しました'));
+    document.head.appendChild(s);
+  });
+  return jsZipLoadPromise;
+}
+function isTextFileName(name){ return /\.(js|json|css|txt|md|html|svg|xml|csv)$/i.test(name); }
+function guessMime(name){
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const map = { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', svg:'image/svg+xml', webp:'image/webp', mp3:'audio/mpeg', wav:'audio/wav', ogg:'audio/ogg', json:'application/json', css:'text/css', js:'text/javascript', txt:'text/plain', html:'text/html' };
+  return map[ext] || 'application/octet-stream';
+}
+function arrayBufferToBase64(buf){
+  let binary = '';
+  const bytes = new Uint8Array(buf);
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  return btoa(binary);
+}
+
+async function parseModArchive(arrayBuffer){
+  const JSZip = await loadJSZip();
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const entries = Object.values(zip.files).filter((f) => !f.dir);
+  let modJsEntry = null, modJsonEntry = null;
+  for (const entry of entries) {
+    const baseName = entry.name.split('/').pop().toLowerCase();
+    if (baseName === 'mod.js') modJsEntry = entry;
+    else if (baseName === 'mod.json') modJsonEntry = entry;
+  }
+  if (!modJsEntry) throw new Error('mod.js が見つかりませんでした');
+  const jsCode = await modJsEntry.async('text');
+  let meta = {};
+  if (modJsonEntry) { try { meta = JSON.parse(await modJsonEntry.async('text')); } catch (_) { meta = {}; } }
+  const cssTexts = [];
+  const files = {};
+  for (const entry of entries) {
+    if (entry === modJsEntry || entry === modJsonEntry) continue;
+    const baseName = entry.name.split('/').pop();
+    if (/\.css$/i.test(baseName)) {
+      const text = await entry.async('text');
+      cssTexts.push(text);
+      files[entry.name] = { type: 'text', mime: 'text/css', data: text };
+    } else if (isTextFileName(baseName)) {
+      files[entry.name] = { type: 'text', mime: guessMime(baseName), data: await entry.async('text') };
+    } else {
+      const b64 = await entry.async('base64');
+      files[entry.name] = { type: 'dataurl', mime: guessMime(baseName), data: `data:${guessMime(baseName)};base64,${b64}` };
+    }
+  }
+  return {
+    id: 'mod_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7),
+    name: meta.name || 'Unnamed MOD', version: meta.version || '', description: meta.description || '', author: meta.author || '',
+    enabled: true, addedAt: Date.now(),
+    jsCode, cssTexts, files, rawBase64: arrayBufferToBase64(arrayBuffer),
+  };
+}
+
+function buildModApi(){
+  return {
+    version: 'SIGNAL-MOD/1',
+    els, usersCache,
+    getUiSettings: () => uiSettings,
+    setUiSettings: (next) => { uiSettings = { ...uiSettings, ...next }; applyUiSettings(); saveUiSettings(); refreshSettingsUI(); },
+    applyUiSettings: () => applyUiSettings(),
+    getMyUid: () => myUid,
+    getCurrentKind: () => currentKind,
+    getCurrentChannelId: () => currentChannelId,
+    getCurrentDmId: () => currentDmId,
+    setCssVar: (name, value) => document.documentElement.style.setProperty(name.startsWith('--') ? name : ('--' + name), value),
+  };
+}
+function injectModCss(mod){
+  (mod.cssTexts || []).forEach((cssText, i) => {
+    const style = document.createElement('style');
+    style.setAttribute('data-mod-id', mod.id);
+    style.setAttribute('data-mod-css-index', String(i));
+    style.textContent = cssText;
+    document.head.appendChild(style);
+  });
+}
+function removeModCss(modId){
+  document.querySelectorAll(`style[data-mod-id="${modId}"]`).forEach((el) => el.remove());
+}
+function showModError(mod, err){
+  try {
+    const bar = document.createElement('div');
+    bar.className = 'mod-safemode-banner';
+    bar.style.cssText = 'position:fixed; left:12px; right:12px; bottom:12px; z-index:99999;';
+    bar.textContent = `MOD『${mod.name}』でエラー: ${err && err.message ? err.message : err}`;
+    document.body.appendChild(bar);
+    setTimeout(() => bar.remove(), 6000);
+  } catch (_) {}
+}
+function runMod(mod){
+  if (!mod || !mod.enabled) return;
+  try {
+    injectModCss(mod);
+    const filesForMod = {};
+    Object.entries(mod.files || {}).forEach(([name, f]) => { filesForMod[name] = f.data; });
+    const fn = new Function('SignalMod', 'files', 'modInfo', mod.jsCode);
+    fn(buildModApi(), filesForMod, { id: mod.id, name: mod.name, version: mod.version });
+  } catch (err) {
+    console.error(`[MOD:${mod.name}] 実行中にエラー`, err);
+    showModError(mod, err);
+  }
+}
+function runAllEnabledMods(){
+  if (isSafeModeActive()) return;
+  installedMods.forEach(runMod);
+}
+function modEmptyStateUpdate(){
+  if (els.modEmptyHint) els.modEmptyHint.style.display = installedMods.length ? 'none' : 'block';
+  if (els.smiModsSub) els.smiModsSub.textContent = installedMods.length ? `${installedMods.length}件導入中` : '.sxgファイルを読み込み';
+}
+function renderModList(){
+  if (!els.modList) return;
+  els.modList.innerHTML = '';
+  installedMods.forEach((mod) => {
+    const row = document.createElement('div');
+    row.className = 'mod-row';
+    row.innerHTML = `
+      <div class="mod-row-info">
+        <div class="mod-row-name">${escapeHtml(mod.name)}</div>
+        <div class="mod-row-meta">${mod.version ? 'v' + escapeHtml(mod.version) + ' ・ ' : ''}${escapeHtml(mod.author || '')}</div>
+      </div>
+      <div class="mod-row-actions">
+        <label class="settings-switch"><input type="checkbox" data-mod-toggle="${mod.id}" ${mod.enabled ? 'checked' : ''}><span></span></label>
+        <button type="button" class="mini-btn-outline" data-mod-export="${mod.id}">.zip</button>
+        <button type="button" class="mini-btn-danger" data-mod-delete="${mod.id}">削除</button>
+      </div>`;
+    els.modList.appendChild(row);
+  });
+  modEmptyStateUpdate();
+}
+els.modAddBtn?.addEventListener('click', () => els.modFileInput.click());
+els.modFileInput?.addEventListener('change', async () => {
+  const file = els.modFileInput.files && els.modFileInput.files[0];
+  els.modFileInput.value = '';
+  if (!file) return;
+  try {
+    const buf = await file.arrayBuffer();
+    const mod = await parseModArchive(buf);
+    installedMods.push(mod);
+    saveMods();
+    renderModList();
+    if (!isSafeModeActive()) runMod(mod);
+  } catch (err) {
+    alert('MODの読み込みに失敗しました: ' + (err && err.message ? err.message : err));
+  }
+});
+els.modList?.addEventListener('change', (e) => {
+  const cb = e.target.closest('input[data-mod-toggle]');
+  if (!cb) return;
+  const mod = installedMods.find((m) => m.id === cb.dataset.modToggle);
+  if (!mod) return;
+  mod.enabled = cb.checked;
+  saveMods();
+  if (!mod.enabled) removeModCss(mod.id);
+  const wrap = cb.closest('.settings-switch');
+  if (wrap && !document.documentElement.classList.contains('reduce-motion')) {
+    wrap.classList.remove('anim-on', 'anim-off');
+    void wrap.offsetWidth;
+    wrap.classList.add(cb.checked ? 'anim-on' : 'anim-off');
+    setTimeout(() => wrap.classList.remove('anim-on', 'anim-off'), 480);
+  }
+});
+els.modList?.addEventListener('click', (e) => {
+  const delBtn = e.target.closest('[data-mod-delete]');
+  if (delBtn) {
+    const mod = installedMods.find((m) => m.id === delBtn.dataset.modDelete);
+    if (mod && confirm(`MOD『${mod.name}』を削除しますか？`)) {
+      removeModCss(mod.id);
+      installedMods = installedMods.filter((m) => m.id !== mod.id);
+      saveMods();
+      renderModList();
+    }
+    return;
+  }
+  const expBtn = e.target.closest('[data-mod-export]');
+  if (expBtn) {
+    const mod = installedMods.find((m) => m.id === expBtn.dataset.modExport);
+    if (!mod || !mod.rawBase64) return;
+    const bin = atob(mod.rawBase64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/zip' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (mod.name || 'mod').replace(/[^\w.-]+/g, '_') + '.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+});
+if (els.modSafeModeToggle) {
+  els.modSafeModeToggle.checked = localStorage.getItem(MOD_SAFEMODE_KEY) === '1';
+  els.modSafeModeToggle.addEventListener('change', () => {
+    if (els.modSafeModeToggle.checked) localStorage.setItem(MOD_SAFEMODE_KEY, '1');
+    else localStorage.removeItem(MOD_SAFEMODE_KEY);
+    location.reload();
+  });
+}
+renderModList();
+if (isSafeModeActive()) {
+  const banner = document.createElement('div');
+  banner.className = 'mod-safemode-banner';
+  banner.style.cssText = 'position:fixed; top:calc(env(safe-area-inset-top,0px) + 8px); left:50%; transform:translateX(-50%); z-index:99999;';
+  banner.textContent = '🛟 セーフモード中：MODは実行されていません';
+  document.body.appendChild(banner);
+} else {
+  runAllEnabledMods();
+}
 
 </script>
 </body>
