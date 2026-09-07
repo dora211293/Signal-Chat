@@ -205,6 +205,7 @@
       transform-origin: left center; will-change: transform;
     }
     #sidebar.open ~ #main{ transform: scale(0.94) translateX(8px); filter: brightness(0.72) saturate(0.85); }
+    #main.no-shrink-transition{ transition: none !important; }
   }
 
   /* ===================== Sidebar ===================== */
@@ -2592,6 +2593,7 @@ let pendingIconImg = '';
 let usersCache = {};
 let myVerifyStatus = null;
 let knownIds = new Set();
+let suppressNextEnterAnim = false; // チャンネル/DM切替直後の初回描画では、全メッセージが一斉にポップインするのを防ぐ
 let lastDocsSnapshot = [];
 let readsMap = {};
 let lastOnline = [];
@@ -2615,7 +2617,7 @@ let maintenanceEnabled = false; // メンテナンスモード（金認証ユー
 /* ------------------------------------------------------------------ */
 const $ = (id) => document.getElementById(id);
 const els = {
-  sidebar: $('sidebar'), scrim: $('sidebar-scrim'), menuBtn: $('menu-btn'),
+  sidebar: $('sidebar'), scrim: $('sidebar-scrim'), menuBtn: $('menu-btn'), main: $('main'),
   selfName: $('self-name'), selfAvatar: $('self-avatar'), editNameBtn: $('edit-name-btn'), selfUsername: $('self-username'),
   profileModal: $('profile-modal'), profileCardAvatar: $('profile-card-avatar'), profileCardName: $('profile-card-name'),
   profileCardUsername: $('profile-card-username'),
@@ -4228,6 +4230,19 @@ requestAnimationFrame(() => positionTabThumb(els.sidebarTabs));
 window.addEventListener('resize', () => positionTabThumb(els.sidebarTabs));
 
 
+/** サイドバーをアニメーション無しで閉じる。チャンネル/DM選択時は、押し出しで縮んでいた
+ *  メイン画面が通常サイズに戻る過程が「切り替えた瞬間だけ画面が少し拡大される」ように
+ *  見えてしまうため、選択による自動クローズだけは瞬時に(トランジション無しで)戻す。
+ *  ハンバーガーボタン/スワイプ/スクリムタップでの手動クローズは従来通りアニメーションさせる。 */
+function closeSidebarInstant(){
+  if (els.main) els.main.classList.add('no-shrink-transition');
+  els.sidebar.classList.remove('open');
+  els.scrim.classList.remove('show');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { if (els.main) els.main.classList.remove('no-shrink-transition'); });
+  });
+}
+
 function selectChannel(id, name){
   flashConversationSwitch();
   setSidebarTab('channels');
@@ -4240,8 +4255,9 @@ function selectChannel(id, name){
   els.input.placeholder = 'メッセージを入力…';
   [...els.channelList.children].forEach((li) => li.classList.toggle('active', li.dataset.id === id));
   renderDmList();
-  els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
+  closeSidebarInstant();
   knownIds = new Set();
+  suppressNextEnterAnim = true;
   lastDocsSnapshot = [];
   rowElsById.clear();
   unreadByChannel[id] = 0;
@@ -4289,8 +4305,9 @@ function selectDm(otherUid, otherName){
   els.input.placeholder = `${otherName} さんにメッセージを送信…`;
   [...els.channelList.children].forEach((li) => li.classList.remove('active'));
   renderDmList();
-  els.sidebar.classList.remove('open'); els.scrim.classList.remove('show');
+  closeSidebarInstant();
   knownIds = new Set();
+  suppressNextEnterAnim = true;
   lastDocsSnapshot = [];
   rowElsById.clear();
   unreadByDm[currentDmId] = 0;
@@ -4422,6 +4439,8 @@ function renderMessages(docs){
   const orderedNodes = [];
   let lastDay = null;
   const sameDay = (a, b) => a && b && formatDay(a.ts) === formatDay(b.ts);
+  const suppressEnter = suppressNextEnterAnim;
+  suppressNextEnterAnim = false;
 
   // FIX: 送信直後(ローカル反映)→サーバー確定 で同じメッセージが2回描画されると、
   // 毎回 innerHTML を全消去して作り直していたせいで「下からスッと出る」入場アニメーションが
@@ -4465,7 +4484,7 @@ function renderMessages(docs){
     row.classList.toggle('mentions-me', mentionsMe);
     const canDelete = mine || (isAdmin && currentKind === 'channel');
     row.classList.toggle('has-actions', true);
-    if (isNew) row.classList.add('msg-enter'); // 一度だけ付与。以後は消さないので再生が途中で切れない
+    if (isNew && !suppressEnter) row.classList.add('msg-enter'); // 一度だけ付与。以後は消さないので再生が途中で切れない
 
     const color = avatarColor(m.uid);
     const hasText = !!(m.text && m.text.trim());
