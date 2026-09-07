@@ -705,6 +705,44 @@
     font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
   }
 
+  /* ===================== チャットファイル送信 ===================== */
+  .msg-file-chip{
+    display:flex; align-items:center; gap:10px; max-width:240px; padding:10px 12px;
+    border-radius: 14px; background: var(--surface-2); border:1px solid var(--border);
+    box-shadow: var(--shadow-sm); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+  }
+  .msg-row.mine .msg-file-chip{ background: var(--mine-bubble-1); }
+  .msg-file-chip .mfc-icon{
+    width:36px; height:36px; border-radius:10px; background: var(--surface-3);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; color: var(--amber);
+  }
+  .msg-file-chip .mfc-info{ min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .msg-file-chip .mfc-name{ font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; }
+  .msg-file-chip .mfc-meta{ font-family: var(--font-mono); font-size:10.5px; color: var(--text-faint); }
+  .bubble.has-file{ padding: 5px !important; background: transparent !important; border: none !important; box-shadow:none !important; }
+  .bubble.has-file.has-text{ padding: 5px 5px 9px !important; background: var(--surface-2) !important; border: 1px solid var(--border) !important; box-shadow: var(--shadow-sm) !important; }
+  .msg-row.mine .bubble.has-file.has-text{ background: var(--mine-bubble-1) !important; border-color: var(--border) !important; }
+  .bubble.has-file.has-text .msg-file-chip{ margin-bottom: 6px; }
+  .bubble .msg-file-expired{
+    display:flex; align-items:center; gap:8px; width:180px; padding:10px 12px;
+    border-radius:14px; background: var(--surface-2); border:1px dashed var(--border);
+    color: var(--text-faint); font-size:11.5px; font-family: var(--font-mono);
+  }
+
+  #file-preview-strip{ padding: 8px 20px 0; background: var(--surface); flex-shrink:0; }
+  .file-preview-item{ position:relative; display:inline-flex; align-items:center; gap:8px; background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-md); padding:8px 12px 8px 8px; animation: chipIn 0.375s var(--ease-spring); }
+  .file-preview-item .fp-icon{
+    width:36px; height:36px; border-radius:10px; background: var(--surface-3);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; color: var(--amber);
+  }
+  #file-preview-name{ font-size:12.5px; font-weight:600; max-width:170px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #file-preview-meta{ font-family: var(--font-mono); font-size:10px; color: var(--text-faint); padding-right:22px; }
+  #file-preview-clear{
+    position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%;
+    background: var(--danger); color:#fff; border:2px solid var(--surface); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+    font-size:11px; line-height:1; display:flex; align-items:center; justify-content:center;
+  }
+
   #composer{ position:relative; display:flex; align-items:flex-end; gap:10px; padding: 12px 20px calc(14px + env(safe-area-inset-bottom) + var(--safe-bottom-extra)); background: transparent; flex-shrink:0; }
   #composer-dock{ position:absolute; left:0; right:0; bottom:0; z-index:20; display:flex; flex-direction:column; }
 
@@ -1858,6 +1896,16 @@
         <div id="image-preview-meta"></div>
       </div>
     </div>
+    <div id="file-preview-strip" style="display:none;">
+      <div class="file-preview-item">
+        <div class="fp-icon">📎</div>
+        <div>
+          <div id="file-preview-name"></div>
+          <div id="file-preview-meta"></div>
+        </div>
+        <button type="button" id="file-preview-clear" title="ファイルを取り消す">✕</button>
+      </div>
+    </div>
     <div id="reply-preview-strip" style="display:none;">
       <div class="reply-preview-item">
         <div class="rp-bar"></div>
@@ -1870,6 +1918,7 @@
     </div>
     <div id="composer">
       <input type="file" id="image-file-input" accept="image/*" style="display:none;">
+      <input type="file" id="file-file-input" style="display:none;">
       <button id="attach-btn" type="button" title="画像を送信" style="display:none;">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
@@ -1886,6 +1935,10 @@
             <button type="button" class="composer-menu-item" data-action="attach">
               <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
               <span class="cmi-label">画像を送信</span>
+            </button>
+            <button type="button" class="composer-menu-item" data-action="file">
+              <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 3h6l5 5v10a2 2 0 01-2 2H8a2 2 0 01-2-2V5a2 2 0 012-2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              <span class="cmi-label">ファイルを送信</span>
             </button>
             <button type="button" class="composer-menu-item" data-action="poll">
               <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M12 19V5M20 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -2579,6 +2632,8 @@ const els = {
   typing: $('typing-indicator'),
   input: $('msg-input'), sendBtn: $('send-btn'), mentionSuggest: $('mention-suggest'),
   attachBtn: $('attach-btn'), imageFileInput: $('image-file-input'),
+  fileFileInput: $('file-file-input'), filePreviewStrip: $('file-preview-strip'),
+  filePreviewName: $('file-preview-name'), filePreviewMeta: $('file-preview-meta'), filePreviewClear: $('file-preview-clear'),
   composerPlusBtn: $('composer-plus-btn'), composerMenu: $('composer-menu'), composerPlusInner: $('composer-plus-inner'),
   pollBtn: $('poll-btn'), pollModal: $('poll-modal'), pollQuestionInput: $('poll-question-input'),
   pollOptionCount: $('poll-option-count'), pollOptionsInputs: $('poll-options-inputs'),
@@ -2892,6 +2947,7 @@ els.composerMenu.querySelectorAll('.composer-menu-item').forEach((btn) => {
     closeComposerMenu();
     const action = btn.dataset.action;
     if (action === 'attach') els.attachBtn.click();
+    else if (action === 'file') els.fileFileInput.click();
     else if (action === 'poll') els.pollBtn.click();
     else if (action === 'schedule') els.scheduleBtn.click();
   });
@@ -3098,6 +3154,23 @@ function fileToChatImageDataUrl(file){
 }
 
 let pendingImage = null; // { dataUrl, w, h, bytes } | null
+
+/* ------------------------------------------------------------------ */
+/* チャットファイル送信（画像以外の任意ファイル。Firestoreの1ドキュメント     */
+/* 1MiB上限のため、圧縮できない生データはサイズ上限で弾く）                  */
+/* ------------------------------------------------------------------ */
+const FILE_RETENTION_DAYS = 7; // この日数を過ぎたファイルは自動削除（テキストは残す）
+const CHAT_FILE_MAX_BYTES = 500 * 1024; // 生ファイルサイズの上限（base64化でも1ドキュメント上限に収まるよう安全マージンを取る）
+let pendingFile = null; // { name, type, size, dataUrl } | null
+
+function fileToChatFileDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
+  });
+}
 const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 /* ------------------------------------------------------------------ */
@@ -3107,6 +3180,7 @@ let replyingTo = null; // { id, name, text, img } | null
 function replySnippet(m){
   if (m.text && m.text.trim()) return m.text.trim().slice(0, 60);
   if (m.img) return '📷 画像';
+  if (m.fileData) return `📎 ${m.fileName || 'ファイル'}`;
   return '';
 }
 function setReplyTarget(id, m){
@@ -3489,7 +3563,7 @@ function clearImagePreview(){
   pendingImage = null;
   els.imageFileInput.value = '';
   els.imagePreviewStrip.style.display = 'none';
-  els.sendBtn.disabled = !els.input.value.trim();
+  els.sendBtn.disabled = !els.input.value.trim() && !pendingFile;
 }
 
 els.attachBtn.addEventListener('click', () => els.imageFileInput.click());
@@ -3499,6 +3573,7 @@ els.imageFileInput.addEventListener('change', async () => {
   if (!file.type.startsWith('image/')) { alert('画像ファイルを選択してください'); clearImagePreview(); return; }
   try {
     pendingImage = await fileToChatImageDataUrl(file);
+    clearFilePreview(); // 添付は画像/ファイルのどちらか一方のみ
     showImagePreview();
   } catch (e) {
     console.error('画像の圧縮に失敗しました', e);
@@ -3507,6 +3582,51 @@ els.imageFileInput.addEventListener('change', async () => {
   }
 });
 els.imagePreviewClear.addEventListener('click', clearImagePreview);
+
+function showFilePreview(){
+  if (!pendingFile) { els.filePreviewStrip.style.display = 'none'; return; }
+  els.filePreviewName.textContent = pendingFile.name;
+  els.filePreviewMeta.textContent = formatBytes(pendingFile.size);
+  els.filePreviewStrip.style.display = 'block';
+  els.sendBtn.disabled = false;
+}
+function clearFilePreview(){
+  pendingFile = null;
+  els.fileFileInput.value = '';
+  els.filePreviewStrip.style.display = 'none';
+  els.sendBtn.disabled = !els.input.value.trim() && !pendingImage;
+}
+
+els.fileFileInput.addEventListener('change', async () => {
+  const file = els.fileFileInput.files && els.fileFileInput.files[0];
+  if (!file) return;
+  if (file.size > CHAT_FILE_MAX_BYTES) {
+    alert(`ファイルサイズが大きすぎます（上限 ${formatBytes(CHAT_FILE_MAX_BYTES)}）`);
+    clearFilePreview();
+    return;
+  }
+  try {
+    const dataUrl = await fileToChatFileDataUrl(file);
+    pendingFile = { name: file.name, type: file.type || 'application/octet-stream', size: file.size, dataUrl };
+    clearImagePreview(); // 添付は画像/ファイルのどちらか一方のみ
+    showFilePreview();
+  } catch (e) {
+    console.error('ファイルの読み込みに失敗しました', e);
+    alert('ファイルの読み込みに失敗しました');
+    clearFilePreview();
+  }
+});
+els.filePreviewClear.addEventListener('click', clearFilePreview);
+
+/** チャットのファイル添付(data URL)をダウンロードさせる */
+function downloadChatFile(dataUrl, name){
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = name || 'file';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
 
 els.lightboxModal.addEventListener('click', () => { closeModal(els.lightboxModal); });
 function openLightbox(src){
@@ -3524,6 +3644,18 @@ function sweepExpiredImage(docId, coll, baseId, m){
   if (ageDays < IMAGE_RETENTION_DAYS) return;
   imageCleanupAttempted.add(docId);
   updateDoc(doc(db, coll, baseId, 'messages', docId), { img: deleteField(), imgW: deleteField(), imgH: deleteField() }).catch(() => {});
+}
+
+/** 期限切れ添付ファイルの自動削除（クライアント側の遅延掃除）。1メッセージにつき1回だけ試みる。 */
+const fileCleanupAttempted = new Set();
+function sweepExpiredFile(docId, coll, baseId, m){
+  if (!m.fileData || fileCleanupAttempted.has(docId)) return;
+  const ms = m.ts && m.ts.toMillis ? m.ts.toMillis() : null;
+  if (ms === null) return;
+  const ageDays = (Date.now() - ms) / 86400000;
+  if (ageDays < FILE_RETENTION_DAYS) return;
+  fileCleanupAttempted.add(docId);
+  updateDoc(doc(db, coll, baseId, 'messages', docId), { fileData: deleteField(), fileName: deleteField(), fileType: deleteField(), fileSize: deleteField() }).catch(() => {});
 }
 
 /* ------------------------------------------------------------------ */
@@ -4338,14 +4470,21 @@ function renderMessages(docs){
     const color = avatarColor(m.uid);
     const hasText = !!(m.text && m.text.trim());
     const hasImage = !!m.img;
+    const hasFile = !!m.fileData;
     const hasPoll = m.type === 'poll' && !!m.poll;
     const hasTetInvite = m.type === 'tetris_invite' && !!m.tetrisRoomId;
     const imageHtml = hasImage
       ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}">`
       : (m.imgExpired ? `<div class="msg-image-expired">画像は期限切れです</div>` : '');
+    const fileHtml = hasFile
+      ? `<div class="msg-file-chip" data-file-url="${m.fileData}" data-file-name="${escapeHtml(m.fileName || 'file')}">
+           <div class="mfc-icon">📎</div>
+           <div class="mfc-info"><div class="mfc-name">${escapeHtml(m.fileName || 'ファイル')}</div><div class="mfc-meta">${formatBytes(m.fileSize || 0)}</div></div>
+         </div>`
+      : (m.fileExpired ? `<div class="msg-file-expired">📎 ファイルは期限切れです</div>` : '');
     const pollHtml = hasPoll ? renderPollChipHtml(m, d.id) : '';
     const tetInviteHtml = hasTetInvite ? renderTetrisInviteChipHtml(m, d.id) : '';
-    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '') + (hasTetInvite ? ' has-tet-invite' : '');
+    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasFile || m.fileExpired ? ' has-file' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '') + (hasTetInvite ? ' has-tet-invite' : '');
 
     // 返信元の引用プレビュー（あれば）
     const replyHtml = m.replyTo
@@ -4380,6 +4519,7 @@ function renderMessages(docs){
       mine, groupedWithPrev, groupedWithNext, canDelete,
       dispName, dispIcon, dispImg, verified, gold,
       hasText, m.text || '', hasImage, m.img || '', !!m.imgExpired,
+      hasFile, m.fileData || '', m.fileName || '', m.fileSize || 0, !!m.fileExpired,
       hasPoll, m.poll || null, m.pollResponses || null,
       hasTetInvite, m.tetrisRoomId || null,
       metaHtml, receipts, replyHtml, reactionEntries, mentionsMe
@@ -4391,7 +4531,7 @@ function renderMessages(docs){
         <div class="msg-avatar" data-uid="${m.uid}" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
         <div class="msg-body">
           ${metaHtml}
-          <div class="${bubbleClass}">${replyHtml}${imageHtml}${hasText ? `<div class="msg-text">${renderMessageText(m.text)}</div>` : ''}${pollHtml}${tetInviteHtml}</div>
+          <div class="${bubbleClass}">${replyHtml}${imageHtml}${fileHtml}${hasText ? `<div class="msg-text">${renderMessageText(m.text)}</div>` : ''}${pollHtml}${tetInviteHtml}</div>
         </div>`;
 
       const body = row.querySelector('.msg-body');
@@ -4427,6 +4567,7 @@ function renderMessages(docs){
 
     const [sweepColl, sweepId] = activeBasePath();
     sweepExpiredImage(d.id, sweepColl, sweepId, m);
+    sweepExpiredFile(d.id, sweepColl, sweepId, m);
 
     orderedNodes.push(row);
     newKnown.add(d.id);
@@ -4513,6 +4654,8 @@ els.messages.addEventListener('click', (e) => {
   if (rq) { jumpToMessage(rq.dataset.jumpId); return; }
   const img = e.target.closest('.msg-image');
   if (img) { openLightbox(img.dataset.full || img.src); return; }
+  const fileChip = e.target.closest('.msg-file-chip');
+  if (fileChip) { downloadChatFile(fileChip.dataset.fileUrl, fileChip.dataset.fileName); return; }
   const chipWrap = e.target.closest('.read-chips');
   if (chipWrap) { chipWrap.classList.toggle('expanded'); return; }
   const pollSummary = e.target.closest('.poll-summary');
@@ -4625,14 +4768,14 @@ els.scheduleListBody.addEventListener('click', async (e) => {
 els.scheduleBtn.addEventListener('click', () => {
   const text = els.input.value.trim();
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
-  if ((!text && !pendingImage) || !targetId) { alert('先に送信するメッセージを入力してください'); return; }
+  if ((!text && !pendingImage && !pendingFile) || !targetId) { alert('先に送信するメッセージを入力してください'); return; }
   if (!canPostInCurrentChannel()) { alert(isSuspended() ? 'アカウントが利用停止されているため投稿できません' : 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
   const d = new Date(Date.now() + 5 * 60 * 1000);
   d.setSeconds(0, 0);
   const pad = (n) => String(n).padStart(2, '0');
   els.scheduleDatetimeInput.min = `${(new Date()).getFullYear()}-${pad(new Date().getMonth() + 1)}-${pad(new Date().getDate())}T${pad(new Date().getHours())}:${pad(new Date().getMinutes())}`;
   els.scheduleDatetimeInput.value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  els.scheduleModalDesc.textContent = text ? `「${text.length > 40 ? text.slice(0, 40) + '…' : text}」を指定した時間に送信します。` : '画像を指定した時間に送信します。';
+  els.scheduleModalDesc.textContent = text ? `「${text.length > 40 ? text.slice(0, 40) + '…' : text}」を指定した時間に送信します。` : (pendingImage ? '画像を指定した時間に送信します。' : 'ファイルを指定した時間に送信します。');
   els.scheduleModal.classList.remove('closing');
   els.scheduleModal.style.display = 'flex';
 });
@@ -4640,8 +4783,9 @@ els.scheduleCancel.addEventListener('click', () => { closeModal(els.scheduleModa
 els.scheduleConfirm.addEventListener('click', async () => {
   const text = els.input.value.trim();
   const image = pendingImage;
+  const file = pendingFile;
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
-  if ((!text && !image) || !targetId || !db || !myName || !myUid) { closeModal(els.scheduleModal); return; }
+  if ((!text && !image && !file) || !targetId || !db || !myName || !myUid) { closeModal(els.scheduleModal); return; }
   const val = els.scheduleDatetimeInput.value;
   if (!val) { alert('日時を指定してください'); return; }
   const sendAt = new Date(val);
@@ -4654,6 +4798,7 @@ els.scheduleConfirm.addEventListener('click', async () => {
     const mentionUids = extractMentionUids(text);
     if (mentionUids.length) payload.mentions = mentionUids;
     if (image) { payload.img = image.dataUrl; payload.imgW = image.w; payload.imgH = image.h; }
+    if (file) { payload.fileData = file.dataUrl; payload.fileName = file.name; payload.fileType = file.type; payload.fileSize = file.size; }
     if (replySnapshot) {
       payload.replyTo = { id: replySnapshot.id, name: replySnapshot.name, text: replySnapshot.text || '', img: !!replySnapshot.img };
     }
@@ -4661,6 +4806,7 @@ els.scheduleConfirm.addEventListener('click', async () => {
     els.input.value = ''; els.input.style.height = 'auto';
     closeMentionSuggest();
     clearImagePreview();
+    clearFilePreview();
     clearReplyTarget();
     closeModal(els.scheduleModal);
   } catch (e) { console.error('予約の作成に失敗しました', e); alert('予約の作成に失敗しました'); }
@@ -4679,6 +4825,7 @@ async function promoteScheduledMessage(coll, id, schedId){
       const payload = { text: data.text || '', uid: data.uid, name: data.name, icon: data.icon || '', ts: serverTimestamp() };
       if (data.mentions) payload.mentions = data.mentions;
       if (data.img) { payload.img = data.img; payload.imgW = data.imgW; payload.imgH = data.imgH; }
+      if (data.fileData) { payload.fileData = data.fileData; payload.fileName = data.fileName; payload.fileType = data.fileType; payload.fileSize = data.fileSize; }
       if (data.replyTo) payload.replyTo = data.replyTo;
       tx.set(newMsgRef, payload);
       tx.delete(schedRef);
@@ -4716,8 +4863,9 @@ function startScheduledScanLoop(){
 async function sendMessage(){
   const text = els.input.value.trim();
   const image = pendingImage;
+  const file = pendingFile;
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
-  if ((!text && !image) || !targetId || !db || !myName || !myUid) return;
+  if ((!text && !image && !file) || !targetId || !db || !myName || !myUid) return;
   if (!canPostInCurrentChannel()) { alert(isSuspended() ? 'アカウントが利用停止されているため投稿できません' : 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
   const replySnapshot = replyingTo;
   const mentionUids = extractMentionUids(text);
@@ -4725,6 +4873,7 @@ async function sendMessage(){
   els.input.style.height = 'auto';
   closeMentionSuggest();
   clearImagePreview();
+  clearFilePreview();
   clearReplyTarget();
   els.sendBtn.disabled = true;
   els.sendBtn.classList.remove('sent');
@@ -4735,19 +4884,21 @@ async function sendMessage(){
   try {
     const payload = { text, uid: myUid, name: myName, icon: myIcon || '', ts: serverTimestamp() };
     if (image) { payload.img = image.dataUrl; payload.imgW = image.w; payload.imgH = image.h; }
+    if (file) { payload.fileData = file.dataUrl; payload.fileName = file.name; payload.fileType = file.type; payload.fileSize = file.size; }
     if (mentionUids.length) payload.mentions = mentionUids;
     if (replySnapshot) {
       payload.replyTo = { id: replySnapshot.id, name: replySnapshot.name, text: replySnapshot.text || '', img: !!replySnapshot.img };
     }
     await addDoc(collection(db, coll, id, 'messages'), payload);
     if (coll === 'dms') {
-      await setDoc(doc(db, 'dms', id), { participants: [myUid, currentDmOtherUid], lastText: text ? text.slice(0, 80) : '📷 画像', updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+      const lastText = text ? text.slice(0, 80) : (image ? '📷 画像' : `📎 ${file.name}`);
+      await setDoc(doc(db, 'dms', id), { participants: [myUid, currentDmOtherUid], lastText, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
     }
   } catch (e) { console.error('送信に失敗しました', e); }
   clearTyping();
 }
 els.input.addEventListener('input', () => {
-  els.sendBtn.disabled = !els.input.value.trim() && !pendingImage;
+  els.sendBtn.disabled = !els.input.value.trim() && !pendingImage && !pendingFile;
   els.input.style.height = 'auto';
   els.input.style.height = Math.min(120, els.input.scrollHeight) + 'px';
   pushTyping();
