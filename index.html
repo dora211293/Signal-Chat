@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>SIGNAL</title>
 
 <meta name="theme-color" content="#000000">
@@ -66,6 +66,9 @@
 
   *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body{ height: 100%; }
+  /* ピンチ／ダブルタップでの誤った拡大を防止（viewportのuser-scalable=noだけでは
+     一部ブラウザでダブルタップズームが効いてしまうことがあるための保険） */
+  html, body{ touch-action: manipulation; }
   /* チャットのメッセージ本文・画像だけはコピー/保存できるようにし、それ以外のUI（ボタン・名前・メニュー等）は
      選択・長押し保存・ドラッグ保存できないようにする */
   *{ -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -1586,15 +1589,13 @@
   }
   @keyframes tetRowClear{
     0%{ filter: brightness(1); transform: scaleY(1); opacity: 1; }
-    35%{ filter: brightness(2.6) saturate(0); transform: scaleY(1); opacity: 1; }
-    100%{ filter: brightness(3) saturate(0); transform: scaleY(0.1); opacity: 0; }
+    35%{ filter: brightness(1.7) saturate(.2); transform: scaleY(1); opacity: 1; }
+    100%{ filter: brightness(1.9) saturate(0); transform: scaleY(0.1); opacity: 0; }
   }
   #tet-garbage-warn{ position:absolute; right:-9px; top:0; bottom:0; width:5px; display:flex; flex-direction:column-reverse; gap:1px; }
   .tet-garbage-warn-seg{ flex:1; background: var(--danger); border-radius:2px; opacity:.85; box-shadow: 0 0 6px color-mix(in srgb, var(--danger) 60%, transparent); animation: tetGarbagePulse 1s ease-in-out infinite; }
   @keyframes tetGarbagePulse{ 0%,100%{ opacity:.6; } 50%{ opacity:1; } }
   #tet-fx-canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:6; }
-  #tet-board.tet-harddrop{ animation: tetHardDropSquash .18s var(--ease-ios); }
-  @keyframes tetHardDropSquash{ 0%{ transform: scaleY(1); } 40%{ transform: scaleY(.97) translateY(3px); } 100%{ transform: scaleY(1); } }
   #tet-controls{ flex-shrink:0; display:flex; flex-direction:column; gap: 8px; padding-top: 6px; }
   .tet-ctrl-row{ display:flex; gap:8px; justify-content:center; }
   .tet-ctrl-btn{
@@ -1696,9 +1697,9 @@
     display:inline-block; font-size: 13px; font-weight:800; color: var(--amber);
     background: color-mix(in srgb, black 78%, transparent); border: 1px solid color-mix(in srgb, var(--amber) 30%, transparent);
     padding: 5px 12px; border-radius: var(--radius-pill); animation: tetPopupFloat 1.05s var(--ease-ios) forwards;
-    box-shadow: 0 0 16px color-mix(in srgb, var(--amber) 25%, transparent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--amber) 18%, transparent);
   }
-  .tet-clear-popup-item.big{ color: var(--gold-2); font-size: 16px; border-color: color-mix(in srgb, var(--gold-2) 40%, transparent); box-shadow: 0 0 22px color-mix(in srgb, var(--gold-2) 40%, transparent); }
+  .tet-clear-popup-item.big{ color: var(--gold-2); font-size: 16px; border-color: color-mix(in srgb, var(--gold-2) 40%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--gold-2) 22%, transparent); }
   @keyframes tetPopupFloat{
     0%{ transform: translateY(6px) scale(.8); opacity:0; } 18%{ transform: translateY(0) scale(1.08); opacity:1; }
     30%{ transform: translateY(0) scale(1); opacity:1; } 100%{ transform: translateY(-26px) scale(1); opacity:0; }
@@ -1709,7 +1710,7 @@
     60%{ transform: translateX(-3px); } 80%{ transform: translateX(3px); }
   }
   #tet-board.tet-flash::after{
-    content:''; position:absolute; inset:0; background: #ffffff; opacity: .55; animation: tetFlashFade .32s ease forwards; pointer-events:none; z-index: 7;
+    content:''; position:absolute; inset:0; background: #ffffff; opacity: .22; animation: tetFlashFade .32s ease forwards; pointer-events:none; z-index: 7;
   }
   @keyframes tetFlashFade{ from{ opacity:.55; } to{ opacity:0; } }
   .tet-opp-card.tet-opp-attacked .tet-opp-board{ animation: tetOppFlash .5s ease; }
@@ -6307,8 +6308,6 @@ function tetHardDrop(){
   if (!tetCur) return;
   let moved = true;
   while (moved) moved = tetTryMove(1, 0);
-  const boardEl = $('tet-board');
-  if (boardEl) { boardEl.classList.remove('tet-harddrop'); void boardEl.offsetWidth; boardEl.classList.add('tet-harddrop'); }
   tetLockPiece();
 }
 function tetHold(){
@@ -6378,7 +6377,7 @@ function tetHandleAttackAfterClear(cleared, isTspin, isMini){
     if (isB2b) attack += 1;
     tetLastWasDifficult = isDifficult;
     tetShowClearPopup(label + (tetCombo > 0 ? ` ${tetCombo} COMBO` : '') + (isB2b ? ' B2B' : ''), isDifficult);
-    tetTriggerBoardFx(cleared >= 3 || isTspin ? 'flash' : null);
+    tetTriggerBoardFx(cleared >= 4 || isTspin ? 'flash' : null);
   } else {
     tetCombo = -1;
     if (isTspin) {
@@ -6590,7 +6589,7 @@ function tetSpawnClearParticles(rows, big){
   const w = rect.width, h = rect.height;
   const cellW = w / 10, cellH = h / 20;
   const colors = ['#F0A93F', '#3DE0B8', '#C792F2', '#FF6B5B', '#5B9CFF', '#F2934A', '#6FD66F', '#F2C766'];
-  const count = big ? 5 : 3;
+  const count = big ? 3 : 2;
   rows.forEach((r) => {
     for (let c = 0; c < 10; c++) {
       for (let i = 0; i < count; i++) {
@@ -6598,8 +6597,8 @@ function tetSpawnClearParticles(rows, big){
           x: c * cellW + cellW / 2, y: r * cellH + cellH / 2,
           vx: (Math.random() - 0.5) * (big ? 5.5 : 3.2),
           vy: (Math.random() - 1.35) * (big ? 5.5 : 3.6),
-          life: 1, decay: 0.018 + Math.random() * 0.014,
-          size: 2 + Math.random() * (big ? 3.4 : 2.2),
+          life: 1, decay: 0.026 + Math.random() * 0.018,
+          size: 2 + Math.random() * (big ? 2.6 : 1.8),
           color: colors[Math.floor(Math.random() * colors.length)],
         });
       }
@@ -6621,7 +6620,7 @@ function tetStartFxLoop(dpr){
       p.vy += 0.16; p.x += p.vx; p.y += p.vy; p.life -= p.decay;
       if (p.life <= 0) { tetFxParticles.splice(i, 1); continue; }
       ctx.globalAlpha = Math.max(0, p.life);
-      ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 6;
+      ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 3;
       ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
     }
     ctx.restore();
