@@ -98,7 +98,7 @@
   }
   #custom-cursor{
     position:fixed; top:0; left:0; width:0; height:0; pointer-events:none; z-index:99999;
-    opacity:0; transition: opacity .22s ease;
+    opacity:0; transition: opacity .22s var(--ease-ios);
   }
   #custom-cursor.cc-visible{ opacity:1; }
   #custom-cursor .cc-ring{
@@ -174,7 +174,7 @@
   .channel-item, .self-card, .online-chip, .admin-row, #msg-input, .icon-btn, input,
   .day-divider, #config-warning, .msg-avatar, .self-avatar, .preview-avatar, .admin-tab,
   .verify-pending, #onair, .empty-state{
-    transition: background-color 0.438s ease, border-color 0.438s ease, color 0.375s ease, box-shadow 0.438s ease;
+    transition: background-color 0.438s var(--ease-ios), border-color 0.438s var(--ease-ios), color 0.375s var(--ease-ios), box-shadow 0.438s var(--ease-ios);
   }
 
   @keyframes appIn{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform: translateY(0); } }
@@ -480,14 +480,14 @@
   #search-input{
     flex:1; min-width:0; height:100%; background:none; border:none; outline:none;
     color: var(--text); font-size:13.5px; font-family: inherit; padding:0; opacity:0;
-    transition: opacity .22s ease;
+    transition: opacity .22s var(--ease-ios);
   }
   #search-wrap.open #search-input{ opacity:1; transition-delay:.2s; }
   #search-input::placeholder{ color: var(--text-faint); }
   #search-close-btn{
     width:30px; height:30px; flex-shrink:0; display:none; align-items:center; justify-content:center;
     background:none; border:none; color: var(--text-faint); margin-right:3px; opacity:0;
-    transition: opacity .18s ease, color .18s ease;
+    transition: opacity .18s var(--ease-ios), color .18s var(--ease-ios);
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
   }
   #search-wrap.open #search-close-btn{ display:flex; opacity:1; transition-delay:.24s; }
@@ -503,7 +503,7 @@
     display:flex; flex-direction:column; gap:2px; padding:9px 11px; border-radius: var(--radius-sm); text-align:left;
     background:none; border:none; color: var(--text);
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
-    transition: background-color .15s ease;
+    transition: background-color .15s var(--ease-ios);
   }
   .search-result-item .sri-top{ display:flex; align-items:baseline; gap:6px; font-size:11.5px; color: var(--text-faint); }
   .search-result-item .sri-name{ font-weight:700; color: var(--text-muted); }
@@ -606,7 +606,7 @@
     display:flex; flex-direction:column; gap:1px;
     border-left: 2.5px solid var(--amber); background: #ffffff0d;
     border-radius: 12px; padding: 5px 9px; margin-bottom: 6px;
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; transition: background-color 0.188s ease, transform 0.188s ease;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; transition: background-color 0.188s var(--ease-ios), transform 0.188s var(--ease-spring);
   }
   .reply-quote .rq-name{ font-size: 10.5px; font-weight:700; color: var(--amber); }
   .reply-quote .rq-text{
@@ -824,7 +824,7 @@
     display:flex; flex-direction:column; gap: 2px; flex-shrink:0; padding: 6px 6px 2px;
   }
   #composer-menu .composer-menu-item{
-    opacity:0; transform: translateX(-4px); transition: opacity .16s ease, transform .16s ease;
+    opacity:0; transform: translateX(-4px); transition: opacity .16s var(--ease-ios), transform .16s var(--ease-spring);
   }
   .composer-plus-inner.open #composer-menu .composer-menu-item{ opacity:1; transform: translateX(0); transition-delay: .2s; }
   .composer-plus-inner.open #composer-menu .composer-menu-item:nth-child(2){ transition-delay: .24s; }
@@ -834,7 +834,7 @@
     padding: 10px 11px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight:600; text-align:left;
     white-space:nowrap;
     cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
-    transition: background-color 0.15s ease;
+    transition: background-color 0.15s var(--ease-ios);
   }
   .composer-menu-item .cmi-icon{ display:flex; align-items:center; justify-content:center; color: var(--text-muted); flex-shrink:0; }
   .composer-menu-item .cmi-label{ flex:1; }
@@ -1162,7 +1162,7 @@
   .color-target-list{ display:flex; flex-direction:column; gap:2px; margin-bottom: 10px; }
   .color-target-row{
     display:flex; align-items:center; gap:9px; padding: 6px 7px; border-radius: var(--radius-xs);
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; transition: background-color 0.188s ease;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; transition: background-color 0.188s var(--ease-ios);
   }
   .color-target-row input[type="checkbox"]{ width:15px; height:15px; accent-color: var(--amber); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; flex-shrink:0; }
   .color-target-row .ct-name{ flex:1; font-size: 12.5px; }
@@ -1508,7 +1508,7 @@
   /* ---- カウントダウン ---- */
   #tetris-countdown-overlay{
     position:absolute; inset:0; z-index: 20; display:flex; align-items:center; justify-content:center;
-    background: radial-gradient(60% 60% at 50% 50%, #00000088, #000000cc); opacity:0; pointer-events:none; transition: opacity .25s ease;
+    background: radial-gradient(60% 60% at 50% 50%, #00000088, #000000cc); opacity:0; pointer-events:none; transition: opacity .25s var(--ease-ios);
   }
   #tetris-countdown-overlay.show{ opacity:1; }
   #tet-cd-ring{
@@ -1636,7 +1636,7 @@
   .tet-result-row .msg-avatar{ position:static; width:30px; height:30px; font-size:12px; }
   .tet-result-name{ flex:1; font-size: 13px; font-weight:600; }
   .tet-result-lines{ font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
-  #tet-result-title{ transition: text-shadow .3s ease; }
+  #tet-result-title{ transition: text-shadow .3s var(--ease-ios); }
 
   /* ---- チャット内の招待チップ ---- */
   .tetris-invite-chip{
@@ -1670,7 +1670,7 @@
   /* ---- エフェクト演出 ---- */
   #tetris-round-fx-overlay{
     position:absolute; inset:0; z-index: 25; display:flex; align-items:center; justify-content:center;
-    background: radial-gradient(70% 60% at 50% 50%, #000000cc, #000000ee); opacity:0; pointer-events:none; transition: opacity .3s ease;
+    background: radial-gradient(70% 60% at 50% 50%, #000000cc, #000000ee); opacity:0; pointer-events:none; transition: opacity .3s var(--ease-ios);
     backdrop-filter: blur(2px);
   }
   #tetris-round-fx-overlay.show{ opacity:1; }
@@ -1726,6 +1726,19 @@
     width:26px; height:26px; border-radius:50%; background: var(--surface-2); border:1px solid var(--border); color: var(--text);
   }
   #tet-board.tet-spectate-mode{ opacity: .96; box-shadow: 0 0 0 2px var(--amber-dim); }
+  /* ===================== UI統一: 磨りガラスの適用範囲を拡張 =====================
+     サイドバー・吹き出し・モーダル等の主要パネルだけでなく、検索ボックスやタブ、
+     リストの選択行、入力欄・チップ類にも同じ透過度/ぼかし（--panel-alpha連動）を
+     適用し、見た目の質感をアプリ全体で統一する。 */
+  #search-wrap, #search-wrap.open,
+  .scope-switch, .sidebar-tabs,
+  .channel-item.active, .dm-item.active,
+  .admin-tabs, .username-input-row,
+  .image-preview-item, .file-preview-item, .reply-preview-item, .poll-freetext-item{
+    background: color-mix(in srgb, var(--surface-2) calc(var(--panel-alpha) * 100%), transparent);
+    backdrop-filter: blur(calc(4px + (1 - var(--panel-alpha)) * 14px)) saturate(160%);
+    -webkit-backdrop-filter: blur(calc(4px + (1 - var(--panel-alpha)) * 14px)) saturate(160%);
+  }
 </style>
 </head>
 <body>
@@ -5665,7 +5678,7 @@ function contrastTextFor(hex){
   const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
   return lum > 0.6 ? '#141416' : '#F2F2F7';
 }
-const DEFAULT_UI_SETTINGS = { colors: {}, scale: 100, opacity: 100, radius: 100, safeTop: 0, safeBottom: 0, reduceMotion: false, compact: false, activePreset: 'default' };
+const DEFAULT_UI_SETTINGS = { colors: {}, scale: 100, opacity: 72, radius: 100, safeTop: 0, safeBottom: 0, reduceMotion: false, compact: false, activePreset: 'default' };
 function loadUiSettings(){
   try {
     const raw = localStorage.getItem(UI_SETTINGS_KEY);
@@ -5818,10 +5831,10 @@ els.compactToggle.addEventListener('change', () => {
 });
 
 const UI_PRESETS = {
-  default: { colors: {}, opacity: 100, radius: 100 },
-  mono:    { colors: { accent: '#9C9CA3', teal: '#9C9CA3', gold: '#B7B7BD' }, opacity: 100, radius: 100 },
+  default: { colors: {}, opacity: 72, radius: 100 },
+  mono:    { colors: { accent: '#9C9CA3', teal: '#9C9CA3', gold: '#B7B7BD' }, opacity: 72, radius: 100 },
   neon:    { colors: { accent: '#00E5FF', teal: '#FF2ED1', gold: '#FFE600', bg: '#05010c', surface: '#0c0420', surface2: '#150a30' }, opacity: 88, radius: 130 },
-  black:   { colors: { accent: '#FFFFFF', bg: '#000000', surface: '#000000', surface2: '#0A0A0A', surface3: '#141414', mineBubble: '#0A0A0A' }, opacity: 100, radius: 100 },
+  black:   { colors: { accent: '#FFFFFF', bg: '#000000', surface: '#000000', surface2: '#0A0A0A', surface3: '#141414', mineBubble: '#0A0A0A' }, opacity: 88, radius: 100 },
 };
 els.presetRow.addEventListener('click', (e) => {
   const btn = e.target.closest('.preset-chip');
