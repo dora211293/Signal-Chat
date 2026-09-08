@@ -2510,7 +2510,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc, deleteField,
-  onSnapshot, query, orderBy, limit, where, serverTimestamp, runTransaction, arrayUnion, arrayRemove
+  onSnapshot, query, orderBy, limit, where, serverTimestamp, runTransaction, arrayUnion, arrayRemove,
+  writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   getAuth, signInAnonymously, onAuthStateChanged
@@ -4704,12 +4705,44 @@ function listenMessages(channelId, dmId){
   if (unsubMessages) unsubMessages();
   if (!db) return;
   const [coll, id] = dmId ? ['dms', dmId] : ['channels', channelId];
-  const q = query(collection(db, coll, id, 'messages'), orderBy('ts', 'asc'), limit(200));
+  // FIX(バグ): orderBy('ts','asc')のままlimit(200)を掛けると「一番古い200件」しか
+  // 取得できず、保存件数がそれを超えたチャットでは新着メッセージが一切表示されない
+  // （＝送っても届いていないように見える）現象が起きていた。
+  // 新しい200件を取得するようdesc+limitに変更し、表示側(renderMessages)で
+  // 時系列に並べ直す。
+  const q = query(collection(db, coll, id, 'messages'), orderBy('ts', 'desc'), limit(200));
   unsubMessages = onSnapshot(q, (snap) => {
     lastDocsSnapshot = snap.docs;
     renderMessages(lastDocsSnapshot);
     if ((coll === 'channels' && id === currentChannelId) || (coll === 'dms' && id === currentDmId)) markRead(channelId, dmId);
   });
+  // このチャットの保存件数が上限を超えていれば、古いメッセージから自動削除しておく
+  trimOldMessages(coll, id);
+}
+
+/* ------------------------------------------------------------------ */
+/* チャットごとのメッセージ保持件数の上限管理                                 */
+/* 上限を超えたぶんは古いメッセージから自動削除し、際限なく溜まって新着が       */
+/* 表示されなくなる／Firestoreの無料枠を圧迫する、という事態を防ぐ。          */
+/* ------------------------------------------------------------------ */
+const MAX_MESSAGES_PER_CHAT = 200; // 1つのチャンネル/DMにつき残す最大件数（表示側のlimitと合わせてある）
+async function trimOldMessages(coll, id){
+  if (!db) return;
+  try {
+    const messagesColl = collection(db, coll, id, 'messages');
+    const countSnap = await getCountFromServer(messagesColl);
+    const total = countSnap.data().count;
+    const overflow = total - MAX_MESSAGES_PER_CHAT;
+    if (overflow <= 0) return;
+    // 1回の削除は多くても450件までに抑える（writeBatchの上限500件に対する安全マージン）。
+    // 大きく溜まっていた場合は、以降の送信・チャットを開くたびに呼ばれることで少しずつ収束する。
+    const q = query(messagesColl, orderBy('ts', 'asc'), limit(Math.min(overflow, 450)));
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+    const batch = writeBatch(db);
+    snap.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  } catch (e) { console.error('古いメッセージの自動削除に失敗しました', e); }
 }
 
 /* ------------------------------------------------------------------ */
@@ -4852,6 +4885,7 @@ async function promoteScheduledMessage(coll, id, schedId){
     if (coll === 'dms') {
       await setDoc(doc(db, 'dms', id), { participants: id.split('__'), updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
     }
+    trimOldMessages(coll, id);
   } catch (e) { console.error('予約メッセージの送信に失敗しました', e); }
 }
 
@@ -4913,6 +4947,7 @@ async function sendMessage(){
       const lastText = text ? text.slice(0, 80) : (image ? '📷 画像' : `📎 ${file.name}`);
       await setDoc(doc(db, 'dms', id), { participants: [myUid, currentDmOtherUid], lastText, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
     }
+    trimOldMessages(coll, id); // 送信を待たせないよう、awaitせず裏で古いメッセージを整理
   } catch (e) { console.error('送信に失敗しました', e); }
   clearTyping();
 }
@@ -7110,6 +7145,7 @@ async function tetSendInviteDm(otherUid, roomId){
   await addDoc(collection(db, 'dms', dmId, 'messages'), {
     type: 'tetris_invite', uid: myUid, name: myName || '', icon: myIcon || '', ts: serverTimestamp(), tetrisRoomId: roomId
   }).catch(() => {});
+  trimOldMessages('dms', dmId);
 }
 function renderTetrisInviteChipHtml(m, msgId){
   return `<div class="tetris-invite-chip">
