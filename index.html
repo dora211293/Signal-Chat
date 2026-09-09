@@ -777,7 +777,7 @@
   .mention-suggest-empty{ padding: 12px; font-size:12.5px; color: var(--text-faint); text-align:center; }
   #attach-btn{
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
-    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
     border:1px solid var(--border); color: var(--text-muted);
     width:42px; height:42px; border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; flex-shrink:0;
     display:flex; align-items:center; justify-content:center; transition: transform 0.15s, color 0.188s, border-color 0.188s;
@@ -785,7 +785,7 @@
   #attach-btn:active{ transform: scale(.9) rotate(0deg); transition-duration: 0.125s; }
   #poll-btn{
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
-    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
     border:1px solid var(--border); color: var(--text-muted);
     width:42px; height:42px; border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; flex-shrink:0;
     display:flex; align-items:center; justify-content:center; transition: transform 0.15s, color 0.188s, border-color 0.188s;
@@ -794,7 +794,7 @@
   #poll-btn:disabled{ opacity:.35; cursor:not-allowed; }
   #schedule-btn{
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
-    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
     border:1px solid var(--border); color: var(--text-muted);
     width:42px; height:42px; border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; flex-shrink:0;
     display:flex; align-items:center; justify-content:center; transition: transform 0.15s, color 0.188s, border-color 0.188s;
@@ -808,7 +808,7 @@
   .composer-plus-inner{
     position:absolute; left:0; bottom:0; width:42px; height:42px; border-radius: var(--radius-pill);
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
-    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
     border:1px solid var(--border); overflow:hidden; z-index:25;
     display:flex; flex-direction:column; justify-content:flex-end;
     transition: width .44s var(--ease-spring-soft), height .44s var(--ease-spring-soft),
@@ -873,7 +873,7 @@
   #msg-input{
     flex:1; resize:none; max-height: 120px; min-height: 42px;
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
-    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
     border: 1px solid var(--border); color: var(--text);
     border-radius: var(--radius-md); padding: 11px 14px; font-size: 14px; line-height:1.4;
     outline:none; transition: border-color 0.188s;
@@ -884,14 +884,18 @@
   #attach-btn:disabled{ opacity:.35; cursor:not-allowed; }
   #send-btn{
     position:relative; background: color-mix(in srgb, var(--amber) 62%, transparent);
-    backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
     border:1px solid color-mix(in srgb, var(--amber) 45%, transparent); color: #14100a;
     width: 42px; height: 42px; border-radius: var(--radius-pill); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
     box-shadow: 0 4px 14px color-mix(in srgb, var(--amber) 26%, transparent);
     transition: transform 0.15s, box-shadow 0.225s;
   }
-  #send-btn:disabled{ opacity:.4; cursor:default; transform:none; box-shadow:none; }
+  #send-btn:disabled{
+    opacity:1; cursor:default; transform:none; box-shadow:none;
+    background: color-mix(in srgb, var(--surface-3) calc(90% * var(--panel-alpha)), transparent);
+    border-color: var(--border); color: var(--text-faint);
+  }
   #send-btn:active:not(:disabled){ transform: scale(.88); }
   #send-btn::after{
     content:''; position:absolute; inset:-4px; border-radius:50%; border: 2px solid var(--amber); opacity:0; pointer-events:none;
