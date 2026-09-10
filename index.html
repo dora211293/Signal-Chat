@@ -1740,6 +1740,69 @@
     width:26px; height:26px; border-radius:50%; background: var(--surface-2); border:1px solid var(--border); color: var(--text);
   }
   #tet-board.tet-spectate-mode{ opacity: .96; box-shadow: 0 0 0 2px var(--amber-dim); }
+
+  /* ===================== 卓球 (SIGNAL PONG) ===================== */
+  #pong-screen{
+    position: fixed; inset: 0; z-index: 900; background: #030302;
+    display: none; flex-direction: column; opacity: 0; pointer-events: none;
+    transition: opacity .38s var(--ease-ios);
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra));
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom-extra));
+    isolation: isolate;
+  }
+  #pong-screen.show{ opacity: 1; pointer-events: auto; }
+  #pong-close-btn{
+    position: absolute; top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra) + 10px); right: 14px; z-index: 30;
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface-2) 78%, transparent); backdrop-filter: blur(14px);
+    color: var(--text-muted); font-size: 15px; display:flex; align-items:center; justify-content:center;
+    transition: background-color .2s var(--ease-ios), color .2s var(--ease-ios), transform .3s var(--ease-spring), border-color .2s var(--ease-ios);
+  }
+  #pong-close-btn:hover{ color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); transform: rotate(90deg); }
+  .pong-view{ position:relative; z-index:1; flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  #pong-menu, #pong-result{ align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+  #pong-menu .tet-card, #pong-result .tet-card{ max-width: 380px; }
+  .pong-mode-row{ display:flex; gap:8px; margin-bottom: 14px; }
+  .pong-mode-btn{
+    flex:1; padding: 14px 8px; border-radius: var(--radius-md); background: var(--surface-2); border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 12.5px; font-weight:700; display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition: background-color .18s var(--ease-ios), color .18s var(--ease-ios), border-color .18s var(--ease-ios), transform .3s var(--ease-spring);
+  }
+  .pong-mode-btn span.pong-mode-icon{ font-size: 22px; }
+  .pong-mode-btn.active{ background: var(--teal-dim); border-color: color-mix(in srgb, var(--teal) 45%, transparent); color: var(--teal); }
+  #pong-cpu-settings{ margin: 2px 0 16px; }
+  #pong-game{ padding: 6px 10px 10px; gap: 8px; align-items:center; }
+  #pong-hud{
+    display:flex; align-items:center; justify-content: center; gap: 22px; padding: 4px 6px 0; flex-shrink:0;
+  }
+  .pong-score-block{ text-align:center; min-width: 64px; }
+  .pong-score-name{ font-size: 10.5px; color: var(--text-faint); font-weight:700; letter-spacing:.4px; margin-bottom: 2px; text-transform:uppercase; }
+  .pong-score-num{ font-family: var(--font-mono); font-size: 30px; font-weight:800; color: var(--text); line-height:1; transition: transform .2s var(--ease-spring); }
+  .pong-score-num.bump{ animation: pongScoreBump .4s var(--ease-spring); }
+  @keyframes pongScoreBump{ 0%{ transform: scale(1.5); color: var(--amber); } 100%{ transform: scale(1); } }
+  .pong-vs-divider{ font-family: var(--font-mono); font-size: 13px; color: var(--text-faint); align-self:center; padding-top: 14px; }
+  #pong-board-wrap{ position:relative; flex:1; min-height:0; width:100%; display:flex; align-items:center; justify-content:center; }
+  #pong-canvas{
+    width: 100%; height: 100%; max-width: 640px; max-height: 100%; border-radius: var(--radius-md);
+    background: radial-gradient(120% 90% at 50% 0%, #0d1512 0%, #030302 78%);
+    border: 1px solid var(--border); box-shadow: inset 0 0 40px #00000060, var(--shadow-sm); touch-action: none; display:block;
+  }
+  #pong-hint{ text-align:center; font-size: 11px; color: var(--text-faint); flex-shrink:0; padding-bottom: 2px; }
+  #pong-countdown-overlay{
+    position:absolute; inset:0; z-index: 20; display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(60% 60% at 50% 50%, #00000088, #000000cc); opacity:0; pointer-events:none; transition: opacity .25s var(--ease-ios);
+    border-radius: var(--radius-md);
+  }
+  #pong-countdown-overlay.show{ opacity:1; }
+  #pong-countdown-num{ font-size: 92px; font-weight: 800; color: var(--teal); font-family: var(--font-mono);
+    text-shadow: 0 0 34px color-mix(in srgb, var(--teal) 70%, transparent); }
+  #pong-countdown-num.pulse{ animation: tetCdPulse .78s var(--ease-spring); }
+  #pong-confetti-canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+  #pong-result-title{ font-family: var(--font-display); }
+  .pong-launch-btn{ border-color: var(--teal-dim); color: var(--teal); }
+  @media (min-width: 720px){
+    #pong-board-wrap{ padding: 0 20px; }
+  }
   /* ===================== UI統一: 磨りガラスの適用範囲を拡張 =====================
      サイドバー・吹き出し・モーダル等の主要パネルだけでなく、検索ボックスやタブ、
      リストの選択行、入力欄・チップ類にも同じ透過度/ぼかし（--panel-alpha連動）を
@@ -2106,6 +2169,73 @@
   </div>
 </div>
 
+<!-- ===================== 卓球 ===================== -->
+<div id="pong-screen">
+  <button type="button" id="pong-close-btn">✕</button>
+
+  <div id="pong-menu" class="pong-view">
+    <div class="tet-card">
+      <div class="eyebrow" style="color:var(--teal);">TABLE TENNIS</div>
+      <h2>卓球</h2>
+      <p class="tet-sub">シンプルな対戦型卓球。CPUと戦うか、1台の端末で友達と対戦しよう。</p>
+
+      <div class="pong-mode-row">
+        <button type="button" class="pong-mode-btn active" id="pong-mode-cpu" data-mode="cpu">
+          <span class="pong-mode-icon">🤖</span>CPU対戦
+        </button>
+        <button type="button" class="pong-mode-btn" id="pong-mode-2p" data-mode="2p">
+          <span class="pong-mode-icon">🧑‍🤝‍🧑</span>2人対戦(1台)
+        </button>
+      </div>
+
+      <div id="pong-cpu-settings">
+        <div class="tet-settings-label">CPUの強さ</div>
+        <div class="tet-settings-row" id="pong-diff-row" data-key="difficulty">
+          <button type="button" class="tet-chip" data-val="easy">かんたん</button>
+          <button type="button" class="tet-chip active" data-val="normal">ふつう</button>
+          <button type="button" class="tet-chip" data-val="hard">むずかしい</button>
+        </div>
+      </div>
+
+      <div class="tet-btn-row">
+        <button type="button" class="tet-primary-btn" id="pong-start-btn">対戦開始</button>
+        <button type="button" class="tet-secondary-btn danger" id="pong-menu-close-btn">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pong-game" class="pong-view" style="display:none;">
+    <div id="pong-countdown-overlay"><span id="pong-countdown-num">3</span></div>
+    <div id="pong-hud">
+      <div class="pong-score-block">
+        <div class="pong-score-name" id="pong-name-left">あなた</div>
+        <div class="pong-score-num" id="pong-score-left">0</div>
+      </div>
+      <div class="pong-vs-divider">VS</div>
+      <div class="pong-score-block">
+        <div class="pong-score-name" id="pong-name-right">CPU</div>
+        <div class="pong-score-num" id="pong-score-right">0</div>
+      </div>
+    </div>
+    <div id="pong-board-wrap">
+      <canvas id="pong-canvas"></canvas>
+    </div>
+    <div id="pong-hint-text">ドラッグ / スワイプでラケットを操作(先に7点取ったら勝ち)</div>
+  </div>
+
+  <div id="pong-result" class="pong-view" style="display:none;">
+    <canvas id="pong-confetti-canvas"></canvas>
+    <div class="tet-card">
+      <h2 id="pong-result-title">試合終了</h2>
+      <p class="tet-sub" id="pong-result-sub"></p>
+      <div class="tet-btn-row">
+        <button type="button" class="tet-primary-btn" id="pong-rematch-btn">🔄 もう一度対戦</button>
+        <button type="button" class="tet-secondary-btn danger" id="pong-result-close-btn">退出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== 画像ライトボックス ===================== -->
 <div class="modal-scrim" id="lightbox-modal" style="display:none;">
   <div id="lightbox-inner">
@@ -2309,6 +2439,10 @@
       <li class="tet-player-row" id="game-picker-tetris" style="cursor:pointer;">
         <div class="tic-icon" style="font-size:22px;">🎮</div>
         <span class="tet-pname">テトリス99<span id="game-picker-tetris-sub" style="display:block;font-weight:400;font-size:11px;color:var(--text-faint);">最大8人・SIGNALで招待できるバトルロイヤル</span></span>
+      </li>
+      <li class="tet-player-row" id="game-picker-pong" style="cursor:pointer;">
+        <div class="tic-icon" style="font-size:22px;">🏓</div>
+        <span class="tet-pname">卓球<span style="display:block;font-weight:400;font-size:11px;color:var(--text-faint);">CPU対戦 or 1台で2人対戦</span></span>
       </li>
     </ul>
     <button class="cancel" id="game-picker-close">閉じる</button>
@@ -7340,6 +7474,442 @@ async function tetRematch(){
 }
 const tetRematchBtn = $('tet-rematch-btn');
 if (tetRematchBtn) tetRematchBtn.addEventListener('click', tetRematch);
+
+/* ===================== 卓球 (SIGNAL PONG) =====================
+   Firestoreを使わないローカル完結の対戦ゲーム。CPU対戦と1台2人対戦の
+   2モードを用意。テトリス99のUI/演出パターン(画面遷移・カウントダウン・
+   紙吹雪)を踏襲しつつ、卓球専用のcanvas物理演算で実装する。 */
+(function initPong(){
+  const WIN_SCORE = 7;
+  let mode = 'cpu';          // 'cpu' | '2p'
+  let difficulty = 'normal'; // 'easy' | 'normal' | 'hard'
+  let active = false;
+  let rafId = null;
+  let cw = 0, ch = 0, dpr = 1;
+  let scoreLeft = 0, scoreRight = 0;
+  const PADDLE_W_RATIO = 0.014, PADDLE_H_RATIO = 0.22, BALL_R_RATIO = 0.012;
+  let paddleW = 10, paddleH = 90, ballR = 8;
+  let leftY = 0, rightY = 0;      // パドル中心のY座標
+  let leftTargetY = null, rightTargetY = null; // ポインタ操作の目標Y(null=未操作)
+  let ball = { x: 0, y: 0, vx: 0, vy: 0, speed: 0 };
+  let trail = [];
+  let particles = [];
+  let servingTo = 'left'; // 次のサーブがどちら向きか
+  let countdownActive = false;
+  let pointerSides = new Map(); // pointerId -> 'left' | 'right'
+
+  const diffCfg = {
+    easy:   { speed: 0.052, error: 46, reaction: 0.10 },
+    normal: { speed: 0.078, error: 24, reaction: 0.16 },
+    hard:   { speed: 0.108, error: 8,  reaction: 0.26 },
+  };
+
+  function fitCanvas(){
+    const canvas = $('pong-canvas');
+    const wrap = $('pong-board-wrap');
+    if (!canvas || !wrap) return;
+    const rect = wrap.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cw = Math.max(240, rect.width);
+    ch = Math.max(180, rect.height);
+    canvas.width = Math.round(cw * dpr);
+    canvas.height = Math.round(ch * dpr);
+    canvas.style.width = cw + 'px';
+    canvas.style.height = ch + 'px';
+    paddleW = Math.max(7, cw * PADDLE_W_RATIO);
+    paddleH = Math.max(54, ch * PADDLE_H_RATIO);
+    ballR = Math.max(5, Math.min(cw, ch) * BALL_R_RATIO);
+    if (leftY === 0 && rightY === 0) { leftY = ch / 2; rightY = ch / 2; }
+    leftY = Math.min(Math.max(leftY, paddleH / 2), ch - paddleH / 2);
+    rightY = Math.min(Math.max(rightY, paddleH / 2), ch - paddleH / 2);
+  }
+
+  function resetBall(toward){
+    servingTo = toward || (Math.random() < 0.5 ? 'left' : 'right');
+    const cfg = diffCfg[difficulty] || diffCfg.normal;
+    const baseSpeed = Math.max(cw, ch) * cfg.speed;
+    ball.speed = baseSpeed;
+    ball.x = cw / 2; ball.y = ch / 2;
+    const ang = (Math.random() * 0.5 - 0.25); // ±0.25rad
+    const dir = servingTo === 'right' ? 1 : -1;
+    ball.vx = Math.cos(ang) * baseSpeed * dir;
+    ball.vy = Math.sin(ang) * baseSpeed;
+    trail = [];
+  }
+
+  function spawnParticles(x, y, color, n){
+    for (let i = 0; i < n; i++){
+      const a = Math.random() * Math.PI * 2;
+      const sp = 1 + Math.random() * 2.6;
+      particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, color });
+    }
+  }
+
+  function bumpScore(side){
+    const el = $(side === 'left' ? 'pong-score-left' : 'pong-score-right');
+    if (!el) return;
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  }
+
+  function updateScoreUI(){
+    const l = $('pong-score-left'), r = $('pong-score-right');
+    if (l) l.textContent = String(scoreLeft);
+    if (r) r.textContent = String(scoreRight);
+  }
+
+  function endPoint(loserSide){
+    if (loserSide === 'left') scoreRight++; else scoreLeft++;
+    updateScoreUI();
+    bumpScore(loserSide === 'left' ? 'right' : 'left');
+    spawnParticles(loserSide === 'left' ? 0 : cw, ball.y, loserSide === 'left' ? '#3DE0B8' : '#F0A93F', 22);
+    if (scoreLeft >= WIN_SCORE || scoreRight >= WIN_SCORE){
+      pongEndGame();
+      return;
+    }
+    active = false;
+    resetBall(loserSide === 'left' ? 'left' : 'right');
+    pongCountdown(() => { active = true; });
+  }
+
+  function pongCountdown(done){
+    countdownActive = true;
+    const overlay = $('pong-countdown-overlay'), numEl = $('pong-countdown-num');
+    let n = 3;
+    if (overlay) overlay.classList.add('show');
+    function step(){
+      if (numEl){ numEl.textContent = n > 0 ? String(n) : 'GO'; numEl.classList.remove('pulse'); void numEl.offsetWidth; numEl.classList.add('pulse'); }
+      if (n <= 0){
+        setTimeout(() => { if (overlay) overlay.classList.remove('show'); countdownActive = false; done(); }, 420);
+        return;
+      }
+      n--;
+      setTimeout(step, 620);
+    }
+    step();
+  }
+
+  function pongCpuThink(dtMs){
+    const cfg = diffCfg[difficulty] || diffCfg.normal;
+    // ボールが自陣(右)に向かっている時だけ本気で追い、逆方向はセンターへゆっくり戻る
+    const towardCpu = ball.vx > 0;
+    let target = ch / 2;
+    if (towardCpu) target = ball.y + (Math.random() * 2 - 1) * cfg.error;
+    const maxStep = ch * cfg.reaction * (dtMs / 16.7);
+    const diff = target - rightY;
+    const step = Math.max(-maxStep, Math.min(maxStep, diff));
+    rightY += step;
+    rightY = Math.min(Math.max(rightY, paddleH / 2), ch - paddleH / 2);
+  }
+
+  function applyPointerTargets(){
+    if (leftTargetY != null){
+      const maxStep = ch * 0.14;
+      const diff = leftTargetY - leftY;
+      leftY += Math.max(-maxStep, Math.min(maxStep, diff));
+      leftY = Math.min(Math.max(leftY, paddleH / 2), ch - paddleH / 2);
+    }
+    if (mode === '2p' && rightTargetY != null){
+      const maxStep = ch * 0.14;
+      const diff = rightTargetY - rightY;
+      rightY += Math.max(-maxStep, Math.min(maxStep, diff));
+      rightY = Math.min(Math.max(rightY, paddleH / 2), ch - paddleH / 2);
+    }
+  }
+
+  const keysDown = new Set();
+  function applyKeyboard(){
+    const step = ch * 0.028;
+    if (keysDown.has('w')) { leftY -= step; leftTargetY = null; }
+    if (keysDown.has('s')) { leftY += step; leftTargetY = null; }
+    if (mode === '2p'){
+      if (keysDown.has('arrowup')) { rightY -= step; rightTargetY = null; }
+      if (keysDown.has('arrowdown')) { rightY += step; rightTargetY = null; }
+    } else {
+      if (keysDown.has('arrowup')) { leftY -= step; leftTargetY = null; }
+      if (keysDown.has('arrowdown')) { leftY += step; leftTargetY = null; }
+    }
+    leftY = Math.min(Math.max(leftY, paddleH / 2), ch - paddleH / 2);
+    rightY = Math.min(Math.max(rightY, paddleH / 2), ch - paddleH / 2);
+  }
+
+  function stepPhysics(dtMs){
+    applyKeyboard();
+    applyPointerTargets();
+    if (mode === 'cpu') pongCpuThink(dtMs);
+
+    const dt = Math.min(dtMs, 32) / 16.7;
+    ball.x += ball.vx * dt * 0.5;
+    ball.y += ball.vy * dt * 0.5;
+
+    if (ball.y - ballR < 0){ ball.y = ballR; ball.vy *= -1; spawnParticles(ball.x, 0, '#F2F2F7', 6); }
+    else if (ball.y + ballR > ch){ ball.y = ch - ballR; ball.vy *= -1; spawnParticles(ball.x, ch, '#F2F2F7', 6); }
+
+    // 左パドル判定
+    if (ball.vx < 0 && ball.x - ballR <= paddleW + 6 && ball.x - ballR >= -20){
+      if (ball.y > leftY - paddleH / 2 - ballR && ball.y < leftY + paddleH / 2 + ballR){
+        const off = (ball.y - leftY) / (paddleH / 2);
+        const sp = Math.min(ball.speed * 1.045, Math.max(cw, ch) * 0.16);
+        const ang = off * 0.9;
+        ball.vx = Math.cos(ang) * sp;
+        ball.vy = Math.sin(ang) * sp + (Math.random() * 20 - 10) * 0.01 * sp;
+        ball.speed = sp;
+        ball.x = paddleW + 6 + ballR;
+        spawnParticles(ball.x, ball.y, '#3DE0B8', 10);
+      } else if (ball.x - ballR < -6){ endPoint('left'); return; }
+    }
+    // 右パドル判定
+    if (ball.vx > 0 && ball.x + ballR >= cw - paddleW - 6 && ball.x + ballR <= cw + 20){
+      if (ball.y > rightY - paddleH / 2 - ballR && ball.y < rightY + paddleH / 2 + ballR){
+        const off = (ball.y - rightY) / (paddleH / 2);
+        const sp = Math.min(ball.speed * 1.045, Math.max(cw, ch) * 0.16);
+        const ang = off * 0.9;
+        ball.vx = -Math.cos(ang) * sp;
+        ball.vy = Math.sin(ang) * sp + (Math.random() * 20 - 10) * 0.01 * sp;
+        ball.speed = sp;
+        ball.x = cw - paddleW - 6 - ballR;
+        spawnParticles(ball.x, ball.y, '#F0A93F', 10);
+      } else if (ball.x + ballR > cw + 6){ endPoint('right'); return; }
+    }
+
+    trail.push({ x: ball.x, y: ball.y });
+    if (trail.length > 14) trail.shift();
+    particles.forEach((p) => { p.x += p.vx; p.y += p.vy; p.vx *= 0.94; p.vy *= 0.94; p.life -= 0.045; });
+    particles = particles.filter((p) => p.life > 0);
+  }
+
+  function draw(){
+    const canvas = $('pong-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cw, ch);
+
+    // センターライン
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 10]);
+    ctx.beginPath(); ctx.moveTo(cw / 2, 0); ctx.lineTo(cw / 2, ch); ctx.stroke();
+    ctx.restore();
+
+    // ボールの軌跡
+    trail.forEach((t, i) => {
+      const a = (i / trail.length) * 0.35;
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(242,199,102,${a})`;
+      ctx.arc(t.x, t.y, ballR * (0.4 + 0.5 * (i / trail.length)), 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // パーティクル
+    particles.forEach((p) => {
+      ctx.beginPath();
+      ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, p.life);
+      ctx.arc(p.x, p.y, 2.4, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+
+    // パドル(左=teal, 右=amber)
+    ctx.fillStyle = '#3DE0B8';
+    ctx.shadowColor = '#3DE0B8'; ctx.shadowBlur = 14;
+    roundRect(ctx, 4, leftY - paddleH / 2, paddleW, paddleH, paddleW / 2); ctx.fill();
+    ctx.fillStyle = '#F0A93F';
+    ctx.shadowColor = '#F0A93F'; ctx.shadowBlur = 14;
+    roundRect(ctx, cw - paddleW - 4, rightY - paddleH / 2, paddleW, paddleH, paddleW / 2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // ボール
+    ctx.beginPath();
+    ctx.fillStyle = '#F2F2F7';
+    ctx.shadowColor = '#F2F2F7'; ctx.shadowBlur = 10;
+    ctx.arc(ball.x, ball.y, ballR, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  function roundRect(ctx, x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  let lastT = 0;
+  function loop(t){
+    if (!active && !countdownActive) { draw(); rafId = null; return; }
+    const dtMs = lastT ? (t - lastT) : 16.7;
+    lastT = t;
+    if (active) stepPhysics(dtMs);
+    draw();
+    rafId = requestAnimationFrame(loop);
+  }
+  function ensureLoop(){ if (!rafId) { lastT = 0; rafId = requestAnimationFrame(loop); } }
+
+  function pongEndGame(){
+    active = false;
+    const won = scoreLeft > scoreRight ? 'left' : 'right';
+    pongShowView('result');
+    const title = $('pong-result-title'), sub = $('pong-result-sub');
+    const leftName = mode === 'cpu' ? 'あなた' : 'プレイヤー1';
+    const rightName = mode === 'cpu' ? 'CPU' : 'プレイヤー2';
+    const winnerName = won === 'left' ? leftName : rightName;
+    if (title) title.textContent = (mode === 'cpu' && won === 'left') ? '🏆 勝利！' : (mode === 'cpu' ? '敗北…' : `🏆 ${winnerName}の勝ち！`);
+    if (sub) sub.textContent = `${scoreLeft} - ${scoreRight}`;
+    pongFireConfetti();
+  }
+
+  function pongFireConfetti(){
+    const canvas = $('pong-confetti-canvas');
+    if (!canvas) return;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * d; canvas.height = rect.height * d;
+    canvas.style.width = rect.width + 'px'; canvas.style.height = rect.height + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+    const colors = ['#3DE0B8', '#F0A93F', '#F2C766', '#5B9CFF'];
+    const pieces = Array.from({ length: 90 }, () => ({
+      x: Math.random() * rect.width, y: -20 - Math.random() * rect.height * 0.5,
+      vx: (Math.random() - 0.5) * 2.4, vy: 2 + Math.random() * 3.4,
+      r: 3 + Math.random() * 4, rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    }));
+    let frame = 0;
+    function step(){
+      frame++;
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      pieces.forEach((p) => {
+        p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.vy += 0.02;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = p.color; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 1.6);
+        ctx.restore();
+      });
+      if (frame < 130) requestAnimationFrame(step);
+      else ctx.clearRect(0, 0, rect.width, rect.height);
+    }
+    step();
+  }
+
+  function pongShowView(name){
+    const map = { menu: 'pong-menu', game: 'pong-game', result: 'pong-result' };
+    Object.entries(map).forEach(([k, id]) => { const el = $(id); if (el) el.style.display = k === name ? 'flex' : 'none'; });
+  }
+  function pongShowScreen(){
+    const scr = $('pong-screen');
+    if (!scr) return;
+    scr.style.display = 'flex';
+    requestAnimationFrame(() => scr.classList.add('show'));
+    if (els.sidebar) els.sidebar.classList.remove('open');
+    if (els.scrim) els.scrim.classList.remove('show');
+  }
+  function pongCloseScreen(){
+    const scr = $('pong-screen');
+    if (!scr) return;
+    active = false; countdownActive = false;
+    scr.classList.remove('show');
+    setTimeout(() => { scr.style.display = 'none'; pongShowView('menu'); }, 340);
+  }
+
+  function pongStartMatch(){
+    scoreLeft = 0; scoreRight = 0; updateScoreUI();
+    const rightNameEl = $('pong-name-right');
+    if (rightNameEl) rightNameEl.textContent = mode === 'cpu' ? 'CPU' : 'プレイヤー2';
+    const leftNameEl = $('pong-name-left');
+    if (leftNameEl) leftNameEl.textContent = mode === 'cpu' ? 'あなた' : 'プレイヤー1';
+    const hint = $('pong-hint-text') || document.querySelector('#pong-hint');
+    if (hint) hint.textContent = mode === 'cpu'
+      ? 'ドラッグ / スワイプ or W・S、または↑↓キーでラケットを操作(先に7点で勝ち)'
+      : '左半分=プレイヤー1(W/S)、右半分=プレイヤー2(↑/↓)。先に7点で勝ち';
+    pongShowScreen();
+    pongShowView('game');
+    requestAnimationFrame(() => {
+      fitCanvas();
+      leftY = ch / 2; rightY = ch / 2;
+      resetBall();
+      pongCountdown(() => { active = true; ensureLoop(); });
+      ensureLoop();
+    });
+  }
+
+  function pongLaunch(){ pongShowScreen(); pongShowView('menu'); }
+
+  // ---- ポインタ操作 ----
+  function bindCanvasPointer(){
+    const canvas = $('pong-canvas');
+    if (!canvas) return;
+    canvas.addEventListener('pointerdown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left, y = e.clientY - rect.top;
+      const side = (mode === '2p' && x >= cw / 2) ? 'right' : 'left';
+      pointerSides.set(e.pointerId, side);
+      if (side === 'left') leftTargetY = y; else rightTargetY = y;
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      const side = pointerSides.get(e.pointerId);
+      if (!side) return;
+      const rect = canvas.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      if (side === 'left') leftTargetY = y; else rightTargetY = y;
+    });
+    function releasePointer(e){
+      const side = pointerSides.get(e.pointerId);
+      pointerSides.delete(e.pointerId);
+      if (side === 'left' && ![...pointerSides.values()].includes('left')) leftTargetY = null;
+      if (side === 'right' && ![...pointerSides.values()].includes('right')) rightTargetY = null;
+    }
+    canvas.addEventListener('pointerup', releasePointer);
+    canvas.addEventListener('pointercancel', releasePointer);
+    canvas.addEventListener('pointerleave', releasePointer);
+  }
+  bindCanvasPointer();
+
+  document.addEventListener('keydown', (e) => {
+    const scr = $('pong-screen');
+    if (!scr || scr.style.display === 'none') return;
+    const k = e.key.toLowerCase();
+    if (['w', 's', 'arrowup', 'arrowdown'].includes(k)) e.preventDefault();
+    keysDown.add(k);
+  });
+  document.addEventListener('keyup', (e) => { keysDown.delete(e.key.toLowerCase()); });
+
+  window.addEventListener('resize', () => { if ($('pong-screen') && $('pong-screen').style.display !== 'none') fitCanvas(); });
+
+  // ---- UI配線 ----
+  const pongOpenBtn = $('game-picker-pong');
+  if (pongOpenBtn) pongOpenBtn.addEventListener('click', () => { closeModal(gamePickerModal); pongLaunch(); });
+
+  document.querySelectorAll('.pong-mode-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      mode = btn.dataset.mode;
+      document.querySelectorAll('.pong-mode-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      const cpuSettings = $('pong-cpu-settings');
+      if (cpuSettings) cpuSettings.style.display = mode === 'cpu' ? '' : 'none';
+    });
+  });
+  const diffRow = $('pong-diff-row');
+  if (diffRow) diffRow.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tet-chip'); if (!btn) return;
+    difficulty = btn.dataset.val;
+    diffRow.querySelectorAll('.tet-chip').forEach((b) => b.classList.toggle('active', b === btn));
+  });
+
+  const pongStartBtn = $('pong-start-btn');
+  if (pongStartBtn) pongStartBtn.addEventListener('click', pongStartMatch);
+  const pongMenuCloseBtn = $('pong-menu-close-btn');
+  if (pongMenuCloseBtn) pongMenuCloseBtn.addEventListener('click', pongCloseScreen);
+  const pongCloseBtn = $('pong-close-btn');
+  if (pongCloseBtn) pongCloseBtn.addEventListener('click', () => {
+    if (active && !confirm('対戦中です。中断してよろしいですか？')) return;
+    pongCloseScreen();
+  });
+  const pongRematchBtn = $('pong-rematch-btn');
+  if (pongRematchBtn) pongRematchBtn.addEventListener('click', pongStartMatch);
+  const pongResultCloseBtn = $('pong-result-close-btn');
+  if (pongResultCloseBtn) pongResultCloseBtn.addEventListener('click', pongCloseScreen);
+})();
 
 /* ===================== MODシステム (.sxg) =====================
    .sxg は中身がzipの独自拡張子。中に入っている mod.js が、このページの
