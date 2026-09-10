@@ -2537,7 +2537,8 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc, deleteField,
+  getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc, deleteField,
   onSnapshot, query, orderBy, limit, where, serverTimestamp, runTransaction, arrayUnion, arrayRemove,
   writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -2579,7 +2580,19 @@ function twemojiHtml(str){
 
 if (isConfigured) {
   const app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
+  // FIX/改善: Firestoreのオフライン永続化(IndexedDBキャッシュ)を有効化。
+  // これにより①次回アプリ起動時に前回までの内容をキャッシュから即表示でき、
+  // ②サーバーとは前回同期時点からの差分だけをやり取りするため読み取り回数も削減される。
+  // 複数タブで同時に開いても1つのキャッシュを共有できるよう persistentMultipleTabManager を使用。
+  try {
+    db = initializeFirestore(app, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+    });
+  } catch (e) {
+    // 対応していないブラウザ（プライベートブラウジング等でIndexedDBが使えない場合）は通常モードにフォールバック
+    console.warn('オフライン永続化を有効化できなかったため、通常モードで起動します', e);
+    db = getFirestore(app);
+  }
   auth = getAuth(app);
 } else {
   document.getElementById('config-warning').style.display = 'block';
