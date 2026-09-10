@@ -2623,6 +2623,7 @@ let usersCache = {};
 let myVerifyStatus = null;
 let knownIds = new Set();
 let suppressNextEnterAnim = false; // チャンネル/DM切替直後の初回描画では、全メッセージが一斉にポップインするのを防ぐ
+let forceScrollBottomNext = false; // 会話切替直後の次の描画では、直前の会話のスクロール位置を引きずらず必ず最新（末尾）へ移動する
 let lastDocsSnapshot = [];
 let readsMap = {};
 let lastOnline = [];
@@ -4125,6 +4126,8 @@ function listenChannels(){
     renderChannelList(snap.docs);
     if (adminModalOpen && currentAdminTab === 'channels') renderAdminPanel();
     updateComposerPermission();
+    // チャンネル一覧が届いた時点で、全チャンネルのメッセージを裏側で先読みしておく
+    preloadChannelMessages();
   });
 }
 
@@ -4285,10 +4288,7 @@ function selectChannel(id, name){
   [...els.channelList.children].forEach((li) => li.classList.toggle('active', li.dataset.id === id));
   renderDmList();
   closeSidebarInstant();
-  knownIds = new Set();
   suppressNextEnterAnim = true;
-  lastDocsSnapshot = [];
-  rowElsById.clear();
   unreadByChannel[id] = 0;
   updateChannelUnreadBadge(id);
   updateGlobalUnreadUI();
@@ -4335,10 +4335,7 @@ function selectDm(otherUid, otherName){
   [...els.channelList.children].forEach((li) => li.classList.remove('active'));
   renderDmList();
   closeSidebarInstant();
-  knownIds = new Set();
   suppressNextEnterAnim = true;
-  lastDocsSnapshot = [];
-  rowElsById.clear();
   unreadByDm[currentDmId] = 0;
   updateGlobalUnreadUI();
   updateComposerPermission();
@@ -4440,7 +4437,7 @@ function computeReceiptsByMsgId(docsArr){
   return map;
 }
 
-const rowElsById = new Map();
+let rowElsById = new Map();
 
 function renderMessages(docs){
   // FIX(バグ): 送信直後は ts が確定するまで一時的に null になり、並び順が
@@ -4456,10 +4453,19 @@ function renderMessages(docs){
   const receiptsByMsgId = computeReceiptsByMsgId(sorted);
   const nearBottom = els.messages.scrollHeight - els.messages.scrollTop - els.messages.clientHeight < 120;
   const wasEmpty = !!els.messages.querySelector('.empty-state');
+  // FIX(バグ): 会話切替直後の描画では、直前に開いていた会話のスクロール位置(scrollTop)が
+  // まだDOMに残ったままここでの nearBottom/wasEmpty 判定に使われてしまい、その古い値を基準に
+  // 「一番下ではない」と判定されると新しい会話でも一切スクロール調整されず、切替後の内容が
+  // 直前のスクロール位置のまま＝チャットの上の方に飛ばされたように見える不具合があった。
+  // 会話切替の直後だけは判定を無視して必ず最新（末尾）へ強制的にジャンプする。
+  const forceBottom = forceScrollBottomNext;
+  forceScrollBottomNext = false;
 
   if (!sorted.length) {
     els.messages.replaceChildren(els.emptyState);
-    knownIds = new Set();
+    // NOTE: knownIds/rowElsById は会話ごとのキャッシュ(convCache)と同一オブジェクトを
+    // 参照しているため、再代入せずその場でクリアしてキャッシュ側にも反映されるようにする。
+    knownIds.clear();
     rowElsById.clear();
     return;
   }
@@ -4632,12 +4638,17 @@ function renderMessages(docs){
   // という不具合が起きていた。位置が変わっていない行には一切触れず、
   // 本当に位置がずれた行だけ insertBefore で動かす最小差分パッチに変更。
   patchMessageList(els.messages, orderedNodes);
-  knownIds = newKnown;
+  // NOTE: ここも再代入ではなくその場でクリア→詰め直し。knownIds は会話ごとの
+  // convCache のSetと同一オブジェクトのため、参照を保ったまま更新する必要がある
+  // （切替→戻ってきた際に古い(空の)Setを参照してしまい、既読済みメッセージが
+  // 毎回「新着」扱いされ入場アニメーションが再生されてしまう不具合を防ぐ）。
+  knownIds.clear();
+  newKnown.forEach((id) => knownIds.add(id));
   refreshPollViewModal();
   // FIX: 新規チャンネルを開いた直後(wasEmpty)は過去ログの末尾までスムーズスクロールすると
   // 長い距離をゆっくり流れて不自然なので瞬時にジャンプ。既に最下部にいる状態での新着更新
   // (nearBottom)だけ、他のメッセージが上に押し上げられるようにスムーズスクロールさせる。
-  if (wasEmpty) {
+  if (wasEmpty || forceBottom) {
     els.messages.scrollTop = els.messages.scrollHeight;
   } else if (nearBottom) {
     els.messages.scrollTo({ top: els.messages.scrollHeight, behavior: 'smooth' });
@@ -4729,23 +4740,82 @@ function activeBasePath(){
   return currentKind === 'dm' ? ['dms', currentDmId] : ['channels', currentChannelId];
 }
 
-function listenMessages(channelId, dmId){
-  if (unsubMessages) unsubMessages();
-  if (!db) return;
-  const [coll, id] = dmId ? ['dms', dmId] : ['channels', channelId];
+/* ------------------------------------------------------------------ */
+/* 会話（チャンネル/DM）ごとのメッセージ先読み・常時購読キャッシュ               */
+/* 以前は会話を切り替えるたびにFirestoreリスナーを張り直していたため、          */
+/* 毎回サーバーへの往復が発生し「開くたびに読み込み待ち」になっていた。          */
+/* ここでは一度開いた（または先読みした）会話のリスナーは裏側で購読し続け、      */
+/* 既に取得済みのデータがあれば切替時に待たずそのまま即表示する。              */
+/* ------------------------------------------------------------------ */
+const convCache = new Map(); // key: "channels/xxx" / "dms/xxx" -> { unsub, docs, ready, knownIds, rowElsById }
+function convKey(coll, id){ return coll + '/' + id; }
+function getConvCache(coll, id){
+  const key = convKey(coll, id);
+  let c = convCache.get(key);
+  if (!c) {
+    c = { unsub: null, docs: [], ready: false, knownIds: new Set(), rowElsById: new Map() };
+    convCache.set(key, c);
+  }
+  return c;
+}
+/** 指定した会話のFirestoreリスナーを（まだ起動していなければ）張る。既に購読中なら何もしない
+ *  （＝会話を離れても購読を止めず、裏で最新状態を持ち続ける）。
+ *  今まさに表示中の会話であれば、そのままrenderMessagesで画面にも反映する。 */
+function ensureConversationListener(coll, id){
+  if (!db || !id) return null;
+  const c = getConvCache(coll, id);
+  if (c.unsub) return c; // 既に購読中
   // FIX(バグ): orderBy('ts','asc')のままlimit(200)を掛けると「一番古い200件」しか
   // 取得できず、保存件数がそれを超えたチャットでは新着メッセージが一切表示されない
   // （＝送っても届いていないように見える）現象が起きていた。
   // 新しい200件を取得するようdesc+limitに変更し、表示側(renderMessages)で
   // 時系列に並べ直す。
   const q = query(collection(db, coll, id, 'messages'), orderBy('ts', 'desc'), limit(200));
-  unsubMessages = onSnapshot(q, (snap) => {
-    lastDocsSnapshot = snap.docs;
-    renderMessages(lastDocsSnapshot);
-    if ((coll === 'channels' && id === currentChannelId) || (coll === 'dms' && id === currentDmId)) markRead(channelId, dmId);
+  c.unsub = onSnapshot(q, (snap) => {
+    c.docs = snap.docs;
+    c.ready = true;
+    const isActive = (coll === 'channels' && currentKind === 'channel' && id === currentChannelId)
+                   || (coll === 'dms' && currentKind === 'dm' && id === currentDmId);
+    if (isActive) {
+      knownIds = c.knownIds;
+      rowElsById = c.rowElsById;
+      lastDocsSnapshot = c.docs;
+      renderMessages(c.docs);
+      markRead(coll === 'channels' ? id : null, coll === 'dms' ? id : null);
+    }
   });
   // このチャットの保存件数が上限を超えていれば、古いメッセージから自動削除しておく
   trimOldMessages(coll, id);
+  return c;
+}
+/** チャンネル一覧・フレンド一覧が届いた時点で、全会話ぶんのメッセージリスナーを
+ *  あらかじめ起動しておく（＝タップして開く前から読み込みが終わっている状態を作る）。 */
+function preloadChannelMessages(){
+  channelsCache.forEach((d) => ensureConversationListener('channels', d.id));
+}
+function preloadFriendDmMessages(){
+  if (!myUid) return;
+  Object.keys(friendsCache).forEach((uid) => ensureConversationListener('dms', dmIdFor(myUid, uid)));
+}
+
+function listenMessages(channelId, dmId){
+  if (!db) return;
+  const [coll, id] = dmId ? ['dms', dmId] : ['channels', channelId];
+  const c = ensureConversationListener(coll, id);
+  if (!c) return;
+  knownIds = c.knownIds;
+  rowElsById = c.rowElsById;
+  lastDocsSnapshot = c.docs;
+  // FIX(バグ): 切替直後は直前の会話のscrollTopが残ったままになるため、
+  // 次のrenderMessagesでは必ず最新（末尾）へジャンプさせる。
+  forceScrollBottomNext = true;
+  if (c.ready) {
+    // 既に（先読み等で）データが揃っていれば、サーバー往復を待たずに即座に表示する
+    renderMessages(c.docs);
+    markRead(channelId, dmId);
+  }
+  // まだ未取得の場合は、ensureConversationListener内のonSnapshot初回コールバックが
+  // データ到着次第そのまま描画する。
 }
 
 /* ------------------------------------------------------------------ */
@@ -5240,6 +5310,8 @@ function listenFriends(){
     friendsCache = map;
     renderDmList();
     watchAllFriendDms();
+    // フレンド一覧が届いた時点で、全DMのメッセージを裏側で先読みしておく
+    preloadFriendDmMessages();
     if (els.friendsModal.style.display !== 'none' && currentFriendTab === 'list') renderFriendsPanel();
   });
 }
