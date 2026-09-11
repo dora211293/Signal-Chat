@@ -4139,8 +4139,6 @@ function listenChannels(){
     renderChannelList(snap.docs);
     if (adminModalOpen && currentAdminTab === 'channels') renderAdminPanel();
     updateComposerPermission();
-    // チャンネル一覧が届いた時点で、全チャンネルのメッセージを裏側で先読みしておく
-    preloadChannelMessages();
   });
 }
 
@@ -4754,11 +4752,12 @@ function activeBasePath(){
 }
 
 /* ------------------------------------------------------------------ */
-/* 会話（チャンネル/DM）ごとのメッセージ先読み・常時購読キャッシュ               */
+/* 会話（チャンネル/DM）ごとのメッセージ常時購読キャッシュ                     */
 /* 以前は会話を切り替えるたびにFirestoreリスナーを張り直していたため、          */
 /* 毎回サーバーへの往復が発生し「開くたびに読み込み待ち」になっていた。          */
-/* ここでは一度開いた（または先読みした）会話のリスナーは裏側で購読し続け、      */
-/* 既に取得済みのデータがあれば切替時に待たずそのまま即表示する。              */
+/* ここでは「実際に一度でも開いた会話」のリスナーだけを裏側で購読し続け、        */
+/* 再度開いたときは既に取得済みのデータをそのまま即表示する。                  */
+/* 全チャンネル/全DMを一括で先読みする方式は読み取り数が跳ね上がるため採用しない。*/
 /* ------------------------------------------------------------------ */
 const convCache = new Map(); // key: "channels/xxx" / "dms/xxx" -> { unsub, docs, ready, knownIds, rowElsById }
 function convKey(coll, id){ return coll + '/' + id; }
@@ -4801,16 +4800,6 @@ function ensureConversationListener(coll, id){
   trimOldMessages(coll, id);
   return c;
 }
-/** チャンネル一覧・フレンド一覧が届いた時点で、全会話ぶんのメッセージリスナーを
- *  あらかじめ起動しておく（＝タップして開く前から読み込みが終わっている状態を作る）。 */
-function preloadChannelMessages(){
-  channelsCache.forEach((d) => ensureConversationListener('channels', d.id));
-}
-function preloadFriendDmMessages(){
-  if (!myUid) return;
-  Object.keys(friendsCache).forEach((uid) => ensureConversationListener('dms', dmIdFor(myUid, uid)));
-}
-
 function listenMessages(channelId, dmId){
   if (!db) return;
   const [coll, id] = dmId ? ['dms', dmId] : ['channels', channelId];
@@ -5323,8 +5312,6 @@ function listenFriends(){
     friendsCache = map;
     renderDmList();
     watchAllFriendDms();
-    // フレンド一覧が届いた時点で、全DMのメッセージを裏側で先読みしておく
-    preloadFriendDmMessages();
     if (els.friendsModal.style.display !== 'none' && currentFriendTab === 'list') renderFriendsPanel();
   });
 }
