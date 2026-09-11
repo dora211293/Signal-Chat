@@ -1197,7 +1197,24 @@
 
   .settings-slider-row{ display:flex; align-items:center; gap:12px; }
   .settings-slider-row input[type="range"]{
-    flex:1; accent-color: var(--amber); height: 4px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+    flex:1; -webkit-appearance:none; appearance:none; background:transparent; margin:0; padding:0;
+    height: 24px; cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
+  }
+  .settings-slider-row input[type="range"]::-webkit-slider-runnable-track{
+    height:4px; border-radius:2px; background: var(--surface-3);
+  }
+  .settings-slider-row input[type="range"]::-moz-range-track{
+    height:4px; border-radius:2px; background: var(--surface-3);
+  }
+  .settings-slider-row input[type="range"]::-moz-range-progress{
+    height:4px; border-radius:2px; background: var(--amber);
+  }
+  .settings-slider-row input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:18px; height:18px; margin-top:-7px;
+    border-radius:50%; background: var(--amber); box-shadow: var(--shadow-sm); border:none;
+  }
+  .settings-slider-row input[type="range"]::-moz-range-thumb{
+    width:18px; height:18px; border-radius:50%; background: var(--amber); box-shadow: var(--shadow-sm); border:none;
   }
   .settings-slider-val{ font-family: var(--font-mono); font-size: 11.5px; color: var(--amber); min-width: 40px; text-align:right; }
 
@@ -4342,7 +4359,7 @@ function selectDm(otherUid, otherName){
   currentDmOtherName = otherName;
   els.topbarName.innerHTML = twemojiHtml(escapeHtml(otherName));
   els.topbarFreq.textContent = 'DM';
-  els.input.placeholder = `${otherName} さんにメッセージを送信…`;
+  els.input.placeholder = 'メッセージを入力…';
   [...els.channelList.children].forEach((li) => li.classList.remove('active'));
   renderDmList();
   closeSidebarInstant();
