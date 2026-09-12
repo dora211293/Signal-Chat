@@ -2872,6 +2872,18 @@ import {
     const r = e.reason;
     report('Promise拒否', (r && (r.message || r.code || String(r))) || String(r));
   });
+  const origError = console.error.bind(console);
+  console.error = (...args) => {
+    origError(...args);
+    try { report('console.error', args.map((a) => (a && a.message) ? a.message : (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')); } catch (_) {}
+  };
+  const origWarn = console.warn.bind(console);
+  console.warn = (...args) => {
+    origWarn(...args);
+    try { report('console.warn', args.map((a) => (a && a.message) ? a.message : (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ')); } catch (_) {}
+  };
+  // デプロイ反映確認用: ページ読み込み時に必ず1回表示する
+  report('デバッグ版 起動確認', 'このファイルは読み込まれています (build: DEBUG-DMFIX-1)');
 })();
 
 // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ ここにFirebaseの設定を貼り付け ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
