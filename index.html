@@ -2837,6 +2837,43 @@ import {
   getAuth, signInAnonymously, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+/* ===================== 一時デバッグ用: 画面上にJSエラーを表示 =====================
+   スマホ実機でデベロッパーツールが使えない状況の調査用。原因が特定できたら
+   このブロックごと削除してよい。 */
+(function setupOnScreenErrorReporter(){
+  let box = null;
+  function ensureBox(){
+    if (box) return box;
+    box = document.createElement('div');
+    box.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:999999;' +
+      'max-height:45vh;overflow-y:auto;background:#3a0d0d;color:#ffd7d7;' +
+      'font:11px/1.5 monospace;padding:10px 12px;border-radius:10px;' +
+      'border:1px solid #ff6b5b;white-space:pre-wrap;word-break:break-all;box-shadow:0 6px 24px #000c;';
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ 閉じる';
+    closeBtn.style.cssText = 'display:block;margin-bottom:6px;background:#ff6b5b;color:#1a0505;' +
+      'border:none;border-radius:6px;padding:4px 10px;font-weight:bold;';
+    closeBtn.onclick = () => { box.remove(); box = null; };
+    box.appendChild(closeBtn);
+    document.body.appendChild(box);
+    return box;
+  }
+  function report(prefix, msg){
+    const b = ensureBox();
+    const line = document.createElement('div');
+    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + prefix + ': ' + msg;
+    line.style.cssText = 'margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #ff6b5b55;';
+    b.appendChild(line);
+  }
+  window.addEventListener('error', (e) => {
+    report('JSエラー', (e.message || 'unknown') + ' @ ' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || ''));
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    const r = e.reason;
+    report('Promise拒否', (r && (r.message || r.code || String(r))) || String(r));
+  });
+})();
+
 // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ ここにFirebaseの設定を貼り付け ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 const firebaseConfig = {
   apiKey: "AIzaSyCLq37f-Dvak943qHOSvTjgrJoD-1Xovm0",
