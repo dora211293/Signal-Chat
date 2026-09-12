@@ -4339,6 +4339,7 @@ els.nickConfirm.addEventListener('click', async () => {
         if (linkErr && linkErr.code === 'auth/email-already-in-use') msg = 'そのメールアドレスは既に使われています';
         else if (linkErr && linkErr.code === 'auth/invalid-email') msg = 'メールアドレスの形式が正しくありません';
         else if (linkErr && linkErr.code === 'auth/weak-password') msg = 'パスワードは6文字以上にしてください';
+        else msg = 'アカウント保護の設定に失敗しました (' + ((linkErr && linkErr.code) || (linkErr && linkErr.message) || linkErr) + ')';
         els.accountProtectError.textContent = msg;
         els.accountProtectError.classList.add('show');
       }
@@ -6568,14 +6569,19 @@ function boot(){
       afterAuthReady();
     }
   });
-  signInAnonymously(auth).catch((e) => {
-    console.error('匿名認証に失敗しました。Firebaseコンソールで「Authentication → Sign-in method → 匿名」を有効にしてください。', e);
-    showFatalError(
-      '匿名認証に失敗しました',
-      'Firebaseコンソール → Authentication → Sign-in method →「匿名」を有効にしてください。ブラウザのコンソールも確認してください。'
-    );
-    hideSplash();
-  });
+  // 既にログイン済み(匿名 or メール/パスワードでログイン直後)の場合は、
+  // ここで匿名ログインし直すと今のセッションを新しい匿名アカウントで
+  // 上書きしてしまうため、まだ誰もログインしていない時だけ匿名ログインする。
+  if (!auth.currentUser) {
+    signInAnonymously(auth).catch((e) => {
+      console.error('匿名認証に失敗しました。Firebaseコンソールで「Authentication → Sign-in method → 匿名」を有効にしてください。', e);
+      showFatalError(
+        '匿名認証に失敗しました',
+        'Firebaseコンソール → Authentication → Sign-in method →「匿名」を有効にしてください。ブラウザのコンソールも確認してください。'
+      );
+      hideSplash();
+    });
+  }
 }
 /** 認証ゲート（初回訪問者向けの「新規登録」「ログイン」選択画面）を閉じる */
 function dismissAuthGate(){
