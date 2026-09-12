@@ -1981,7 +1981,7 @@
   // 「新規登録」「ログイン」の選択画面を出す。既存ユーザーはこれまで通り自動でログインする。
   (function(){
     try {
-      var hasAccount = !!localStorage.getItem('signal_name') || !!localStorage.getItem('signal_login_uid');
+      var hasAccount = !!localStorage.getItem('signal_name');
       var gateDone = localStorage.getItem('signal_auth_gate_done') === '1';
       if (!hasAccount && !gateDone) {
         document.documentElement.classList.add('show-auth-gate');
@@ -2008,11 +2008,11 @@
     </div>
 
     <div id="auth-gate-login-form" style="display:none;">
-      <div class="field-label" style="margin-top:16px;">UID</div>
-      <input type="text" id="auth-gate-uid-input" placeholder="ログインするUIDを入力" autocomplete="off">
-      <div class="field-label">パスワード(設定していない場合は空欄のままでOK)</div>
+      <div class="field-label" style="margin-top:16px;">メールアドレス</div>
+      <input type="email" id="auth-gate-uid-input" placeholder="登録したメールアドレス" autocomplete="username">
+      <div class="field-label">パスワード</div>
       <input type="password" id="auth-gate-password-input" placeholder="パスワード" autocomplete="current-password">
-      <div class="field-error" id="auth-gate-login-error">UIDが見つからないか、パスワードが違います</div>
+      <div class="field-error" id="auth-gate-login-error">メールアドレスまたはパスワードが違います</div>
       <button type="button" class="primary" id="auth-gate-login-submit">ログイン</button>
       <button type="button" class="cancel" id="auth-gate-login-back">戻る</button>
     </div>
@@ -2452,8 +2452,12 @@
     <div class="field-label">UID(管理者設定に使います)</div>
     <div class="uid-row"><code id="my-uid-display">読み込み中…</code><button type="button" id="copy-uid-btn" class="mini-btn-outline">コピー</button></div>
 
-    <div class="field-label">ログイン用パスワード(任意・他の端末でこのUIDでログインする時に使います)</div>
-    <input type="password" id="account-password-input" maxlength="64" placeholder="空欄のままならパスワード無しでログイン可" autocomplete="new-password">
+    <div class="field-label">アカウント保護(任意・推奨)</div>
+    <div id="account-protect-status" style="font-size:12px;color:var(--text-faint);margin-bottom:4px;"></div>
+    <input type="email" id="account-email-input" maxlength="120" placeholder="メールアドレス" autocomplete="username">
+    <input type="password" id="account-password-input" maxlength="64" placeholder="パスワード(6文字以上)" autocomplete="new-password">
+    <div class="field-error" id="account-protect-error">入力内容を確認してください</div>
+    <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">設定しておくと、機種変更やキャッシュ削除後もこのアカウントに戻れます。</div>
 
     <button class="primary" id="nick-confirm" disabled>チャットを開始</button>
   </div>
@@ -2834,7 +2838,8 @@ import {
   writeBatch, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
-  getAuth, signInAnonymously, onAuthStateChanged
+  getAuth, signInAnonymously, onAuthStateChanged,
+  EmailAuthProvider, linkWithCredential, signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 /* ===================== 一時デバッグ用: 画面上にJSエラーを表示 =====================
@@ -2947,8 +2952,7 @@ const GOLD_CHECK_SVG = '<svg class="verify-badge gold" viewBox="0 0 20 20" width
 /* ------------------------------------------------------------------ */
 const NAME_KEY = 'signal_name', ICON_KEY = 'signal_icon', ICONIMG_KEY = 'signal_icon_img';
 const LOGIN_UID_KEY = 'signal_login_uid', AUTH_GATE_DONE_KEY = 'signal_auth_gate_done';
-let loginOverrideUid = null;
-try { loginOverrideUid = localStorage.getItem(LOGIN_UID_KEY) || null; } catch (_) {}
+try { localStorage.removeItem(LOGIN_UID_KEY); } catch (_) {} // 旧バージョンの危険な「UID直打ちログイン」機能の残骸を掃除
 const LOCAL_CH_NAMES_KEY = 'signal_ch_names', LOCAL_CH_ORDER_KEY = 'signal_ch_order';
 let localChannelNames = {};
 let localChannelOrder = [];
@@ -3036,7 +3040,8 @@ const els = {
   nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
   usernameInput: $('username-input'), usernameError: $('username-error'),
   bioInput: $('bio-input'), bioCounter: $('bio-counter'), linkInput: $('link-input'),
-  accountPasswordInput: $('account-password-input'),
+  accountPasswordInput: $('account-password-input'), accountEmailInput: $('account-email-input'),
+  accountProtectStatus: $('account-protect-status'), accountProtectError: $('account-protect-error'),
   authGateSignup: $('auth-gate-signup'), authGateLoginOpen: $('auth-gate-login-open'),
   authGateChoices: $('auth-gate-choices'), authGateLoginForm: $('auth-gate-login-form'),
   authGateUidInput: $('auth-gate-uid-input'), authGatePasswordInput: $('auth-gate-password-input'),
@@ -4225,7 +4230,9 @@ function openNickModal(prefillName, prefillIcon, prefillImg, triggerBtn){
   updateNickConfirmState();
   els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
   els.accountPasswordInput.value = '';
-  els.accountPasswordInput.placeholder = myName ? '変更する場合のみ入力(空欄なら現状維持)' : '空欄のままならパスワード無しでログイン可';
+  els.accountEmailInput.value = '';
+  els.accountProtectError.classList.remove('show');
+  renderAccountProtectStatus();
   if (myUid) {
     els.myUidDisplay.textContent = myUid;
   } else if (!els.myUidDisplay.textContent || els.myUidDisplay.textContent.includes('読み込み') || els.myUidDisplay.textContent.includes('準備')) {
@@ -4264,6 +4271,26 @@ async function sha256Hex(text){
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+/** アカウントがメール+パスワードで保護済み（匿名認証にリンク済み）かどうか */
+function isAccountProtected(){
+  return !!(auth && auth.currentUser && auth.currentUser.providerData.some((p) => p.providerId === 'password'));
+}
+function renderAccountProtectStatus(){
+  if (!els.accountProtectStatus) return;
+  if (isAccountProtected()) {
+    const email = auth.currentUser.providerData.find((p) => p.providerId === 'password').email;
+    els.accountProtectStatus.textContent = `✓ 保護済み(${email})。別の端末でもこのメールでログインできます。`;
+    els.accountEmailInput.style.display = 'none';
+    els.accountPasswordInput.style.display = 'none';
+  } else {
+    els.accountProtectStatus.textContent = '未設定です。メールアドレスとパスワードを登録しておくと安心です。';
+    els.accountEmailInput.style.display = '';
+    els.accountPasswordInput.style.display = '';
+    els.accountEmailInput.placeholder = 'メールアドレス';
+    els.accountPasswordInput.placeholder = 'パスワード(6文字以上)';
+  }
+}
+
 els.nickConfirm.addEventListener('click', async () => {
   const v = els.nickInput.value.trim();
   const uKey = normalizeUsername(els.usernameInput.value);
@@ -4272,6 +4299,16 @@ els.nickConfirm.addEventListener('click', async () => {
     els.usernameError.textContent = 'ユーザー名は半角英数字とアンダースコアのみ・3〜20文字で入力してください';
     els.usernameError.style.display = 'block';
     return;
+  }
+  const protectEmail = els.accountEmailInput.value.trim();
+  const protectPw = els.accountPasswordInput.value;
+  els.accountProtectError.classList.remove('show');
+  if (!isAccountProtected() && (protectEmail || protectPw)) {
+    if (!protectEmail || !protectPw || protectPw.length < 6) {
+      els.accountProtectError.textContent = 'メールアドレスと6文字以上のパスワードを両方入力してください';
+      els.accountProtectError.classList.add('show');
+      return;
+    }
   }
   els.nickConfirm.disabled = true;
   els.nickConfirm.textContent = '確認中…';
@@ -4292,10 +4329,23 @@ els.nickConfirm.addEventListener('click', async () => {
       name: myName, username: uKey, icon: myIcon, iconImg: myIconImg, bio, link, updatedAt: serverTimestamp()
     };
     if (!usersCache[myUid] || !usersCache[myUid].createdAt) userDoc.createdAt = serverTimestamp();
-    const pw = els.accountPasswordInput.value;
-    if (pw) userDoc.passwordHash = await sha256Hex(pw);
     await setDoc(doc(db, 'users', myUid), userDoc, { merge: true });
+    if (!isAccountProtected() && protectEmail && protectPw) {
+      try {
+        await linkWithCredential(auth.currentUser, EmailAuthProvider.credential(protectEmail, protectPw));
+      } catch (linkErr) {
+        console.error('アカウント保護の設定に失敗しました', linkErr);
+        let msg = 'アカウント保護の設定に失敗しました';
+        if (linkErr && linkErr.code === 'auth/email-already-in-use') msg = 'そのメールアドレスは既に使われています';
+        else if (linkErr && linkErr.code === 'auth/invalid-email') msg = 'メールアドレスの形式が正しくありません';
+        else if (linkErr && linkErr.code === 'auth/weak-password') msg = 'パスワードは6文字以上にしてください';
+        els.accountProtectError.textContent = msg;
+        els.accountProtectError.classList.add('show');
+      }
+    }
     els.accountPasswordInput.value = '';
+    els.accountEmailInput.value = '';
+    renderAccountProtectStatus();
     refreshSelfCard();
     closeModal(els.nickModal);
     startHeartbeat();
@@ -6513,7 +6563,7 @@ function boot(){
   }
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      myUid = loginOverrideUid || user.uid;
+      myUid = user.uid;
       els.myUidDisplay.textContent = myUid;
       afterAuthReady();
     }
@@ -6548,37 +6598,25 @@ if (els.authGateSignup) {
     els.authGateLoginError.classList.remove('show');
   });
   const submitLogin = async () => {
-    const uid = els.authGateUidInput.value.trim();
+    const email = els.authGateUidInput.value.trim();
     const pw = els.authGatePasswordInput.value;
     els.authGateLoginError.classList.remove('show');
-    if (!uid) { els.authGateLoginError.textContent = 'UIDを入力してください'; els.authGateLoginError.classList.add('show'); return; }
+    if (!email || !pw) { els.authGateLoginError.textContent = 'メールアドレスとパスワードを入力してください'; els.authGateLoginError.classList.add('show'); return; }
     if (!auth || !db) { els.authGateLoginError.textContent = '準備中です。少し待ってからもう一度お試しください'; els.authGateLoginError.classList.add('show'); return; }
     els.authGateLoginSubmit.disabled = true;
     els.authGateLoginSubmit.textContent = '確認中…';
     try {
-      if (!auth.currentUser) await signInAnonymously(auth);
-      const snap = await getDoc(doc(db, 'users', uid));
-      if (!snap.exists()) throw new Error('NOT_FOUND');
-      const data = snap.data();
-      if (data.passwordHash) {
-        const hash = await sha256Hex(pw || '');
-        if (hash !== data.passwordHash) throw new Error('BAD_PASSWORD');
-      }
-      loginOverrideUid = uid;
-      localStorage.setItem(LOGIN_UID_KEY, uid);
+      await signInWithEmailAndPassword(auth, email, pw);
       dismissAuthGate();
       boot();
     } catch (e) {
       console.error('ログインに失敗しました', e);
-      if (e && e.message === 'NOT_FOUND') {
-        els.authGateLoginError.textContent = 'そのUIDのユーザーが見つかりません';
-      } else if (e && e.message === 'BAD_PASSWORD') {
+      if (e && (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential' || e.code === 'auth/invalid-email')) {
+        els.authGateLoginError.textContent = 'そのメールアドレスは登録されていません';
+      } else if (e && e.code === 'auth/wrong-password') {
         els.authGateLoginError.textContent = 'パスワードが違います';
-      } else if (e && (e.code === 'permission-denied' || /permission/i.test(e.message || ''))) {
-        // パスワード未設定のアカウントは passwordHash フィールドが存在しないため、
-        // Firestoreのセキュリティルールの書き方によっては読み取りが拒否されて
-        // ここに来ることがある（例:「passwordHashが存在するドキュメントのみ読み取り許可」等の条件）。
-        els.authGateLoginError.textContent = '読み取りが拒否されました(Firestoreのセキュリティルールを確認してください)';
+      } else if (e && e.code === 'auth/too-many-requests') {
+        els.authGateLoginError.textContent = '試行回数が多すぎます。少し時間をおいてお試しください';
       } else {
         els.authGateLoginError.textContent = 'ログインに失敗しました。もう一度お試しください';
       }
