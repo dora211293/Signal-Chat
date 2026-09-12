@@ -1811,6 +1811,158 @@
     backdrop-filter: blur(calc(4px + (1 - var(--panel-alpha)) * 14px)) saturate(160%);
     -webkit-backdrop-filter: blur(calc(4px + (1 - var(--panel-alpha)) * 14px)) saturate(160%);
   }
+
+  /* ===================== トランプ (大富豪・ババ抜き・七並べ) ===================== */
+  #trump-screen{
+    position: fixed; inset: 0; z-index: 900; background: #030302;
+    display: none; flex-direction: column; opacity: 0; pointer-events: none;
+    transition: opacity .38s var(--ease-ios);
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra));
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom-extra));
+    isolation: isolate;
+    background-image: radial-gradient(120% 90% at 50% -10%, #0d2b224a 0%, transparent 55%), radial-gradient(100% 80% at 50% 120%, #1a12064a 0%, transparent 60%);
+  }
+  #trump-screen.show{ opacity: 1; pointer-events: auto; }
+  #trump-close-btn{
+    position: absolute; top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra) + 10px); right: 14px; z-index: 30;
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface-2) 78%, transparent); backdrop-filter: blur(14px);
+    color: var(--text-muted); font-size: 15px; display:flex; align-items:center; justify-content:center;
+    transition: background-color .2s var(--ease-ios), color .2s var(--ease-ios), transform .3s var(--ease-spring), border-color .2s var(--ease-ios);
+  }
+  #trump-close-btn:hover{ color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); transform: rotate(90deg); }
+  #trump-lobby, #trump-invite-picker, #trump-result{ align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+  #trump-game{ padding: 6px 10px 10px; gap: 6px; }
+
+  #tr-countdown-overlay{
+    position:absolute; inset:0; z-index: 20; display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(60% 60% at 50% 50%, #00000088, #000000cc); opacity:0; pointer-events:none; transition: opacity .25s var(--ease-ios);
+  }
+  #tr-countdown-overlay.show{ opacity:1; }
+  #tr-cd-ring{
+    position:absolute; width: 140px; height: 140px; border-radius: 50%;
+    border: 3px solid color-mix(in srgb, var(--amber) 65%, transparent);
+    box-shadow: 0 0 40px color-mix(in srgb, var(--amber) 35%, transparent);
+  }
+  #tr-countdown-overlay.show #tr-cd-ring{ animation: tetCdRing 1s var(--ease-ios) infinite; }
+  #tr-countdown-num{ position:relative; font-size: 92px; font-weight: 800; color: var(--amber); font-family: var(--font-mono);
+    text-shadow: 0 0 34px color-mix(in srgb, var(--amber) 70%, transparent); }
+  #tr-countdown-num.pulse{ animation: tetCdPulse .78s var(--ease-spring); }
+
+  #tr-turn-banner{
+    position:absolute; top: calc(env(safe-area-inset-top,0px) + var(--safe-top-extra) + 54px); left:50%; transform: translateX(-50%);
+    z-index: 22; pointer-events:none; opacity:0;
+  }
+  #tr-turn-banner.show{ animation: trBannerPop 1.1s var(--ease-ios); }
+  #tr-turn-banner span{
+    display:inline-block; padding: 7px 18px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight:700;
+    background: color-mix(in srgb, black 70%, transparent); border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent);
+    color: var(--amber); box-shadow: 0 0 16px color-mix(in srgb, var(--amber) 25%, transparent);
+  }
+  @keyframes trBannerPop{ 0%{ opacity:0; transform: translateX(-50%) translateY(-8px) scale(.9); } 15%{ opacity:1; transform: translateX(-50%) translateY(0) scale(1); } 82%{ opacity:1; } 100%{ opacity:0; } }
+
+  #tr-hud{ display:flex; align-items:center; justify-content: space-between; padding: 4px 6px 2px; font-size: 12px; color: var(--text-muted); flex-shrink:0; }
+  #tr-hud-gametitle{ font-weight:700; color: var(--text); }
+  #tr-hud-turn{ color: var(--amber); font-weight:600; }
+
+  #tr-opp-strip{ display:flex; gap:8px; overflow-x:auto; padding: 4px 2px 8px; flex-shrink:0; -webkit-overflow-scrolling:touch; }
+  .tr-opp-card{
+    flex-shrink:0; width: 58px; display:flex; flex-direction:column; align-items:center; gap:3px; opacity:.9;
+    padding: 6px 4px; border-radius: var(--radius-sm); border: 1px solid transparent;
+    transition: opacity .3s var(--ease-ios), border-color .3s var(--ease-ios), box-shadow .3s var(--ease-ios), transform .3s var(--ease-spring);
+  }
+  .tr-opp-card.tr-opp-turn{ border-color: color-mix(in srgb, var(--amber) 55%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--amber) 30%, transparent); opacity:1; }
+  .tr-opp-card.tr-opp-out{ opacity:.35; transform: scale(.92); }
+  .tr-opp-card .msg-avatar{ position:static; width:30px; height:30px; font-size:12px; }
+  .tr-opp-card.tr-opp-turn .msg-avatar{ animation: trPulseGlow 1.4s ease-in-out infinite; }
+  @keyframes trPulseGlow{ 0%,100%{ box-shadow: 0 0 0 0 color-mix(in srgb, var(--amber) 55%, transparent); } 50%{ box-shadow: 0 0 0 5px color-mix(in srgb, var(--amber) 0%, transparent); } }
+  .tr-opp-name{ font-size: 9.5px; color: var(--text-muted); max-width: 58px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tr-opp-count{ font-size: 9.5px; font-family: var(--font-mono); color: var(--teal); font-weight:700; }
+
+  #tr-table-area{ flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 6px 4px; overflow:auto; }
+  .tr-table-daifugo{ display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; }
+  .tr-field-label{ font-size: 11.5px; color: var(--text-faint); }
+  .tr-field-cards{ display:flex; justify-content:center; min-height: 74px; align-items:center; }
+  .tr-field-cards .tr-card{ margin-left:-14px; animation: trCardEnter .32s var(--ease-spring-soft) backwards; }
+  .tr-field-cards .tr-card:first-child{ margin-left:0; }
+  .tr-field-empty{ color: var(--text-faint); font-size: 20px; }
+
+  .tr-sevens-board{ display:flex; flex-direction:column; gap:6px; width:100%; max-width: 420px; }
+  .tr-sevens-row{ display:flex; align-items:center; gap:6px; }
+  .tr-sevens-suit-label{ width: 18px; text-align:center; font-size:15px; flex-shrink:0; }
+  .tr-sevens-cells{ flex:1; display:grid; grid-template-columns: repeat(13,1fr); gap:2px; }
+  .tr-sevens-cell{
+    aspect-ratio: 2/3; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-size: 8px; font-weight:700; color: var(--text-faint);
+    transition: background-color .25s var(--ease-ios), box-shadow .25s var(--ease-ios), transform .25s var(--ease-spring-soft);
+  }
+  .tr-sevens-cell.tr-sevens-cell-placed{
+    background: var(--surface); border-color: color-mix(in srgb, var(--amber) 35%, transparent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--amber) 18%, transparent);
+    animation: trCellPlace .3s var(--ease-spring-soft);
+  }
+  .tr-sevens-cell.tr-red{ color: var(--danger); }
+  .tr-sevens-cell.tr-black{ color: var(--text); }
+
+  .tr-babanuki-board{ display:flex; flex-wrap:wrap; gap: 14px; justify-content:center; align-items:flex-end; }
+  .tr-baba-fan{ display:flex; flex-direction:column; align-items:center; gap:4px; padding: 6px; border-radius: var(--radius-sm); transition: box-shadow .3s var(--ease-ios); }
+  .tr-baba-fan.tr-baba-fan-target{ box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 55%, transparent), 0 0 16px color-mix(in srgb, var(--teal) 30%, transparent); }
+  .tr-baba-fan-cards{ display:flex; }
+  .tr-baba-mini{ width: 22px; height: 32px; margin-left:-11px; }
+  .tr-baba-fan-cards .tr-baba-mini:first-child{ margin-left:0; }
+  .tr-baba-fan-label{ font-size: 10px; color: var(--text-muted); }
+
+  .tr-card{
+    width: 46px; height: 66px; border-radius: 6px; background: #f4f1e9; position:relative; flex-shrink:0;
+    box-shadow: 0 2px 6px #00000055, inset 0 0 0 1px #00000012;
+    display:flex; flex-direction:column; justify-content:space-between; padding: 3px 4px;
+    font-family: var(--font-mono); user-select:none;
+  }
+  .tr-card.tr-red{ color:#c62b2b; }
+  .tr-card.tr-black{ color:#1c1c1c; }
+  .tr-card-corner{ display:flex; flex-direction:column; align-items:center; line-height:1; font-size: 10.5px; font-weight:700; }
+  .tr-card-corner-br{ align-self:flex-end; transform: rotate(180deg); }
+  .tr-card-suit-big{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size: 20px; opacity:.9; }
+  .tr-card-back{
+    background: linear-gradient(155deg, #1a1a1c, #0c0c0d); box-shadow: 0 2px 6px #00000055, inset 0 0 0 1px #ffffff10;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .tr-card-back::before{
+    content:''; position:absolute; inset:4px; border-radius:4px; border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent);
+    background-image: repeating-linear-gradient(45deg, color-mix(in srgb, var(--amber) 10%, transparent) 0 4px, transparent 4px 8px);
+  }
+  .tr-card-back-mark{ position:relative; color: var(--amber); font-weight:800; font-size: 15px; letter-spacing:1px; text-shadow: 0 0 8px color-mix(in srgb, var(--amber) 60%, transparent); }
+  .tr-card.tr-card-joker{ align-items:center; justify-content:center; gap:2px; }
+  .tr-card-joker-mark{ font-size: 20px; }
+  .tr-card-joker-label{ font-size: 7px; font-weight:800; color: var(--gold-2); letter-spacing:1px; }
+  @keyframes trCardEnter{ 0%{ opacity:0; transform: translateY(16px) scale(.8) rotate(-4deg); } 100%{ opacity:1; transform: translateY(0) scale(1) rotate(0); } }
+
+  #tr-hand-wrap{ flex-shrink:0; display:flex; justify-content:center; padding: 4px 0 2px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  #tr-hand{ display:flex; align-items:flex-end; padding: 8px 24px 4px; }
+  .tr-hand-card{
+    margin-left:-20px; transition: transform .28s var(--ease-spring-soft), filter .2s ease; transform-origin: bottom center;
+    animation: trHandCardIn .4s var(--ease-spring-soft) backwards;
+  }
+  .tr-hand-card:first-child{ margin-left:0; }
+  .tr-hand-card:nth-child(1){ animation-delay: .01s; } .tr-hand-card:nth-child(2){ animation-delay:.03s; }
+  .tr-hand-card:nth-child(3){ animation-delay:.05s; } .tr-hand-card:nth-child(4){ animation-delay:.07s; }
+  .tr-hand-card:nth-child(n+5){ animation-delay:.09s; }
+  @keyframes trHandCardIn{ 0%{ opacity:0; transform: translateY(30px) scale(.85); } 100%{ opacity:1; transform: translateY(0) scale(1); } }
+  .tr-hand-card:not(.tr-clickable){ filter: saturate(.85) brightness(.92); }
+  .tr-hand-card.tr-clickable:hover{ filter: brightness(1.05); }
+  .tr-hand-card.tr-selected{ filter: drop-shadow(0 0 10px color-mix(in srgb, var(--amber) 65%, transparent)); }
+
+  #tr-action-bar{ flex-shrink:0; padding: 4px 12px 2px; display:flex; justify-content:center; }
+  .tr-action-row{ display:flex; gap:10px; }
+  .tr-action-note{ font-size: 12px; color: var(--text-muted); text-align:center; padding: 6px 0; }
+
+  #trump-result{ position:relative; }
+  #tr-confetti-canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+  #trump-result .tet-card{ max-width: 380px; position:relative; z-index:2; }
+
+  @media (min-width: 720px){
+    .tr-card{ width:56px; height:80px; }
+  }
 </style>
 </head>
 <body>
@@ -2164,6 +2316,75 @@
   </div>
 </div>
 
+<!-- ===================== トランプ (大富豪・ババ抜き・七並べ) ===================== -->
+<div id="trump-screen">
+  <button id="trump-close-btn" title="閉じる">✕</button>
+
+  <div id="trump-lobby" class="tet-view">
+    <div class="tet-card">
+      <h2>🃏 トランプ</h2>
+      <p class="tet-sub">大富豪・ババ抜き・七並べで対戦しよう。SIGNALのDMで友達を招待できます。</p>
+
+      <div id="tr-gametype-block">
+        <div class="tet-settings-label">遊ぶゲーム</div>
+        <div class="tet-settings-row" id="tr-gametype-row">
+          <button type="button" class="tet-chip active" data-val="daifugo">大富豪</button>
+          <button type="button" class="tet-chip" data-val="babanuki">ババ抜き</button>
+          <button type="button" class="tet-chip" data-val="sevens">七並べ</button>
+        </div>
+        <div class="tet-settings-readonly" id="tr-gametype-readonly" style="display:none;"></div>
+      </div>
+
+      <ul id="tr-lobby-players"></ul>
+
+      <div class="tet-btn-row">
+        <button type="button" class="tet-secondary-btn" id="tr-invite-btn">📨 SIGNALで招待</button>
+        <button type="button" class="tet-primary-btn" id="tr-start-btn" style="display:none;">対戦開始</button>
+        <button type="button" class="tet-secondary-btn danger" id="tr-leave-btn">退出</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="trump-invite-picker" class="tet-view" style="display:none;">
+    <div class="tet-card">
+      <h2>友達を招待</h2>
+      <p class="tet-sub">送るとDMに参加ボタン付きの招待が届きます。</p>
+      <ul id="tr-invite-friend-list"></ul>
+      <div id="tr-invite-empty" style="display:none;">フレンドがいません。先にフレンドを追加してください。</div>
+      <div class="tet-btn-row">
+        <button type="button" class="tet-secondary-btn" id="tr-invite-back-btn">戻る</button>
+        <button type="button" class="tet-primary-btn" id="tr-invite-send-btn">招待を送る</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="trump-game" class="tet-view" style="display:none;">
+    <div id="tr-countdown-overlay"><div id="tr-cd-ring"></div><span id="tr-countdown-num">3</span></div>
+    <div id="tr-turn-banner"><span id="tr-turn-banner-text"></span></div>
+    <div id="tr-hud">
+      <span id="tr-hud-gametitle"></span>
+      <span id="tr-hud-turn"></span>
+    </div>
+    <div id="tr-opp-strip"></div>
+    <div id="tr-table-area"></div>
+    <div id="tr-action-bar"></div>
+    <div id="tr-hand-wrap"><div id="tr-hand"></div></div>
+  </div>
+
+  <div id="trump-result" class="tet-view" style="display:none;">
+    <canvas id="tr-confetti-canvas"></canvas>
+    <div class="tet-card">
+      <h2 id="tr-result-title">試合終了</h2>
+      <p class="tet-sub" id="tr-result-sub"></p>
+      <ul id="tr-result-list"></ul>
+      <div class="tet-btn-row">
+        <button type="button" class="tet-primary-btn" id="tr-rematch-btn">🔄 もう一度対戦</button>
+        <button type="button" class="tet-secondary-btn danger" id="tr-result-close-btn">退出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== 画像ライトボックス ===================== -->
 <div class="modal-scrim" id="lightbox-modal" style="display:none;">
   <div id="lightbox-inner">
@@ -2375,6 +2596,10 @@
       <li class="tet-player-row" id="game-picker-tetris" style="cursor:pointer;">
         <div class="tic-icon" style="font-size:22px;">🎮</div>
         <span class="tet-pname">Block Drop<span id="game-picker-tetris-sub" style="display:block;font-weight:400;font-size:11px;color:var(--text-faint);">最大8人・SIGNALで招待できるバトルロイヤル</span></span>
+      </li>
+      <li class="tet-player-row" id="game-picker-trump" style="cursor:pointer;">
+        <div class="tic-icon" style="font-size:22px;">🃏</div>
+        <span class="tet-pname">トランプ<span id="game-picker-trump-sub" style="display:block;font-weight:400;font-size:11px;color:var(--text-faint);">大富豪・ババ抜き・七並べ／2〜6人</span></span>
       </li>
     </ul>
     <button class="cancel" id="game-picker-close">閉じる</button>
@@ -4604,6 +4829,7 @@ function renderMessages(docs){
     const hasFile = !!m.fileData;
     const hasPoll = m.type === 'poll' && !!m.poll;
     const hasTetInvite = m.type === 'tetris_invite' && !!m.tetrisRoomId;
+    const hasTrInvite = m.type === 'trump_invite' && !!m.trumpRoomId;
     const imageHtml = hasImage
       ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}">`
       : (m.imgExpired ? `<div class="msg-image-expired">画像は期限切れです</div>` : '');
@@ -4615,7 +4841,8 @@ function renderMessages(docs){
       : (m.fileExpired ? `<div class="msg-file-expired">📎 ファイルは期限切れです</div>` : '');
     const pollHtml = hasPoll ? renderPollChipHtml(m, d.id) : '';
     const tetInviteHtml = hasTetInvite ? renderTetrisInviteChipHtml(m, d.id) : '';
-    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasFile || m.fileExpired ? ' has-file' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '') + (hasTetInvite ? ' has-tet-invite' : '');
+    const trInviteHtml = hasTrInvite ? renderTrumpInviteChipHtml(m, d.id) : '';
+    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasFile || m.fileExpired ? ' has-file' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '') + (hasTetInvite ? ' has-tet-invite' : '') + (hasTrInvite ? ' has-tet-invite' : '');
 
     // 返信元の引用プレビュー（あれば）
     const replyHtml = m.replyTo
@@ -4653,6 +4880,7 @@ function renderMessages(docs){
       hasFile, m.fileData || '', m.fileName || '', m.fileSize || 0, !!m.fileExpired,
       hasPoll, m.poll || null, m.pollResponses || null,
       hasTetInvite, m.tetrisRoomId || null,
+      hasTrInvite, m.trumpRoomId || null,
       metaHtml, receipts, replyHtml, reactionEntries, mentionsMe
     ]);
 
@@ -4662,7 +4890,7 @@ function renderMessages(docs){
         <div class="msg-avatar" data-uid="${m.uid}" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
         <div class="msg-body">
           ${metaHtml}
-          <div class="${bubbleClass}">${replyHtml}${imageHtml}${fileHtml}${hasText ? `<div class="msg-text">${renderMessageText(m.text)}</div>` : ''}${pollHtml}${tetInviteHtml}</div>
+          <div class="${bubbleClass}">${replyHtml}${imageHtml}${fileHtml}${hasText ? `<div class="msg-text">${renderMessageText(m.text)}</div>` : ''}${pollHtml}${tetInviteHtml}${trInviteHtml}</div>
         </div>`;
 
       const body = row.querySelector('.msg-body');
@@ -4798,6 +5026,11 @@ els.messages.addEventListener('click', (e) => {
   if (pollSummary) {
     const id = pollSummary.dataset.msgId;
     if (id) openPollViewModal(id);
+    return;
+  }
+  const trJoinBtn = e.target.closest('.trump-invite-join-btn');
+  if (trJoinBtn && trJoinBtn.dataset.roomId) {
+    joinTrumpRoomFromInvite(trJoinBtn.dataset.roomId);
     return;
   }
   const tetJoinBtn = e.target.closest('.tetris-invite-join-btn');
@@ -7486,6 +7719,7 @@ const tetOpenBtn = $('tetris-open-btn');
 const gamePickerModal = $('game-picker-modal');
 if (tetOpenBtn) tetOpenBtn.addEventListener('click', () => {
   if (tetRoomId) { tetLaunch(); return; }
+  if (typeof trRoomId !== 'undefined' && trRoomId) { trLaunch(); return; }
   if (gamePickerModal) { gamePickerModal.style.display = 'flex'; popModalFrom(gamePickerModal, tetOpenBtn); }
   else tetLaunch();
 });
@@ -7536,6 +7770,703 @@ async function tetRematch(){
 }
 const tetRematchBtn = $('tet-rematch-btn');
 if (tetRematchBtn) tetRematchBtn.addEventListener('click', tetRematch);
+
+/* =========================================================================
+   トランプ (大富豪・ババ抜き・七並べ) — Firestoreルームベースのマルチプレイ
+   ========================================================================= */
+const TR_SUITS = ['S', 'H', 'D', 'C'];
+const TR_SUIT_SYMBOL = { S: '♠', H: '♥', D: '♦', C: '♣' };
+const TR_RANK_LABEL = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+const TR_GAMETYPE_LABEL = { daifugo: '大富豪', babanuki: 'ババ抜き', sevens: '七並べ' };
+const TR_DAIFUGO_ORDER = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1, 2];
+
+function trRankLabel(r){ return TR_RANK_LABEL[r] || String(r); }
+function trIsRed(suit){ return suit === 'H' || suit === 'D'; }
+function trParseCode(code){ return { rank: parseInt(code.slice(0, -1), 10), suit: code.slice(-1) }; }
+function trMakeCode(rank, suit){ return String(rank) + suit; }
+function trBuildDeck(withJoker){
+  const deck = [];
+  TR_SUITS.forEach((s) => { for (let r = 1; r <= 13; r++) deck.push(trMakeCode(r, s)); });
+  if (withJoker) deck.push('JK');
+  return deck;
+}
+function trShuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function trDaifugoStrength(rank){ return TR_DAIFUGO_ORDER.indexOf(rank); }
+function trSortHandDaifugo(hand){
+  return hand.slice().sort((a, b) => {
+    const pa = trParseCode(a), pb = trParseCode(b);
+    const sa = trDaifugoStrength(pa.rank), sb = trDaifugoStrength(pb.rank);
+    if (sa !== sb) return sa - sb;
+    return TR_SUITS.indexOf(pa.suit) - TR_SUITS.indexOf(pb.suit);
+  });
+}
+function trSortHandNatural(hand){
+  return hand.slice().sort((a, b) => {
+    const pa = trParseCode(a), pb = trParseCode(b);
+    if (pa.suit !== pb.suit) return TR_SUITS.indexOf(pa.suit) - TR_SUITS.indexOf(pb.suit);
+    return pa.rank - pb.rank;
+  });
+}
+function trDiscardPairs(hand){
+  const byRank = {};
+  hand.forEach((c) => { if (c === 'JK') return; const r = trParseCode(c).rank;(byRank[r] = byRank[r] || []).push(c); });
+  const removed = new Set();
+  Object.values(byRank).forEach((list) => {
+    const pairs = Math.floor(list.length / 2);
+    for (let k = 0; k < pairs * 2; k++) removed.add(list[k]);
+  });
+  return hand.filter((c) => !removed.has(c));
+}
+function trCardFaceHtml(code, extraClass){
+  if (code === 'JK') {
+    return `<div class="tr-card tr-card-joker ${extraClass || ''}" data-code="JK"><div class="tr-card-joker-mark">🃏</div><div class="tr-card-joker-label">JOKER</div></div>`;
+  }
+  const { rank, suit } = trParseCode(code);
+  const red = trIsRed(suit);
+  const label = trRankLabel(rank);
+  const sym = TR_SUIT_SYMBOL[suit];
+  return `<div class="tr-card ${red ? 'tr-red' : 'tr-black'} ${extraClass || ''}" data-code="${code}">
+    <div class="tr-card-corner tr-card-corner-tl"><span>${label}</span><span>${sym}</span></div>
+    <div class="tr-card-suit-big">${sym}</div>
+    <div class="tr-card-corner tr-card-corner-br"><span>${label}</span><span>${sym}</span></div>
+  </div>`;
+}
+function trCardBackHtml(extraClass){
+  return `<div class="tr-card tr-card-back ${extraClass || ''}"><div class="tr-card-back-mark">S</div></div>`;
+}
+
+/* ---- ルーム状態 ---- */
+let trRoomId = null, trRoomUnsub = null, trPlayersUnsub = null;
+let trHostUid = null, trIsHost = false;
+let trRoomStatus = null;
+let trGameType = 'daifugo';
+let trOrder = [];
+let trCurrentTurnUid = null;
+let trTable = {};
+let trAllPlayers = {};
+let trMyHand = [];
+let trSelected = new Set();
+let trResultShownForRoom = null;
+let trCountdownActive = false;
+let trGameActive = false;
+let trConfettiRaf = null;
+
+function trIsFinished(uid){ const p = trAllPlayers[uid]; return !!(p && p.finished); }
+function trNextActiveAfter(uid){
+  if (!trOrder.length) return null;
+  const idx = trOrder.indexOf(uid);
+  if (idx < 0) return null;
+  for (let step = 1; step <= trOrder.length; step++) {
+    const cand = trOrder[(idx + step) % trOrder.length];
+    if (!trIsFinished(cand)) return cand;
+  }
+  return null;
+}
+function trNextRank(){ return trOrder.filter((uid) => trIsFinished(uid)).length + 1; }
+async function trMarkFinished(uid, rank){
+  await setDoc(doc(db, 'trumpRooms', trRoomId, 'players', uid), { finished: true, rank }, { merge: true }).catch(() => {});
+}
+async function trCheckAutoEnd(){
+  const active = trOrder.filter((uid) => !trIsFinished(uid));
+  if (active.length <= 1) {
+    if (active.length === 1) await trMarkFinished(active[0], trOrder.length);
+    await updateDoc(doc(db, 'trumpRooms', trRoomId), { status: 'ended', endedAt: serverTimestamp() }).catch(() => {});
+    return true;
+  }
+  return false;
+}
+
+function trTeardown(){
+  if (trRoomUnsub) { trRoomUnsub(); trRoomUnsub = null; }
+  if (trPlayersUnsub) { trPlayersUnsub(); trPlayersUnsub = null; }
+  trRoomId = null; trHostUid = null; trIsHost = false; trRoomStatus = null; trOrder = [];
+  trCurrentTurnUid = null; trTable = {}; trAllPlayers = {}; trMyHand = []; trSelected = new Set();
+  trResultShownForRoom = null; trCountdownActive = false; trGameActive = false;
+}
+function trLeaveRoom(silent){
+  if (trRoomId && myUid && db) {
+    deleteDoc(doc(db, 'trumpRooms', trRoomId, 'players', myUid)).catch(() => {});
+    if (trRoomStatus === 'waiting') updateDoc(doc(db, 'trumpRooms', trRoomId), { order: arrayRemove(myUid) }).catch(() => {});
+  }
+  trTeardown();
+  if (!silent) trCloseScreen();
+}
+function trAttachRoom(roomId){
+  trRoomId = roomId;
+  trListenRoom(roomId);
+  trListenPlayers(roomId);
+}
+async function trJoinRoomCore(roomId){
+  await setDoc(doc(db, 'trumpRooms', roomId, 'players', myUid), {
+    uid: myUid, name: myName || (usersCache[myUid] && usersCache[myUid].name) || '名無し',
+    icon: myIcon || '', iconImg: myIconImg || '', hand: [], finished: false, rank: null, joinedAt: serverTimestamp()
+  }, { merge: true });
+  await updateDoc(doc(db, 'trumpRooms', roomId), { order: arrayUnion(myUid) }).catch(() => {});
+}
+async function trCreateRoom(){
+  if (!db || !myUid) { alert('接続準備中です。少し待ってから再度お試しください'); return; }
+  try {
+    const roomRef = await addDoc(collection(db, 'trumpRooms'), { hostUid: myUid, status: 'waiting', gameType: 'daifugo', order: [], createdAt: serverTimestamp() });
+    await trJoinRoomCore(roomRef.id);
+    trAttachRoom(roomRef.id);
+    trShowScreen(); trShowView('lobby');
+  } catch (e) { console.error('トランプルーム作成に失敗しました', e); alert('ルーム作成に失敗しました'); }
+}
+function joinTrumpRoomFromInvite(roomId){
+  if (!db || !myUid) { alert('接続準備中です。少し待ってから再度お試しください'); return; }
+  getDoc(doc(db, 'trumpRooms', roomId)).then((roomSnap) => {
+    if (!roomSnap.exists()) { alert('このルームは見つかりません（終了した可能性があります）'); return; }
+    const room = roomSnap.data();
+    if (room.status !== 'waiting') { alert('この対戦はすでに開始または終了しています'); return; }
+    return trJoinRoomCore(roomId).then(() => { trAttachRoom(roomId); trShowScreen(); trShowView('lobby'); });
+  }).catch((e) => { console.error('トランプ参加に失敗しました', e); alert('参加に失敗しました'); });
+}
+async function trSendInviteDm(otherUid, roomId){
+  if (!db || !myUid) return;
+  const dmId = dmIdFor(myUid, otherUid);
+  await setDoc(doc(db, 'dms', dmId), { participants: [myUid, otherUid], lastText: '🃏 トランプの招待', updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+  await addDoc(collection(db, 'dms', dmId, 'messages'), {
+    type: 'trump_invite', uid: myUid, name: myName || '', icon: myIcon || '', ts: serverTimestamp(), trumpRoomId: roomId
+  }).catch(() => {});
+  trimOldMessages('dms', dmId);
+}
+function renderTrumpInviteChipHtml(m, msgId){
+  return `<div class="tetris-invite-chip">
+    <div class="tic-icon">🃏</div>
+    <div class="tic-body">
+      <div class="tic-title">トランプ 招待</div>
+      <div class="tic-sub">${escapeHtml(m.name || 'メンバー')}からの招待</div>
+    </div>
+    <button type="button" class="tetris-invite-join-btn trump-invite-join-btn" data-room-id="${escapeHtml(m.trumpRoomId)}">参加する</button>
+  </div>`;
+}
+function trOpenInvitePicker(){
+  const listEl = $('tr-invite-friend-list'), emptyEl = $('tr-invite-empty');
+  const uids = Object.keys(friendsCache || {});
+  if (emptyEl) emptyEl.style.display = uids.length ? 'none' : 'block';
+  if (listEl) {
+    listEl.innerHTML = uids.map((uid) => {
+      const f = friendsCache[uid]; const c = avatarColor(uid);
+      return `<li class="tet-friend-row" data-uid="${uid}">
+        <div class="msg-avatar" style="color:${c};border:1px solid ${c}55">${avatarInner({ icon: f.icon, iconImg: f.iconImg, name: f.name })}</div>
+        <span class="tet-fname">${escapeHtml(f.name || '?')}</span>
+        <input type="checkbox" data-uid="${uid}">
+      </li>`;
+    }).join('');
+    parseEmoji(listEl);
+  }
+  trShowView('invite');
+}
+
+function trShowView(name){
+  const map = { lobby: 'trump-lobby', invite: 'trump-invite-picker', game: 'trump-game', result: 'trump-result' };
+  Object.entries(map).forEach(([k, id]) => { const el = $(id); if (el) el.style.display = k === name ? 'flex' : 'none'; });
+}
+function trShowScreen(){
+  const scr = $('trump-screen');
+  if (!scr) return;
+  scr.style.display = 'flex';
+  requestAnimationFrame(() => scr.classList.add('show'));
+  if (els.sidebar) els.sidebar.classList.remove('open');
+  if (els.scrim) els.scrim.classList.remove('show');
+}
+function trCloseScreen(){
+  const scr = $('trump-screen');
+  if (!scr) return;
+  scr.classList.remove('show');
+  setTimeout(() => { scr.style.display = 'none'; }, 340);
+  trShowView('lobby');
+}
+
+function trRenderLobby(){
+  const list = $('tr-lobby-players');
+  const players = trOrder.map((uid) => trAllPlayers[uid]).filter(Boolean);
+  if (list) {
+    list.innerHTML = players.map((p) => {
+      const c = avatarColor(p.uid);
+      return `<li class="tet-player-row">
+        <div class="msg-avatar" style="color:${c};border:1px solid ${c}55">${avatarInner({ icon: p.icon, iconImg: p.iconImg, name: p.name })}</div>
+        <span class="tet-pname">${escapeHtml(p.name || '?')}</span>
+        ${p.uid === trHostUid ? '<span class="tet-host-badge">ホスト</span>' : ''}
+      </li>`;
+    }).join('');
+    parseEmoji(list);
+  }
+  const startBtn = $('tr-start-btn');
+  if (startBtn) startBtn.style.display = trIsHost ? '' : 'none';
+  trRenderGametypeUi();
+}
+function trRenderGametypeUi(){
+  const row = $('tr-gametype-row'), readonly = $('tr-gametype-readonly'), block = $('tr-gametype-block');
+  if (!block) return;
+  if (trIsHost) {
+    if (row) { row.style.display = ''; [...row.children].forEach((btn) => btn.classList.toggle('active', btn.dataset.val === trGameType)); }
+    if (readonly) readonly.style.display = 'none';
+  } else {
+    if (row) row.style.display = 'none';
+    if (readonly) { readonly.style.display = ''; readonly.textContent = `ゲーム: ${TR_GAMETYPE_LABEL[trGameType]}`; }
+  }
+}
+function trUpdateGameType(val){
+  if (!trIsHost || !trRoomId || !db) return;
+  trGameType = val;
+  updateDoc(doc(db, 'trumpRooms', trRoomId), { gameType: val }).catch(() => {});
+  trRenderGametypeUi();
+}
+
+function trListenRoom(roomId){
+  if (trRoomUnsub) trRoomUnsub();
+  trRoomUnsub = onSnapshot(doc(db, 'trumpRooms', roomId), (snap) => {
+    if (!snap.exists()) { trLeaveRoom(true); return; }
+    const room = snap.data();
+    const prevStatus = trRoomStatus;
+    trHostUid = room.hostUid; trIsHost = (myUid === trHostUid);
+    trGameType = room.gameType || 'daifugo';
+    trOrder = room.order || [];
+    trCurrentTurnUid = room.currentTurnUid || null;
+    trTable = room.table || {};
+    trRoomStatus = room.status;
+
+    if (trRoomStatus === 'waiting') {
+      trGameActive = false;
+      trRenderLobby();
+      if (prevStatus && prevStatus !== 'waiting') trShowView('lobby');
+    } else if (trRoomStatus === 'countdown') {
+      if (!trCountdownActive) trBeginCountdown(room.startAtMs);
+    } else if (trRoomStatus === 'playing') {
+      trGameActive = true;
+      if (prevStatus !== 'playing') trShowView('game');
+      trRenderGame();
+    } else if (trRoomStatus === 'ended') {
+      trGameActive = false;
+      trShowResult();
+    }
+  });
+}
+function trListenPlayers(roomId){
+  if (trPlayersUnsub) trPlayersUnsub();
+  trPlayersUnsub = onSnapshot(collection(db, 'trumpRooms', roomId, 'players'), (snap) => {
+    const map = {};
+    snap.forEach((d) => { map[d.id] = { uid: d.id, ...d.data() }; });
+    trAllPlayers = map;
+    if (map[myUid]) trMyHand = map[myUid].hand || [];
+    if (trRoomStatus === 'waiting') trRenderLobby();
+    else if (trRoomStatus === 'playing') trRenderGame();
+    else if (trRoomStatus === 'ended') trRenderResultList();
+  });
+}
+
+function trBeginCountdown(startAtMs){
+  if (trCountdownActive || !startAtMs) return;
+  trCountdownActive = true;
+  trShowView('game');
+  const overlay = $('tr-countdown-overlay'); const numEl = $('tr-countdown-num');
+  if (overlay) overlay.classList.add('show');
+  const tick = () => {
+    const remain = Math.ceil((startAtMs - Date.now()) / 1000);
+    if (remain <= 0) {
+      if (overlay) overlay.classList.remove('show');
+      trCountdownActive = false;
+      trGameActive = true;
+      trRenderGame();
+      if (trIsHost && db) updateDoc(doc(db, 'trumpRooms', trRoomId), { status: 'playing' }).catch(() => {});
+      return;
+    }
+    if (numEl) { numEl.textContent = String(remain); numEl.classList.remove('pulse'); void numEl.offsetWidth; numEl.classList.add('pulse'); }
+    setTimeout(tick, 1000);
+  };
+  tick();
+}
+
+async function trStartGame(){
+  if (!trIsHost || !trRoomId || !db) return;
+  const order = trOrder.filter((uid) => trAllPlayers[uid]);
+  if (order.length < 2) { alert('2人以上集まってから開始してください'); return; }
+  if (order.length > 6) { alert('参加人数が多すぎます(最大6人)'); return; }
+  const gameType = trGameType;
+  const deck = trShuffle(trBuildDeck(gameType === 'babanuki'));
+  const hands = {}; order.forEach((uid) => { hands[uid] = []; });
+  let i = 0;
+  while (deck.length) { hands[order[i % order.length]].push(deck.pop()); i++; }
+  let table = {};
+  if (gameType === 'daifugo') table = { fieldCards: [], fieldRank: null, fieldCount: 0, leaderUid: order[0], passedUids: [] };
+  else if (gameType === 'sevens') table = { board: {} };
+  if (gameType === 'babanuki') order.forEach((uid) => { hands[uid] = trDiscardPairs(hands[uid]); });
+  await Promise.all(order.map((uid) => setDoc(doc(db, 'trumpRooms', trRoomId, 'players', uid), { hand: hands[uid], finished: false, rank: null }, { merge: true })));
+  await updateDoc(doc(db, 'trumpRooms', trRoomId), {
+    status: 'countdown', startAtMs: Date.now() + 3000, order, currentTurnUid: order[0],
+    table, gameType, endedAt: null
+  });
+}
+
+/* ---- 大富豪 ---- */
+function trDaifugoValidSelection(){
+  if (!trSelected.size) return false;
+  const codes = [...trSelected];
+  const ranks = codes.map((c) => trParseCode(c).rank);
+  if (new Set(ranks).size !== 1) return false;
+  const field = trTable.fieldCards || [];
+  if (!field.length) return true;
+  if (codes.length !== field.length) return false;
+  return trDaifugoStrength(ranks[0]) > trDaifugoStrength(trTable.fieldRank);
+}
+async function trDaifugoPlay(){
+  if (trCurrentTurnUid !== myUid || !trDaifugoValidSelection()) return;
+  const codes = [...trSelected];
+  const newHand = trMyHand.filter((c) => !codes.includes(c));
+  trSelected = new Set();
+  await setDoc(doc(db, 'trumpRooms', trRoomId, 'players', myUid), { hand: newHand }, { merge: true });
+  trAllPlayers[myUid] = { ...trAllPlayers[myUid], hand: newHand };
+  trMyHand = newHand;
+  const finished = newHand.length === 0;
+  if (finished) { await trMarkFinished(myUid, trNextRank()); trAllPlayers[myUid].finished = true; }
+  const rank = trParseCode(codes[0]).rank;
+  await updateDoc(doc(db, 'trumpRooms', trRoomId), { table: { fieldCards: codes, fieldRank: rank, fieldCount: codes.length, leaderUid: myUid, passedUids: [] } });
+  const ended = await trCheckAutoEnd();
+  if (!ended) {
+    const next = trNextActiveAfter(myUid);
+    if (next) await updateDoc(doc(db, 'trumpRooms', trRoomId), { currentTurnUid: next });
+  }
+}
+async function trDaifugoPass(){
+  if (trCurrentTurnUid !== myUid) return;
+  const field = trTable.fieldCards || [];
+  if (!field.length) return;
+  const passedUids = Array.from(new Set([...(trTable.passedUids || []), myUid]));
+  const others = trOrder.filter((uid) => uid !== trTable.leaderUid && !trIsFinished(uid));
+  const allPassed = others.every((uid) => passedUids.includes(uid));
+  if (allPassed) {
+    const leaderStillIn = !trIsFinished(trTable.leaderUid);
+    await updateDoc(doc(db, 'trumpRooms', trRoomId), {
+      table: { fieldCards: [], fieldRank: null, fieldCount: 0, leaderUid: trTable.leaderUid, passedUids: [] },
+      currentTurnUid: leaderStillIn ? trTable.leaderUid : trNextActiveAfter(trTable.leaderUid)
+    });
+  } else {
+    await updateDoc(doc(db, 'trumpRooms', trRoomId), { 'table.passedUids': passedUids, currentTurnUid: trNextActiveAfter(myUid) });
+  }
+}
+
+/* ---- ババ抜き ---- */
+function trBabanukiTarget(){ return trNextActiveAfter(myUid); }
+async function trBabanukiDraw(){
+  if (trCurrentTurnUid !== myUid) return;
+  const targetUid = trBabanukiTarget();
+  if (!targetUid) return;
+  const targetHand = (trAllPlayers[targetUid] && trAllPlayers[targetUid].hand) || [];
+  if (!targetHand.length) return;
+  const idx = Math.floor(Math.random() * targetHand.length);
+  const drawnCode = targetHand[idx];
+  const newTargetHand = targetHand.slice(0, idx).concat(targetHand.slice(idx + 1));
+  const newMyHand = trDiscardPairs(trMyHand.concat([drawnCode]));
+  await setDoc(doc(db, 'trumpRooms', trRoomId, 'players', targetUid), { hand: newTargetHand }, { merge: true });
+  await setDoc(doc(db, 'trumpRooms', trRoomId, 'players', myUid), { hand: newMyHand }, { merge: true });
+  trAllPlayers[targetUid] = { ...trAllPlayers[targetUid], hand: newTargetHand };
+  trAllPlayers[myUid] = { ...trAllPlayers[myUid], hand: newMyHand };
+  trMyHand = newMyHand;
+  if (newMyHand.length === 0 && !trIsFinished(myUid)) { await trMarkFinished(myUid, trNextRank()); trAllPlayers[myUid].finished = true; }
+  if (newTargetHand.length === 0 && !trIsFinished(targetUid)) { await trMarkFinished(targetUid, trNextRank()); trAllPlayers[targetUid].finished = true; }
+  const ended = await trCheckAutoEnd();
+  if (!ended) {
+    const next = trNextActiveAfter(myUid);
+    if (next) await updateDoc(doc(db, 'trumpRooms', trRoomId), { currentTurnUid: next });
+  }
+}
+
+/* ---- 七並べ ---- */
+function trSevensValid(code){
+  const { rank, suit } = trParseCode(code);
+  const info = (trTable.board || {})[suit];
+  if (!info) return rank === 7;
+  return rank === info.min - 1 || rank === info.max + 1;
+}
+async function trSevensPlay(code){
+  if (trCurrentTurnUid !== myUid || !trSevensValid(code)) return;
+  const { rank, suit } = trParseCode(code);
+  const board = { ...(trTable.board || {}) };
+  const info = board[suit] ? { ...board[suit] } : { min: 7, max: 7 };
+  if (rank < info.min) info.min = rank; else if (rank > info.max) info.max = rank;
+  board[suit] = info;
+  const newHand = trMyHand.filter((c) => c !== code);
+  trSelected = new Set();
+  await setDoc(doc(db, 'trumpRooms', trRoomId, 'players', myUid), { hand: newHand }, { merge: true });
+  await updateDoc(doc(db, 'trumpRooms', trRoomId), { table: { board } });
+  trAllPlayers[myUid] = { ...trAllPlayers[myUid], hand: newHand };
+  trMyHand = newHand;
+  if (newHand.length === 0) {
+    const rest = trOrder.filter((uid) => uid !== myUid);
+    const sortedRest = rest.slice().sort((a, b) => ((trAllPlayers[a] && trAllPlayers[a].hand || []).length) - ((trAllPlayers[b] && trAllPlayers[b].hand || []).length));
+    await trMarkFinished(myUid, 1);
+    for (let k = 0; k < sortedRest.length; k++) await trMarkFinished(sortedRest[k], k + 2);
+    await updateDoc(doc(db, 'trumpRooms', trRoomId), { status: 'ended', endedAt: serverTimestamp() });
+  } else {
+    const next = trNextActiveAfter(myUid);
+    if (next) await updateDoc(doc(db, 'trumpRooms', trRoomId), { currentTurnUid: next });
+  }
+}
+async function trSevensPass(){
+  if (trCurrentTurnUid !== myUid) return;
+  const next = trNextActiveAfter(myUid);
+  if (next) await updateDoc(doc(db, 'trumpRooms', trRoomId), { currentTurnUid: next });
+}
+
+/* ---- 描画 ---- */
+function trPlayerLabel(uid){ const p = trAllPlayers[uid]; return p ? (p.name || '?') : '?'; }
+function trRenderGame(){
+  if (!$('trump-game')) return;
+  trRenderOpponents();
+  trRenderTable();
+  trRenderHand();
+  trRenderActionBar();
+  trRenderTurnBanner();
+}
+function trRenderOpponents(){
+  const strip = $('tr-opp-strip');
+  if (!strip) return;
+  const others = trOrder.filter((uid) => uid !== myUid);
+  strip.innerHTML = others.map((uid) => {
+    const p = trAllPlayers[uid] || {};
+    const c = avatarColor(uid);
+    const count = (p.hand || []).length;
+    const isTurn = uid === trCurrentTurnUid;
+    const finished = !!p.finished;
+    return `<div class="tr-opp-card${isTurn ? ' tr-opp-turn' : ''}${finished ? ' tr-opp-out' : ''}">
+      <div class="msg-avatar" style="color:${c};border:1px solid ${c}55">${avatarInner({ icon: p.icon, iconImg: p.iconImg, name: p.name })}</div>
+      <div class="tr-opp-name">${escapeHtml(p.name || '?')}</div>
+      <div class="tr-opp-count">${finished ? ('🏅' + (p.rank || '')) : count + '枚'}</div>
+    </div>`;
+  }).join('');
+  parseEmoji(strip);
+}
+function trRenderTurnBanner(){
+  const hud = $('tr-hud-turn'); const title = $('tr-hud-gametitle');
+  if (title) title.textContent = TR_GAMETYPE_LABEL[trGameType] || '';
+  if (hud) hud.textContent = trCurrentTurnUid === myUid ? 'あなたの番です' : `${trPlayerLabel(trCurrentTurnUid)}さんの番`;
+  const banner = $('tr-turn-banner'), bt = $('tr-turn-banner-text');
+  if (banner && bt && trCurrentTurnUid) {
+    const text = trCurrentTurnUid === myUid ? 'あなたの番' : `${trPlayerLabel(trCurrentTurnUid)}の番`;
+    if (bt.textContent !== text) {
+      bt.textContent = text;
+      banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show');
+    }
+  }
+}
+function trRenderTable(){
+  const area = $('tr-table-area');
+  if (!area) return;
+  if (trGameType === 'daifugo') {
+    const field = trTable.fieldCards || [];
+    area.innerHTML = `<div class="tr-table-daifugo">
+      <div class="tr-field-label">${field.length ? (escapeHtml(trPlayerLabel(trTable.leaderUid)) + 'さんが出した場') : '場は空です(自由に出せます)'}</div>
+      <div class="tr-field-cards">${field.length ? field.map((c) => trCardFaceHtml(c, 'tr-field-card')).join('') : '<div class="tr-field-empty">–</div>'}</div>
+    </div>`;
+  } else if (trGameType === 'sevens') {
+    const board = trTable.board || {};
+    area.innerHTML = `<div class="tr-sevens-board">${TR_SUITS.map((s) => {
+      let cells = '';
+      for (let r = 1; r <= 13; r++) {
+        const info = board[s];
+        const placed = info && r >= info.min && r <= info.max;
+        cells += `<div class="tr-sevens-cell${placed ? ' tr-sevens-cell-placed' : ''}${trIsRed(s) ? ' tr-red' : ' tr-black'}">${placed ? (TR_SUIT_SYMBOL[s] + trRankLabel(r)) : ''}</div>`;
+      }
+      return `<div class="tr-sevens-row"><div class="tr-sevens-suit-label${trIsRed(s) ? ' tr-red' : ' tr-black'}">${TR_SUIT_SYMBOL[s]}</div><div class="tr-sevens-cells">${cells}</div></div>`;
+    }).join('')}</div>`;
+  } else if (trGameType === 'babanuki') {
+    const targetUid = trCurrentTurnUid === myUid ? trBabanukiTarget() : null;
+    area.innerHTML = `<div class="tr-babanuki-board">${trOrder.filter((uid) => uid !== myUid).map((uid) => {
+      const p = trAllPlayers[uid] || {}; const count = (p.hand || []).length; const finished = !!p.finished;
+      return `<div class="tr-baba-fan${uid === targetUid ? ' tr-baba-fan-target' : ''}">
+        <div class="tr-baba-fan-cards">${finished ? '' : Array.from({ length: Math.min(count, 7) }).map(() => trCardBackHtml('tr-baba-mini')).join('')}</div>
+        <div class="tr-baba-fan-label">${escapeHtml(p.name || '?')} ${finished ? '🏅' : '(' + count + ')'}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+}
+function trRenderHand(){
+  const hand = $('tr-hand');
+  if (!hand) return;
+  const sorted = trGameType === 'daifugo' ? trSortHandDaifugo(trMyHand) : trSortHandNatural(trMyHand);
+  const n = sorted.length;
+  hand.innerHTML = sorted.map((code, i) => {
+    const angle = n > 1 ? (i - (n - 1) / 2) * Math.min(8, 60 / n) : 0;
+    const lift = Math.abs(i - (n - 1) / 2) * 2;
+    const selected = trSelected.has(code);
+    const clickable = trGameType !== 'babanuki' && trCurrentTurnUid === myUid && !trIsFinished(myUid);
+    const ty = selected ? lift - 14 : lift;
+    return `<div class="tr-hand-card${selected ? ' tr-selected' : ''}${clickable ? ' tr-clickable' : ''}" style="transform:rotate(${angle}deg) translateY(${ty}px);z-index:${i};" data-code="${code}">${trCardFaceHtml(code)}</div>`;
+  }).join('');
+}
+function trRenderActionBar(){
+  const bar = $('tr-action-bar');
+  if (!bar) return;
+  const myTurn = trCurrentTurnUid === myUid;
+  if (trIsFinished(myUid)) { bar.innerHTML = `<div class="tr-action-note">あがり済みです。他のプレイヤーの対戦を見守りましょう。</div>`; return; }
+  if (trGameType === 'daifugo') {
+    const field = trTable.fieldCards || [];
+    const canPass = myTurn && field.length > 0;
+    const canPlay = myTurn && trDaifugoValidSelection();
+    bar.innerHTML = `<div class="tr-action-row">
+      <button type="button" class="tet-secondary-btn" id="tr-pass-btn" ${canPass ? '' : 'disabled'}>パス</button>
+      <button type="button" class="tet-primary-btn" id="tr-play-btn" ${canPlay ? '' : 'disabled'}>カードを出す</button>
+    </div>`;
+    $('tr-pass-btn')?.addEventListener('click', trDaifugoPass);
+    $('tr-play-btn')?.addEventListener('click', trDaifugoPlay);
+  } else if (trGameType === 'sevens') {
+    const canPlay = myTurn && [...trSelected].some((c) => trSevensValid(c));
+    bar.innerHTML = `<div class="tr-action-row">
+      <button type="button" class="tet-secondary-btn" id="tr-pass-btn" ${myTurn ? '' : 'disabled'}>パス</button>
+      <button type="button" class="tet-primary-btn" id="tr-play-btn" ${canPlay ? '' : 'disabled'}>出す</button>
+    </div>`;
+    $('tr-pass-btn')?.addEventListener('click', trSevensPass);
+    $('tr-play-btn')?.addEventListener('click', () => { const c = [...trSelected][0]; if (c) trSevensPlay(c); });
+  } else if (trGameType === 'babanuki') {
+    const targetUid = trBabanukiTarget();
+    bar.innerHTML = `<div class="tr-action-row">
+      <button type="button" class="tet-primary-btn" id="tr-draw-btn" ${myTurn && targetUid ? '' : 'disabled'}>${targetUid ? escapeHtml(trPlayerLabel(targetUid)) + 'さんから1枚引く' : '引く相手がいません'}</button>
+    </div>`;
+    $('tr-draw-btn')?.addEventListener('click', trBabanukiDraw);
+  }
+}
+const trHandEl = $('tr-hand');
+if (trHandEl) trHandEl.addEventListener('click', (e) => {
+  const cardEl = e.target.closest('.tr-hand-card');
+  if (!cardEl || !cardEl.classList.contains('tr-clickable')) return;
+  const code = cardEl.dataset.code;
+  if (trGameType === 'sevens') {
+    trSelected = trSelected.has(code) ? new Set() : new Set([code]);
+  } else if (trGameType === 'daifugo') {
+    if (trSelected.has(code)) { trSelected.delete(code); }
+    else {
+      const rank = trParseCode(code).rank;
+      const sameRankOk = [...trSelected].every((c) => trParseCode(c).rank === rank);
+      if (!sameRankOk) trSelected = new Set();
+      trSelected.add(code);
+    }
+  }
+  trRenderHand(); trRenderActionBar();
+});
+
+function trShowResult(){
+  if (trResultShownForRoom !== trRoomId) trResultShownForRoom = trRoomId;
+  trRenderResultList();
+  trShowView('result');
+}
+function trRenderResultList(){
+  const sorted = trOrder.map((uid) => trAllPlayers[uid]).filter(Boolean).sort((a, b) => (a.rank || 999) - (b.rank || 999));
+  const titleEl = $('tr-result-title'), subEl = $('tr-result-sub'), listEl = $('tr-result-list');
+  const myRank = (trAllPlayers[myUid] || {}).rank;
+  if (titleEl) titleEl.textContent = myRank === 1 ? '🏆 勝利！' : '試合終了';
+  if (subEl) subEl.textContent = myRank ? `あなたの順位: ${myRank} / ${sorted.length}` : '';
+  if (myRank === 1) setTimeout(trFireConfetti, 60);
+  if (listEl) {
+    listEl.innerHTML = sorted.map((p, i) => {
+      const c = avatarColor(p.uid);
+      return `<li class="tet-result-row${i === 0 ? ' tet-rank-1' : ''}">
+        <span class="tet-result-rank">${p.rank || (i + 1)}</span>
+        <div class="msg-avatar" style="color:${c};border:1px solid ${c}55">${avatarInner({ icon: p.icon, iconImg: p.iconImg, name: p.name })}</div>
+        <span class="tet-result-name">${escapeHtml(p.name || '?')}</span>
+      </li>`;
+    }).join('');
+    parseEmoji(listEl);
+  }
+}
+function trFireConfetti(){
+  const canvas = $('tr-confetti-canvas');
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.round(rect.width * dpr));
+  canvas.height = Math.max(1, Math.round(rect.height * dpr));
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const colors = ['#F0A93F', '#F2C766', '#3DE0B8', '#C792F2', '#5B9CFF'];
+  const pieces = Array.from({ length: 90 }, () => ({
+    x: Math.random() * rect.width, y: -20 - Math.random() * rect.height * 0.5,
+    vx: (Math.random() - 0.5) * 1.6, vy: 2 + Math.random() * 2.2,
+    rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.3,
+    w: 5 + Math.random() * 4, h: 8 + Math.random() * 5,
+    color: colors[Math.floor(Math.random() * colors.length)], life: 1,
+  }));
+  if (trConfettiRaf) cancelAnimationFrame(trConfettiRaf);
+  const start = performance.now();
+  const step = (now) => {
+    const t = now - start;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    pieces.forEach((p) => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      if (t > 2600) p.life -= 0.02;
+      if (p.y < rect.height + 20 && p.life > 0) alive = true;
+      if (p.life <= 0) return;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    if (alive && t < 4200) { trConfettiRaf = requestAnimationFrame(step); }
+    else { ctx.clearRect(0, 0, canvas.width, canvas.height); trConfettiRaf = null; }
+  };
+  trConfettiRaf = requestAnimationFrame(step);
+}
+
+/* ---- 画面全体のボタン配線 ---- */
+function trLaunch(){
+  if (trRoomId) { trShowScreen(); trShowView(trRoomStatus === 'ended' ? 'result' : (trGameActive ? 'game' : 'lobby')); return; }
+  trCreateRoom();
+}
+const gamePickerTrump = $('game-picker-trump');
+if (gamePickerTrump) gamePickerTrump.addEventListener('click', () => { closeModal(gamePickerModal); trLaunch(); });
+const trumpCloseBtn = $('trump-close-btn');
+if (trumpCloseBtn) trumpCloseBtn.addEventListener('click', () => {
+  if (trGameActive && !trIsFinished(myUid)) {
+    if (!confirm('対戦中です。退出すると脱落扱いになります。よろしいですか？')) return;
+  }
+  trLeaveRoom();
+});
+const trInviteBtn = $('tr-invite-btn');
+if (trInviteBtn) trInviteBtn.addEventListener('click', trOpenInvitePicker);
+const trInviteBackBtn = $('tr-invite-back-btn');
+if (trInviteBackBtn) trInviteBackBtn.addEventListener('click', () => trShowView('lobby'));
+const trInviteList = $('tr-invite-friend-list');
+if (trInviteList) trInviteList.addEventListener('click', (e) => {
+  const row = e.target.closest('.tet-friend-row');
+  if (!row) return;
+  const cb = row.querySelector('input[type=checkbox]');
+  if (e.target !== cb) cb.checked = !cb.checked;
+});
+const trInviteSendBtn = $('tr-invite-send-btn');
+if (trInviteSendBtn) trInviteSendBtn.addEventListener('click', async () => {
+  const checked = [...document.querySelectorAll('#tr-invite-friend-list input:checked')].map((cb) => cb.dataset.uid);
+  trInviteSendBtn.disabled = true;
+  for (const uid of checked) { await trSendInviteDm(uid, trRoomId); }
+  trInviteSendBtn.disabled = false;
+  trShowView('lobby');
+});
+const trGametypeRow = $('tr-gametype-row');
+if (trGametypeRow) trGametypeRow.addEventListener('click', (e) => {
+  const btn = e.target.closest('.tet-chip'); if (!btn) return;
+  trUpdateGameType(btn.dataset.val);
+});
+const trStartBtn = $('tr-start-btn');
+if (trStartBtn) trStartBtn.addEventListener('click', trStartGame);
+const trLeaveBtn = $('tr-leave-btn');
+if (trLeaveBtn) trLeaveBtn.addEventListener('click', () => trLeaveRoom());
+const trResultCloseBtn = $('tr-result-close-btn');
+if (trResultCloseBtn) trResultCloseBtn.addEventListener('click', () => trLeaveRoom());
+async function trRematch(){
+  if (!trRoomId || !db || !myUid) return;
+  if (!trIsHost) { alert('ホストのみが再戦を開始できます'); return; }
+  await Promise.all(trOrder.map((uid) => setDoc(doc(db, 'trumpRooms', trRoomId, 'players', uid), { hand: [], finished: false, rank: null }, { merge: true })));
+  await updateDoc(doc(db, 'trumpRooms', trRoomId), { status: 'waiting', endedAt: null, table: {}, currentTurnUid: null }).catch(() => {});
+}
+const trRematchBtn = $('tr-rematch-btn');
+if (trRematchBtn) trRematchBtn.addEventListener('click', trRematch);
 
 /* ===================== MODシステム (.sxg) =====================
    .sxg は中身がzipの独自拡張子。中に入っている mod.js が、このページの
