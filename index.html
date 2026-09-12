@@ -1074,60 +1074,66 @@
   .verify-badge-lg.gold{ color: var(--gold-2); }
   .verify-pending{ font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); }
 
-  /* プロフィールカード（アバタータップで全画面表示） */
+  /* プロフィールカード（アバタータップで全画面表示・SNS風レイアウト） */
   .modal-scrim.profile-fullscreen{ align-items: stretch; justify-content: stretch; padding: 0; background: #060a0ef2; }
   @keyframes profileFullIn{ from{ opacity:0; transform: scale(.97); } to{ opacity:1; transform: scale(1); } }
   .modal-scrim.profile-fullscreen .modal-card.profile-card{
     max-width: none; width: 100%; height: 100vh; height: 100dvh; max-height: none; margin: 0;
     border-radius: 0; border: none; box-shadow: none; padding: 0 0 calc(28px + env(safe-area-inset-bottom));
-    overflow-y: auto; animation: profileFullIn .4s var(--ease-ios) both;
+    overflow-y: auto; overscroll-behavior: contain; animation: profileFullIn .4s var(--ease-ios) both;
+    touch-action: pan-y;
   }
-  .profile-full-topbar{
-    position: sticky; top: 0; z-index: 2; display:flex; justify-content:flex-end;
-    padding: calc(12px + env(safe-area-inset-top)) 16px 0;
-  }
-  .profile-full-close{
-    width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
-    background: color-mix(in srgb, var(--surface-3) 75%, transparent); color: var(--text);
-    font-size: 15px; line-height:1; display:flex; align-items:center; justify-content:center;
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer;
-  }
+  .modal-scrim.profile-fullscreen .modal-card.profile-card.dragging{ transition:none; }
+  /* 上部のハンドルを下にドラッグ、またはタップするだけで閉じられる（右上×ボタンより指が届きやすい） */
   .profile-full-banner{
-    height: 108px; margin-top: -20px; margin-bottom: -46px;
-    background: linear-gradient(165deg, var(--profile-accent, var(--amber)) 0%, transparent 115%);
-    opacity: .42; pointer-events: none;
+    position: relative; height: 172px; padding-top: calc(8px + env(safe-area-inset-top));
+    background:
+      linear-gradient(155deg, var(--profile-accent, var(--amber)) 0%, transparent 75%),
+      linear-gradient(340deg, var(--profile-accent, var(--amber)) 0%, transparent 60%);
+    background-color: var(--surface-2);
+    opacity: .9; cursor: grab; -webkit-user-select:none; user-select:none;
   }
-  .profile-card{ max-width: 340px; display:flex; flex-direction:column; align-items:center; text-align:center; gap: 4px; padding: 0 24px 22px; margin: 0 auto; position: relative; }
+  .profile-full-banner:active{ cursor: grabbing; }
+  .profile-full-handle{
+    width: 40px; height: 5px; border-radius: 3px; margin: 0 auto;
+    background: #ffffff55;
+  }
+  .profile-header-row{
+    display:flex; align-items:flex-end; justify-content:space-between; gap: 10px;
+    padding: 0 20px; margin-top: -46px; position: relative;
+  }
   .profile-card-avatar{
-    width: 88px; height: 88px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    font-size: 30px; font-weight:700; background: var(--surface-2); border: 3px solid var(--bg); overflow:hidden;
-    margin-bottom: 10px; box-shadow: var(--shadow-sm); animation: avatarPop 0.5s var(--ease-spring-soft) both;
+    width: 92px; height: 92px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size: 30px; font-weight:700; background: var(--surface-2); border: 4px solid var(--bg); overflow:hidden;
+    box-shadow: var(--shadow-sm); animation: avatarPop 0.5s var(--ease-spring-soft) both; flex-shrink:0;
   }
   .profile-card-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .profile-card-actions{ display:flex; gap:8px; padding-bottom: 8px; }
+  .profile-card-actions .mini-btn, .profile-card-actions .mini-btn-outline{ flex:none; padding: 9px 15px; font-size: 12.5px; }
+  .profile-card{ max-width: none; display:flex; flex-direction:column; text-align:left; margin: 0; position: relative; }
+  .profile-card-body{ padding: 12px 20px 0; display:flex; flex-direction:column; }
   .profile-card-name{ font-size: 19px; font-weight:700; display:flex; align-items:center; gap:5px; }
   .profile-card-username{ font-family: var(--font-mono); font-size: 12.5px; color: var(--text-faint); margin-top: 1px; }
-  .profile-card-tags{ display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top: 8px; }
+  .profile-card-tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top: 9px; }
   .profile-card-tag{
     font-size: 11px; font-weight:600; padding: 3px 9px; border-radius: var(--radius-pill);
     background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted);
   }
   .profile-card-tag.self{ background: var(--amber-dim); border-color: var(--amber-dim); color: var(--amber); }
   .profile-card-tag.friend{ background: var(--teal-dim); border-color: var(--teal-dim); color: var(--teal); }
-  .profile-card-status{ display:flex; align-items:center; gap:6px; font-size: 12.5px; color: var(--text-muted); margin-top:10px; margin-bottom: 16px; }
+  .profile-card-status{ display:flex; align-items:center; gap:6px; font-size: 12.5px; color: var(--text-muted); margin-top:10px; }
   .profile-card-status .dot{ width:7px; height:7px; border-radius:50%; background: var(--text-faint); }
   .profile-card-status .dot.online{ background: var(--teal); box-shadow: 0 0 6px var(--teal); animation: blink 2.25s infinite; }
-  .profile-card-bio{ width:100%; font-size: 13.5px; line-height:1.65; color: var(--text); text-align:left; white-space:pre-wrap; word-break:break-word; margin-bottom: 16px; background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; }
-  .profile-card-meta-row{ width:100%; display:flex; flex-direction:column; gap:8px; margin-bottom: 16px; }
-  .profile-card-meta-item{ display:flex; align-items:center; gap:8px; font-size: 12.5px; color: var(--text-muted); background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; text-align:left; }
+  .profile-card-bio{ font-size: 14px; line-height:1.65; color: var(--text); white-space:pre-wrap; word-break:break-word; margin-top: 14px; }
+  .profile-card-meta-row{ display:flex; flex-wrap:wrap; gap: 6px 16px; margin-top: 14px; }
+  .profile-card-meta-item{ display:flex; align-items:center; gap:6px; font-size: 12.5px; color: var(--text-muted); }
   .profile-card-meta-item svg{ flex-shrink:0; color: var(--text-faint); }
   .profile-card-meta-item a{ color: var(--amber); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .profile-card-uid-row{
-    display:flex; align-items:center; gap:8px; width:100%; margin-bottom: 16px;
+    display:flex; align-items:center; gap:8px; margin-top: 16px;
     background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px;
   }
   .profile-card-uid-row code{ flex:1; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); overflow-x:auto; white-space:nowrap; }
-  .profile-card-actions{ display:flex; gap:8px; width:100%; margin-top: 4px; }
-  .profile-card-actions .mini-btn, .profile-card-actions .mini-btn-outline{ flex:1; padding: 11px 10px; font-size: 13px; }
 
   /* パネルの中身(認証申請待ちの件数など)によって高さが変わっても、切替タブの位置が動いて押しにくくならないよう、
      カードを画面下部に固定し、内容が増えたときは上方向にだけ伸びるようにする */
@@ -2315,28 +2321,31 @@
   </div>
 </div>
 
-<!-- ===================== プロフィールカード（全画面） ===================== -->
+<!-- ===================== プロフィールカード（全画面・SNS風） ===================== -->
 <div class="modal-scrim profile-fullscreen" id="profile-modal" style="display:none;">
   <div class="modal-card profile-card">
-    <div class="profile-full-topbar">
-      <button type="button" class="profile-full-close" id="profile-close" aria-label="閉じる">✕</button>
+    <div class="profile-full-banner" id="profile-card-banner">
+      <div class="profile-full-handle"></div>
     </div>
-    <div class="profile-full-banner" id="profile-card-banner"></div>
-    <div class="profile-card-avatar" id="profile-card-avatar">–</div>
-    <div class="profile-card-name" id="profile-card-name">–</div>
-    <div class="profile-card-username" id="profile-card-username"></div>
-    <div class="profile-card-tags" id="profile-card-tags"></div>
-    <div class="profile-card-status"><span class="dot" id="profile-card-dot"></span><span id="profile-card-status-text">オフライン</span></div>
-    <div class="profile-card-bio" id="profile-card-bio" style="display:none;"></div>
-    <div class="profile-card-meta-row" id="profile-card-meta-row"></div>
-    <div class="profile-card-uid-row" id="profile-card-uid-row" style="display:none;">
-      <code id="profile-card-uid"></code>
-      <button type="button" class="mini-btn-outline" id="profile-card-uid-copy">コピー</button>
+    <div class="profile-header-row">
+      <div class="profile-card-avatar" id="profile-card-avatar">–</div>
+      <div class="profile-card-actions" id="profile-card-actions">
+        <button type="button" class="mini-btn" id="profile-dm-btn">DMを送る</button>
+        <button type="button" class="mini-btn-outline" id="profile-add-friend-btn">フレンド申請</button>
+        <button type="button" class="mini-btn-outline" id="profile-edit-btn" style="display:none;">編集する</button>
+      </div>
     </div>
-    <div class="profile-card-actions" id="profile-card-actions">
-      <button type="button" class="mini-btn" id="profile-dm-btn">DMを送る</button>
-      <button type="button" class="mini-btn-outline" id="profile-add-friend-btn">フレンド申請</button>
-      <button type="button" class="mini-btn-outline" id="profile-edit-btn" style="display:none;">プロフィールを編集</button>
+    <div class="profile-card-body">
+      <div class="profile-card-name" id="profile-card-name">–</div>
+      <div class="profile-card-username" id="profile-card-username"></div>
+      <div class="profile-card-tags" id="profile-card-tags"></div>
+      <div class="profile-card-status"><span class="dot" id="profile-card-dot"></span><span id="profile-card-status-text">オフライン</span></div>
+      <div class="profile-card-bio" id="profile-card-bio" style="display:none;"></div>
+      <div class="profile-card-meta-row" id="profile-card-meta-row"></div>
+      <div class="profile-card-uid-row" id="profile-card-uid-row" style="display:none;">
+        <code id="profile-card-uid"></code>
+        <button type="button" class="mini-btn-outline" id="profile-card-uid-copy">コピー</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2724,7 +2733,7 @@ const els = {
   profileCardBio: $('profile-card-bio'), profileCardMetaRow: $('profile-card-meta-row'),
   profileCardUidRow: $('profile-card-uid-row'), profileCardUid: $('profile-card-uid'), profileCardUidCopy: $('profile-card-uid-copy'),
   profileCardDot: $('profile-card-dot'), profileCardStatusText: $('profile-card-status-text'), profileEditBtn: $('profile-edit-btn'),
-  profileDmBtn: $('profile-dm-btn'), profileAddFriendBtn: $('profile-add-friend-btn'), profileClose: $('profile-close'),
+  profileDmBtn: $('profile-dm-btn'), profileAddFriendBtn: $('profile-add-friend-btn'),
   adminPanelBtn: $('admin-panel-btn'),
   channelList: $('channel-list'), addChannelBtn: $('add-channel-btn'),
   onlineList: $('online-list'), onlineCount: $('online-count'),
@@ -5480,8 +5489,50 @@ els.profileCardUidCopy.addEventListener('click', () => {
     setTimeout(() => { els.profileCardUidCopy.textContent = 'コピー'; }, 1400);
   }).catch(() => {});
 });
-els.profileClose.addEventListener('click', () => { closeModal(els.profileModal); });
 els.profileModal.addEventListener('click', (e) => { if (e.target === els.profileModal) closeModal(els.profileModal); });
+// バナー部分は「タップで閉じる」「下にドラッグして閉じる」の両対応（右上×より指が届きやすい導線）
+(function setupProfileBannerDismiss(){
+  const banner = els.profileCardBanner;
+  const card = els.profileModal.querySelector('.modal-card.profile-card');
+  if (!banner || !card) return;
+  let dragging = false, startY = 0, dy = 0, moved = false;
+  const DISMISS_THRESHOLD = 90;
+  const onDown = (e) => {
+    dragging = true; moved = false; dy = 0;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    card.classList.add('dragging');
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    dy = Math.max(0, y - startY);
+    if (dy > 4) moved = true;
+    if (dy > 0) {
+      card.style.transform = `translateY(${dy}px)`;
+      card.style.opacity = String(Math.max(0.5, 1 - dy / 420));
+      e.preventDefault();
+    }
+  };
+  const onUp = () => {
+    if (!dragging) return;
+    dragging = false;
+    card.classList.remove('dragging');
+    if (dy > DISMISS_THRESHOLD) {
+      closeModal(els.profileModal);
+      setTimeout(() => { card.style.transform = ''; card.style.opacity = ''; }, 300);
+    } else {
+      card.style.transform = ''; card.style.opacity = '';
+      if (!moved) closeModal(els.profileModal);
+    }
+    dy = 0;
+  };
+  banner.addEventListener('touchstart', onDown, { passive: true });
+  banner.addEventListener('touchmove', onMove, { passive: false });
+  banner.addEventListener('touchend', onUp);
+  banner.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+})();
 els.profileDmBtn.addEventListener('click', () => {
   if (!profileCardUid) return;
   const prof = usersCache[profileCardUid] || {};
