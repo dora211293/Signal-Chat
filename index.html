@@ -2864,6 +2864,7 @@ import {
     return box;
   }
   function report(prefix, msg){
+    try { if (!maintenanceEnabled) return; } catch (_) { return; }
     const b = ensureBox();
     const line = document.createElement('div');
     line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + prefix + ': ' + msg;
