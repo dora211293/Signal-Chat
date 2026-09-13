@@ -17,7 +17,13 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<!-- 実際に使用しているのは通常ウェイト(400)のみ（太字表示は700/800でどちらも
+     未読込のため元々ブラウザの疑似太字で表示されており、500/600を読み込んでも
+     見た目には使われていなかった）。未使用ウェイトの読み込みを削減。 -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -3128,7 +3134,7 @@ function escapeHtml(str){
 }
 /** 画像 > 絵文字 > イニシャル の優先順でアバターのHTMLを返す */
 function avatarInner(p){
-  if (p && p.iconImg) return `<img src="${p.iconImg}" alt="">`;
+  if (p && p.iconImg) return `<img src="${p.iconImg}" alt="" loading="lazy" decoding="async">`;
   if (p && p.icon) return `<span style="font-size:1.15em;line-height:1;">${twemojiHtml(escapeHtml(p.icon))}</span>`;
   return escapeHtml(initials(p && p.name));
 }
@@ -4942,7 +4948,7 @@ function renderMessages(docs){
     const hasTetInvite = m.type === 'tetris_invite' && !!m.tetrisRoomId;
     const hasTrInvite = m.type === 'trump_invite' && !!m.trumpRoomId;
     const imageHtml = hasImage
-      ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}">`
+      ? `<img class="msg-image" src="${m.img}" alt="送信画像" data-full="${m.img}" loading="lazy" decoding="async">`
       : (m.imgExpired ? `<div class="msg-image-expired">画像は期限切れです</div>` : '');
     const fileHtml = hasFile
       ? `<div class="msg-file-chip" data-file-url="${m.fileData}" data-file-name="${escapeHtml(m.fileName || 'file')}">
