@@ -1904,13 +1904,23 @@
   .tr-sevens-cell.tr-red{ color: var(--danger); }
   .tr-sevens-cell.tr-black{ color: var(--text); }
 
-  .tr-babanuki-board{ display:flex; flex-wrap:wrap; gap: 14px; justify-content:center; align-items:flex-end; }
-  .tr-baba-fan{ display:flex; flex-direction:column; align-items:center; gap:4px; padding: 6px; border-radius: var(--radius-sm); transition: box-shadow .3s var(--ease-ios); }
-  .tr-baba-fan.tr-baba-fan-target{ box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 55%, transparent), 0 0 16px color-mix(in srgb, var(--teal) 30%, transparent); }
-  .tr-baba-fan-cards{ display:flex; }
-  .tr-baba-mini{ width: 22px; height: 32px; margin-left:-11px; }
+  .tr-babanuki-board{ display:flex; flex-wrap:wrap; gap: 18px; justify-content:center; align-items:flex-end; }
+  .tr-baba-fan{ display:flex; flex-direction:column; align-items:center; gap:5px; padding: 8px; border-radius: var(--radius-sm); transition: box-shadow .3s var(--ease-ios), transform .3s var(--ease-spring-soft); }
+  .tr-baba-fan.tr-baba-fan-target{ box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 55%, transparent), 0 0 18px color-mix(in srgb, var(--teal) 32%, transparent); transform: translateY(-2px); }
+  .tr-baba-fan-cards{ display:flex; padding: 6px 4px 10px; }
+  .tr-baba-mini{ width: 27px; height: 39px; margin-left:-13px; transition: transform .2s var(--ease-spring-soft), filter .2s var(--ease-ios), box-shadow .2s var(--ease-ios); }
   .tr-baba-fan-cards .tr-baba-mini:first-child{ margin-left:0; }
-  .tr-baba-fan-label{ font-size: 10px; color: var(--text-muted); }
+  .tr-baba-fan-label{ font-size: 10.5px; color: var(--text-muted); }
+  .tr-baba-fan-hint{ font-size: 9.5px; font-weight:700; color: var(--teal); height: 12px; opacity:0; transition: opacity .25s var(--ease-ios); }
+  .tr-baba-fan-target .tr-baba-fan-hint{ opacity:1; }
+  .tr-baba-fan-cards.tr-baba-clickable{ cursor: pointer; }
+  .tr-baba-fan-cards.tr-baba-clickable .tr-baba-mini{
+    box-shadow: 0 2px 6px #00000055, inset 0 0 0 1px #00000012, 0 0 0 1px color-mix(in srgb, var(--teal) 42%, transparent);
+  }
+  .tr-baba-fan-cards.tr-baba-clickable .tr-baba-mini:hover{ transform: translateY(-9px) scale(1.08); filter: brightness(1.14); z-index:5; }
+  .tr-baba-fan-cards.tr-baba-clickable .tr-baba-mini:active{ transform: translateY(-4px) scale(.96); transition-duration: .1s; }
+  @keyframes trBabaPicked{ 0%{ opacity:1; transform: translateY(-9px) scale(1.08); } 100%{ opacity:0; transform: translateY(-46px) scale(.55); } }
+  .tr-baba-mini.tr-baba-picked{ animation: trBabaPicked .34s var(--ease-ios) forwards; pointer-events:none; }
 
   .tr-card{
     width: 46px; height: 66px; border-radius: 6px; background: #f4f1e9; position:relative; flex-shrink:0;
@@ -7929,8 +7939,8 @@ function trCardFaceHtml(code, extraClass){
     <div class="tr-card-corner tr-card-corner-br"><span>${label}</span><span>${sym}</span></div>
   </div>`;
 }
-function trCardBackHtml(extraClass){
-  return `<div class="tr-card tr-card-back ${extraClass || ''}"><div class="tr-card-back-mark">S</div></div>`;
+function trCardBackHtml(extraClass, extraAttrs){
+  return `<div class="tr-card tr-card-back ${extraClass || ''}" ${extraAttrs || ''}><div class="tr-card-back-mark">S</div></div>`;
 }
 
 /* ---- ルーム状態 ---- */
@@ -8244,15 +8254,19 @@ async function trDaifugoPass(){
   }
 }
 
-/* ---- ババ抜き ---- */
-function trBabanukiTarget(){ return trNextActiveAfter(myUid); }
-async function trBabanukiDraw(){
+/* ---- ババ抜き ----
+   カードを引く相手は「自分の次に手番が回るプレイヤー」で固定。
+   どのカードが当たるかはトランプの性質上ランダムにならざるを得ないが、
+   コード側が勝手に1枚選ぶのではなく、相手の束の中から「自分がタップした位置」の
+   カードを引く方式にして、操作している実感が持てるようにする。 */
+function trBabanukiTargetFor(uid){ return trNextActiveAfter(uid); }
+function trBabanukiTarget(){ return trBabanukiTargetFor(myUid); }
+async function trBabanukiDraw(targetUid, idx){
   if (trCurrentTurnUid !== myUid) return;
-  const targetUid = trBabanukiTarget();
-  if (!targetUid) return;
+  const expectedTarget = trBabanukiTarget();
+  if (!expectedTarget || targetUid !== expectedTarget) return;
   const targetHand = (trAllPlayers[targetUid] && trAllPlayers[targetUid].hand) || [];
-  if (!targetHand.length) return;
-  const idx = Math.floor(Math.random() * targetHand.length);
+  if (!targetHand.length || typeof idx !== 'number' || idx < 0 || idx >= targetHand.length) return;
   const drawnCode = targetHand[idx];
   const newTargetHand = targetHand.slice(0, idx).concat(targetHand.slice(idx + 1));
   const newMyHand = trDiscardPairs(trMyHand.concat([drawnCode]));
@@ -8369,12 +8383,18 @@ function trRenderTable(){
       return `<div class="tr-sevens-row"><div class="tr-sevens-suit-label${trIsRed(s) ? ' tr-red' : ' tr-black'}">${TR_SUIT_SYMBOL[s]}</div><div class="tr-sevens-cells">${cells}</div></div>`;
     }).join('')}</div>`;
   } else if (trGameType === 'babanuki') {
-    const targetUid = trCurrentTurnUid === myUid ? trBabanukiTarget() : null;
+    // 誰の手番でも「次に引かれる側」が分かるよう、対象は手番プレイヤー基準で計算する
+    const turnTargetUid = trCurrentTurnUid ? trBabanukiTargetFor(trCurrentTurnUid) : null;
+    const iCanDraw = trCurrentTurnUid === myUid;
     area.innerHTML = `<div class="tr-babanuki-board">${trOrder.filter((uid) => uid !== myUid).map((uid) => {
       const p = trAllPlayers[uid] || {}; const count = (p.hand || []).length; const finished = !!p.finished;
-      return `<div class="tr-baba-fan${uid === targetUid ? ' tr-baba-fan-target' : ''}">
-        <div class="tr-baba-fan-cards">${finished ? '' : Array.from({ length: Math.min(count, 7) }).map(() => trCardBackHtml('tr-baba-mini')).join('')}</div>
+      const isTarget = uid === turnTargetUid;
+      const clickable = iCanDraw && isTarget && !finished && count > 0;
+      const cardsHtml = finished ? '' : Array.from({ length: count }).map((_, i) => trCardBackHtml('tr-baba-mini', `data-idx="${i}"`)).join('');
+      return `<div class="tr-baba-fan${isTarget ? ' tr-baba-fan-target' : ''}">
+        <div class="tr-baba-fan-cards${clickable ? ' tr-baba-clickable' : ''}"${clickable ? ` data-target-uid="${uid}"` : ''}>${cardsHtml}</div>
         <div class="tr-baba-fan-label">${escapeHtml(p.name || '?')} ${finished ? '🏅' : '(' + count + ')'}</div>
+        <div class="tr-baba-fan-hint">${clickable ? 'タップして引く' : ''}</div>
       </div>`;
     }).join('')}</div>`;
   }
@@ -8417,11 +8437,14 @@ function trRenderActionBar(){
     $('tr-pass-btn')?.addEventListener('click', trSevensPass);
     $('tr-play-btn')?.addEventListener('click', () => { const c = [...trSelected][0]; if (c) trSevensPlay(c); });
   } else if (trGameType === 'babanuki') {
-    const targetUid = trBabanukiTarget();
-    bar.innerHTML = `<div class="tr-action-row">
-      <button type="button" class="tet-primary-btn" id="tr-draw-btn" ${myTurn && targetUid ? '' : 'disabled'}>${targetUid ? escapeHtml(trPlayerLabel(targetUid)) + 'さんから1枚引く' : '引く相手がいません'}</button>
-    </div>`;
-    $('tr-draw-btn')?.addEventListener('click', trBabanukiDraw);
+    if (!myTurn) {
+      bar.innerHTML = `<div class="tr-action-note">${escapeHtml(trPlayerLabel(trCurrentTurnUid))}さんの番です。順番をお待ちください。</div>`;
+    } else {
+      const targetUid = trBabanukiTarget();
+      bar.innerHTML = targetUid
+        ? `<div class="tr-action-note">↑ ${escapeHtml(trPlayerLabel(targetUid))}さんの束をタップしてカードを1枚引いてください</div>`
+        : `<div class="tr-action-note">引ける相手がいません。</div>`;
+    }
   }
 }
 const trHandEl = $('tr-hand');
@@ -8441,6 +8464,17 @@ if (trHandEl) trHandEl.addEventListener('click', (e) => {
     }
   }
   trRenderHand(); trRenderActionBar();
+});
+const trTableAreaEl = $('tr-table-area');
+if (trTableAreaEl) trTableAreaEl.addEventListener('click', (e) => {
+  const cardEl = e.target.closest('.tr-baba-fan-cards.tr-baba-clickable .tr-baba-mini[data-idx]');
+  if (!cardEl || cardEl.classList.contains('tr-baba-picked')) return;
+  const fanCards = cardEl.closest('.tr-baba-fan-cards');
+  const targetUid = fanCards && fanCards.dataset.targetUid;
+  const idx = parseInt(cardEl.dataset.idx, 10);
+  if (!targetUid || Number.isNaN(idx)) return;
+  cardEl.classList.add('tr-baba-picked');
+  trBabanukiDraw(targetUid, idx);
 });
 
 function trShowResult(){
