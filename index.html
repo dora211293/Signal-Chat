@@ -8853,6 +8853,40 @@ if (isSafeModeActive()) {
   runAllEnabledMods();
 }
 
+/* ------------------------------------------------------------------ */
+/* AI機能（ai.js）への橋渡し                                              */
+/* AI関連のUI・ロジックは全て ai.js 側に分離しており、こちらは必要な関数/状態を   */
+/* window.SignalAIBridge として渡すだけにとどめている。                      */
+/* ------------------------------------------------------------------ */
+window.SignalAIBridge = {
+  els,
+  getMyUid: () => myUid,
+  getMyName: () => myName,
+  getCurrentKind: () => currentKind,
+  getCurrentChannelId: () => currentChannelId,
+  getCurrentDmId: () => currentDmId,
+  getCurrentTitle: () => (currentKind === 'dm' ? (currentDmOtherName || 'DM') : (currentChannelName || currentChannelId || '')),
+  getChannels: () => channelsCache.map((d) => ({ id: d.id, ...(d.data ? d.data() : {}) })),
+  getFriends: () => Object.keys(friendsCache).map((uid) => ({ uid, name: (usersCache[uid] && usersCache[uid].name) || friendsCache[uid].name || '' })),
+  getRecentMessages: (n) => (lastDocsSnapshot || []).slice(-(n || 20)).map((d) => {
+    const m = d.data ? d.data() : d;
+    return { name: m.name || '', text: m.text || '', mine: m.uid === myUid };
+  }),
+  selectChannel: (id, name) => selectChannel(id, name),
+  selectDm: (uid, name) => selectDm(uid, name),
+  sendText: (text) => {
+    if (!text) return;
+    els.input.value = text;
+    els.input.dispatchEvent(new Event('input'));
+    sendMessage();
+  },
+  openSettings: () => popModalFrom(els.settingsModal, els.settingsBtn),
+  openFriends: () => popModalFrom(els.friendsModal, els.friendsPanelBtn),
+  closeModal, popModalFrom,
+};
+window.dispatchEvent(new CustomEvent('signal:ai-bridge-ready', { detail: window.SignalAIBridge }));
+
 </script>
+<script src="ai.js"></script>
 </body>
 </html>
