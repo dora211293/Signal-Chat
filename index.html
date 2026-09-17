@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SIGNAL">
-<meta name="description" content="リアルタイム・グループチャット">
+<meta name="description" content="リアルタイム・グループチャット" data-i18n-content="s180">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
@@ -2015,22 +2015,22 @@
 <div id="auth-gate">
   <div class="modal-card auth-gate-card">
     <div class="splash-mark" style="width:76px;height:76px;border-radius:22px;margin:0 auto 16px;"><img src="icon-192.png" alt="SIGNAL"></div>
-    <h2 style="text-align:center;">SIGNALへようこそ</h2>
-    <p style="text-align:center;">はじめての方は新規登録、すでにアカウントをお持ちの方はログインしてください。</p>
+    <h2 style="text-align:center;" data-i18n="s1">SIGNALへようこそ</h2>
+    <p style="text-align:center;" data-i18n="s2">はじめての方は新規登録、すでにアカウントをお持ちの方はログインしてください。</p>
 
     <div id="auth-gate-choices" style="display:flex; flex-direction:column; gap:10px; margin-top: 6px;">
-      <button type="button" class="primary" id="auth-gate-signup" style="margin-top:0;">新規登録</button>
-      <button type="button" class="mini-btn-outline" id="auth-gate-login-open" style="width:100%; padding:12px; font-size:13px;">UIDでログイン</button>
+      <button type="button" class="primary" id="auth-gate-signup" style="margin-top:0;" data-i18n="s3">新規登録</button>
+      <button type="button" class="mini-btn-outline" id="auth-gate-login-open" style="width:100%; padding:12px; font-size:13px;" data-i18n="s4">UIDでログイン</button>
     </div>
 
     <div id="auth-gate-login-form" style="display:none;">
-      <div class="field-label" style="margin-top:16px;">メールアドレス</div>
-      <input type="email" id="auth-gate-uid-input" placeholder="登録したメールアドレス" autocomplete="username">
-      <div class="field-label">パスワード</div>
-      <input type="password" id="auth-gate-password-input" placeholder="パスワード" autocomplete="current-password">
-      <div class="field-error" id="auth-gate-login-error">メールアドレスまたはパスワードが違います</div>
-      <button type="button" class="primary" id="auth-gate-login-submit">ログイン</button>
-      <button type="button" class="cancel" id="auth-gate-login-back">戻る</button>
+      <div class="field-label" style="margin-top:16px;" data-i18n="s5">メールアドレス</div>
+      <input type="email" id="auth-gate-uid-input" placeholder="登録したメールアドレス" data-i18n-placeholder="s142" autocomplete="username">
+      <div class="field-label" data-i18n="s6">パスワード</div>
+      <input type="password" id="auth-gate-password-input" placeholder="パスワード" data-i18n-placeholder="s6" autocomplete="current-password">
+      <div class="field-error" id="auth-gate-login-error" data-i18n="s7">メールアドレスまたはパスワードが違います</div>
+      <button type="button" class="primary" id="auth-gate-login-submit" data-i18n="s8">ログイン</button>
+      <button type="button" class="cancel" id="auth-gate-login-back" data-i18n="s9">戻る</button>
     </div>
   </div>
 </div>
@@ -2038,10 +2038,10 @@
 <div id="maintenance-screen">
   <div class="maintenance-card">
     <div class="maintenance-icon">🛠</div>
-    <h2>ただいまメンテナンス中です</h2>
-    <p>現在SIGNALはメンテナンスのため一時的にご利用いただけません。</p>
-    <p>金認証バッジをお持ちの方のみログインできます。</p>
-    <div class="maintenance-sub">しばらくしてから再度アクセスしてください</div>
+    <h2 data-i18n="s10">ただいまメンテナンス中です</h2>
+    <p data-i18n="s11">現在SIGNALはメンテナンスのため一時的にご利用いただけません。</p>
+    <p data-i18n="s12">金認証バッジをお持ちの方のみログインできます。</p>
+    <div class="maintenance-sub" data-i18n="s13">しばらくしてから再度アクセスしてください</div>
   </div>
 </div>
 
@@ -2069,36 +2069,36 @@
       <div class="self-meta">
         <div class="name" id="self-name">–</div>
         <div class="username" id="self-username"></div>
-        <div class="status"><span class="dot"></span><span id="self-status-text">送信可能</span></div>
+        <div class="status"><span class="dot"></span><span id="self-status-text" data-i18n="s14">送信可能</span></div>
       </div>
       <div class="icon-actions">
-        <button class="edit-name-btn" id="settings-btn" title="設定">⚙</button>
-        <button class="edit-name-btn" id="edit-name-btn" title="プロフィールを編集">✎</button>
+        <button class="edit-name-btn" id="settings-btn" title="設定" data-i18n-title="s143">⚙</button>
+        <button class="edit-name-btn" id="edit-name-btn" title="プロフィールを編集" data-i18n-title="s144">✎</button>
       </div>
     </div>
 
-    <button class="admin-btn" id="admin-panel-btn">管理者パネル</button>
-    <button class="friends-btn" id="friends-panel-btn">フレンド<span class="req-dot" id="friend-req-dot">0</span></button>
-    <button class="friends-btn tet-launch-btn" id="tetris-open-btn">🎮 ゲーム<span class="req-dot" id="tetris-invite-dot">0</span></button>
+    <button class="admin-btn" id="admin-panel-btn" data-i18n="s15">管理者パネル</button>
+    <button class="friends-btn" id="friends-panel-btn"><span data-i18n="s170">フレンド</span><span class="req-dot" id="friend-req-dot">0</span></button>
+    <button class="friends-btn tet-launch-btn" id="tetris-open-btn"><span data-i18n="s171">🎮 ゲーム</span><span class="req-dot" id="tetris-invite-dot">0</span></button>
 
     <div class="sidebar-tabs" id="sidebar-tabs">
       <div class="tab-thumb"></div>
-      <button type="button" data-tab="channels" class="active">チャンネル</button>
+      <button type="button" data-tab="channels" class="active" data-i18n="s16">チャンネル</button>
       <button type="button" data-tab="dms">DM<span class="req-dot" id="dm-tab-dot">0</span></button>
     </div>
 
     <div id="channel-section" class="sidebar-section">
       <div class="section-label">
-        <span>チャンネル</span>
+        <span data-i18n="s16">チャンネル</span>
         <span class="channel-edit-controls">
-          <button class="edit-mode-btn" id="edit-mode-btn" title="並び替え・名前変更">✎</button>
-          <button class="add-channel-btn" id="add-channel-btn" title="チャンネルを追加">+</button>
+          <button class="edit-mode-btn" id="edit-mode-btn" title="並び替え・名前変更" data-i18n-title="s145">✎</button>
+          <button class="add-channel-btn" id="add-channel-btn" title="チャンネルを追加" data-i18n-title="s146">+</button>
         </span>
       </div>
       <div class="scope-switch" id="scope-switch">
         <div class="tab-thumb"></div>
-        <button type="button" data-scope="personal" class="active">自分だけ</button>
-        <button type="button" data-scope="global">全体(管理者)</button>
+        <button type="button" data-scope="personal" class="active" data-i18n="s17">自分だけ</button>
+        <button type="button" data-scope="global" data-i18n="s18">全体(管理者)</button>
       </div>
       <ul id="channel-list"></ul>
     </div>
@@ -2108,7 +2108,7 @@
     </div>
 
     <div class="online-panel">
-      <div class="section-label" style="padding:0;">オンライン — <span id="online-count">0</span>人</div>
+      <div class="section-label" style="padding:0;"><span data-i18n="s172">オンライン —</span> <span id="online-count">0</span><span data-i18n="s173">人</span></div>
       <div id="online-list"></div>
     </div>
   </aside>
@@ -2118,27 +2118,27 @@
       <button id="menu-btn">☰</button>
       <div class="titles">
         <div class="freq" id="topbar-freq">—</div>
-        <h1 id="topbar-name">読み込み中…</h1>
+        <h1 id="topbar-name" data-i18n="s19">読み込み中…</h1>
       </div>
       <canvas id="waveform" style="display:none;"></canvas>
       <div id="topbar-right">
-        <button id="schedule-list-btn" title="予約中のメッセージ" style="display:none;">⏰<span class="unread-dot" id="schedule-count-dot">0</span></button>
+        <button id="schedule-list-btn" title="予約中のメッセージ" data-i18n-title="s86" style="display:none;">⏰<span class="unread-dot" id="schedule-count-dot">0</span></button>
         <div id="search-wrap">
-          <button id="search-btn" title="チャット内を検索">
+          <button id="search-btn" title="チャット内を検索" data-i18n-title="s147">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           </button>
-          <input type="text" id="search-input" placeholder="キーワード" autocomplete="off">
-          <button id="search-close-btn" title="閉じる" type="button">
+          <input type="text" id="search-input" placeholder="キーワード" data-i18n-placeholder="s148" autocomplete="off">
+          <button id="search-close-btn" title="閉じる" data-i18n-title="s83" type="button">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
           </button>
           <div id="search-results"></div>
         </div>
       </div>
-      <div id="onair" class="off" style="display:none;"><span class="dot"></span><span id="onair-text">接続中</span></div>
+      <div id="onair" class="off" style="display:none;"><span class="dot"></span><span id="onair-text" data-i18n="s20">接続中</span></div>
     </header>
 
     <div id="messages">
-      <div class="empty-state" id="empty-state">まだメッセージがありません。<br>最初の一言を送信してみましょう。</div>
+      <div class="empty-state" id="empty-state" data-i18n-html="s174">まだメッセージがありません。<br>最初の一言を送信してみましょう。</div>
     </div>
 
     <div id="composer-dock">
@@ -2147,7 +2147,7 @@
     <div id="image-preview-strip" style="display:none;">
       <div class="image-preview-item">
         <img id="image-preview-thumb" src="" alt="">
-        <button type="button" id="image-preview-clear" title="画像を取り消す">✕</button>
+        <button type="button" id="image-preview-clear" title="画像を取り消す" data-i18n-title="s149">✕</button>
         <div id="image-preview-meta"></div>
       </div>
     </div>
@@ -2158,7 +2158,7 @@
           <div id="file-preview-name"></div>
           <div id="file-preview-meta"></div>
         </div>
-        <button type="button" id="file-preview-clear" title="ファイルを取り消す">✕</button>
+        <button type="button" id="file-preview-clear" title="ファイルを取り消す" data-i18n-title="s150">✕</button>
       </div>
     </div>
     <div id="reply-preview-strip" style="display:none;">
@@ -2168,19 +2168,19 @@
           <div id="reply-preview-name"></div>
           <div id="reply-preview-text"></div>
         </div>
-        <button type="button" id="reply-preview-clear" title="返信を取り消す">✕</button>
+        <button type="button" id="reply-preview-clear" title="返信を取り消す" data-i18n-title="s151">✕</button>
       </div>
     </div>
     <div id="composer">
       <input type="file" id="image-file-input" accept="image/*" style="display:none;">
       <input type="file" id="file-file-input" style="display:none;">
-      <button id="attach-btn" type="button" title="画像を送信" style="display:none;">
+      <button id="attach-btn" type="button" title="画像を送信" data-i18n-title="s21" style="display:none;">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <button id="poll-btn" type="button" title="アンケートを作成" style="display:none;">
+      <button id="poll-btn" type="button" title="アンケートを作成" data-i18n-title="s23" style="display:none;">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M12 19V5M20 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
-      <button id="schedule-btn" type="button" title="送信予約(日時指定)" style="display:none;">
+      <button id="schedule-btn" type="button" title="送信予約(日時指定)" data-i18n-title="s152" style="display:none;">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
 
@@ -2189,30 +2189,30 @@
           <div id="composer-menu">
             <button type="button" class="composer-menu-item" data-action="attach">
               <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.48" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-              <span class="cmi-label">画像を送信</span>
+              <span class="cmi-label" data-i18n="s21">画像を送信</span>
             </button>
             <button type="button" class="composer-menu-item" data-action="file">
               <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M8 3h6l5 5v10a2 2 0 01-2 2H8a2 2 0 01-2-2V5a2 2 0 012-2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-              <span class="cmi-label">ファイルを送信</span>
+              <span class="cmi-label" data-i18n="s22">ファイルを送信</span>
             </button>
             <button type="button" class="composer-menu-item" data-action="poll">
               <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M12 19V5M20 19V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-              <span class="cmi-label">アンケートを作成</span>
+              <span class="cmi-label" data-i18n="s23">アンケートを作成</span>
             </button>
             <button type="button" class="composer-menu-item" data-action="schedule">
               <span class="cmi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 9v4l2.5 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-              <span class="cmi-label">送信予約</span>
+              <span class="cmi-label" data-i18n="s24">送信予約</span>
             </button>
           </div>
-          <button id="composer-plus-btn" type="button" title="その他の操作">
+          <button id="composer-plus-btn" type="button" title="その他の操作" data-i18n-title="s153">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           </button>
         </div>
       </div>
 
       <div id="mention-suggest"></div>
-      <textarea id="msg-input" rows="1" placeholder="メッセージを入力…(@でメンション)"></textarea>
-      <button id="send-btn" disabled title="送信">
+      <textarea id="msg-input" rows="1" placeholder="メッセージを入力…(@でメンション)" data-i18n-placeholder="s154"></textarea>
+      <button id="send-btn" disabled title="送信" data-i18n-title="s155">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 11L21 3L13 21L11 13L3 11Z" stroke="#14100a" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>
       </button>
     </div>
@@ -2224,48 +2224,48 @@
 <!-- ===================== Block Drop (SIGNAL BATTLE) ===================== -->
 <div id="tetris-screen">
   <canvas id="tet-bg-canvas"></canvas>
-  <button id="tetris-close-btn" title="閉じる">✕</button>
+  <button id="tetris-close-btn" title="閉じる" data-i18n-title="s83">✕</button>
 
   <div id="tetris-lobby" class="tet-view">
     <div class="tet-card">
       <h2>🎮 Block Drop</h2>
-      <p class="tet-sub">最後まで生き残った1人が勝利。SIGNALのDMで友達を招待しよう。</p>
+      <p class="tet-sub" data-i18n="s25">最後まで生き残った1人が勝利。SIGNALのDMで友達を招待しよう。</p>
       <div id="tet-room-code">ROOM ----</div>
       <ul id="tet-lobby-players"></ul>
 
       <div id="tet-settings-block">
-        <div class="tet-settings-label">速度</div>
+        <div class="tet-settings-label" data-i18n="s26">速度</div>
         <div class="tet-settings-row" id="tet-speed-row" data-key="speed">
-          <button type="button" class="tet-chip" data-val="slow">スロー</button>
-          <button type="button" class="tet-chip active" data-val="normal">ノーマル</button>
-          <button type="button" class="tet-chip" data-val="fast">ハイスピード</button>
+          <button type="button" class="tet-chip" data-val="slow" data-i18n="s27">スロー</button>
+          <button type="button" class="tet-chip active" data-val="normal" data-i18n="s28">ノーマル</button>
+          <button type="button" class="tet-chip" data-val="fast" data-i18n="s29">ハイスピード</button>
         </div>
-        <div class="tet-settings-label">ミノ</div>
+        <div class="tet-settings-label" data-i18n="s30">ミノ</div>
         <div class="tet-settings-row" id="tet-piece-row" data-key="pieceSet">
-          <button type="button" class="tet-chip active" data-val="full">フル7種</button>
-          <button type="button" class="tet-chip" data-val="noSZ">S・Zなし</button>
-          <button type="button" class="tet-chip" data-val="onlyO">Oだけ祭り</button>
+          <button type="button" class="tet-chip active" data-val="full" data-i18n="s31">フル7種</button>
+          <button type="button" class="tet-chip" data-val="noSZ" data-i18n="s32">S・Zなし</button>
+          <button type="button" class="tet-chip" data-val="onlyO" data-i18n="s33">Oだけ祭り</button>
         </div>
         <div class="tet-settings-readonly" id="tet-settings-readonly" style="display:none;"></div>
       </div>
 
       <div class="tet-btn-row">
-        <button type="button" class="tet-secondary-btn" id="tet-invite-btn">📨 SIGNALで招待</button>
-        <button type="button" class="tet-primary-btn" id="tet-start-btn" style="display:none;">対戦開始</button>
-        <button type="button" class="tet-secondary-btn danger" id="tet-leave-btn">退出</button>
+        <button type="button" class="tet-secondary-btn" id="tet-invite-btn" data-i18n="s34">📨 SIGNALで招待</button>
+        <button type="button" class="tet-primary-btn" id="tet-start-btn" style="display:none;" data-i18n="s35">対戦開始</button>
+        <button type="button" class="tet-secondary-btn danger" id="tet-leave-btn" data-i18n="s36">退出</button>
       </div>
     </div>
   </div>
 
   <div id="tetris-invite-picker" class="tet-view" style="display:none;">
     <div class="tet-card">
-      <h2>友達を招待</h2>
-      <p class="tet-sub">送るとDMに参加ボタン付きの招待が届きます。</p>
+      <h2 data-i18n="s37">友達を招待</h2>
+      <p class="tet-sub" data-i18n="s38">送るとDMに参加ボタン付きの招待が届きます。</p>
       <ul id="tet-invite-friend-list"></ul>
-      <div id="tet-invite-empty" style="display:none;">フレンドがいません。先にフレンドを追加してください。</div>
+      <div id="tet-invite-empty" style="display:none;" data-i18n="s39">フレンドがいません。先にフレンドを追加してください。</div>
       <div class="tet-btn-row">
-        <button type="button" class="tet-secondary-btn" id="tet-invite-back-btn">戻る</button>
-        <button type="button" class="tet-primary-btn" id="tet-invite-send-btn">招待を送る</button>
+        <button type="button" class="tet-secondary-btn" id="tet-invite-back-btn" data-i18n="s9">戻る</button>
+        <button type="button" class="tet-primary-btn" id="tet-invite-send-btn" data-i18n="s40">招待を送る</button>
       </div>
     </div>
   </div>
@@ -2275,9 +2275,9 @@
     <div id="tetris-round-fx-overlay"><span id="tet-round-fx-text"></span></div>
     <div id="tet-ko-banner"><span>K.O.</span></div>
     <div id="tet-hud">
-      <span>生存 <span class="tet-alive" id="tet-hud-alive">1/1</span></span>
+      <span><span data-i18n="s175">生存</span> <span class="tet-alive" id="tet-hud-alive">1/1</span></span>
       <span id="tet-hud-score">SCORE 0</span>
-      <span id="tet-hud-lines">0 ライン</span>
+      <span id="tet-hud-lines" data-i18n="s41">0 ライン</span>
       <span class="tet-myrank" id="tet-hud-rank" style="display:none;"></span>
     </div>
     <div id="tet-opp-strip"></div>
@@ -2290,7 +2290,7 @@
         <div id="tet-board"><canvas id="tet-fx-canvas"></canvas><div id="tet-garbage-warn"></div><div id="tet-clear-popup"></div></div>
         <div id="tet-spectate-bar" style="display:none;">
           <button type="button" id="tet-spectate-prev">◀</button>
-          <span id="tet-spectate-name">観戦中</span>
+          <span id="tet-spectate-name" data-i18n="s42">観戦中</span>
           <button type="button" id="tet-spectate-next">▶</button>
         </div>
       </div>
@@ -2303,17 +2303,17 @@
     </div>
     <div id="tet-controls">
       <div class="tet-ctrl-row">
-        <button type="button" class="tet-ctrl-btn tet-hold-btn" data-act="hold" title="ホールド">HOLD</button>
-        <button type="button" class="tet-ctrl-btn" data-act="ccw" title="左回転">⟲</button>
-        <button type="button" class="tet-ctrl-btn" data-act="cw" title="右回転">⟳</button>
+        <button type="button" class="tet-ctrl-btn tet-hold-btn" data-act="hold" title="ホールド" data-i18n-title="s156">HOLD</button>
+        <button type="button" class="tet-ctrl-btn" data-act="ccw" title="左回転" data-i18n-title="s157">⟲</button>
+        <button type="button" class="tet-ctrl-btn" data-act="cw" title="右回転" data-i18n-title="s158">⟳</button>
       </div>
       <div class="tet-ctrl-row">
-        <button type="button" class="tet-ctrl-btn" data-act="left" title="左へ">◀</button>
-        <button type="button" class="tet-ctrl-btn" data-act="soft" title="ソフトドロップ">▼</button>
-        <button type="button" class="tet-ctrl-btn" data-act="right" title="右へ">▶</button>
+        <button type="button" class="tet-ctrl-btn" data-act="left" title="左へ" data-i18n-title="s159">◀</button>
+        <button type="button" class="tet-ctrl-btn" data-act="soft" title="ソフトドロップ" data-i18n-title="s160">▼</button>
+        <button type="button" class="tet-ctrl-btn" data-act="right" title="右へ" data-i18n-title="s161">▶</button>
       </div>
       <div class="tet-ctrl-row">
-        <button type="button" class="tet-ctrl-btn wide tet-harddrop-btn" data-act="hard" title="ハードドロップ">⤓ ハードドロップ</button>
+        <button type="button" class="tet-ctrl-btn wide tet-harddrop-btn" data-act="hard" title="ハードドロップ" data-i18n-title="s162" data-i18n="s43">⤓ ハードドロップ</button>
       </div>
     </div>
   </div>
@@ -2321,12 +2321,12 @@
   <div id="tetris-result" class="tet-view" style="display:none;">
     <canvas id="tet-confetti-canvas"></canvas>
     <div class="tet-card">
-      <h2 id="tet-result-title">試合終了</h2>
+      <h2 id="tet-result-title" data-i18n="s44">試合終了</h2>
       <p class="tet-sub" id="tet-result-sub"></p>
       <ul id="tet-result-list"></ul>
       <div class="tet-btn-row">
-        <button type="button" class="tet-primary-btn" id="tet-rematch-btn">🔄 もう一度対戦</button>
-        <button type="button" class="tet-secondary-btn danger" id="tet-result-close-btn">退出</button>
+        <button type="button" class="tet-primary-btn" id="tet-rematch-btn" data-i18n="s45">🔄 もう一度対戦</button>
+        <button type="button" class="tet-secondary-btn danger" id="tet-result-close-btn" data-i18n="s36">退出</button>
       </div>
     </div>
   </div>
@@ -2334,19 +2334,19 @@
 
 <!-- ===================== トランプ (大富豪・ババ抜き・七並べ) ===================== -->
 <div id="trump-screen">
-  <button id="trump-close-btn" title="閉じる">✕</button>
+  <button id="trump-close-btn" title="閉じる" data-i18n-title="s83">✕</button>
 
   <div id="trump-lobby" class="tet-view">
     <div class="tet-card">
-      <h2>🃏 トランプ</h2>
-      <p class="tet-sub">大富豪・ババ抜き・七並べで対戦しよう。SIGNALのDMで友達を招待できます。</p>
+      <h2 data-i18n="s46">🃏 トランプ</h2>
+      <p class="tet-sub" data-i18n="s47">大富豪・ババ抜き・七並べで対戦しよう。SIGNALのDMで友達を招待できます。</p>
 
       <div id="tr-gametype-block">
-        <div class="tet-settings-label">遊ぶゲーム</div>
+        <div class="tet-settings-label" data-i18n="s48">遊ぶゲーム</div>
         <div class="tet-settings-row" id="tr-gametype-row">
-          <button type="button" class="tet-chip active" data-val="daifugo">大富豪</button>
-          <button type="button" class="tet-chip" data-val="babanuki">ババ抜き</button>
-          <button type="button" class="tet-chip" data-val="sevens">七並べ</button>
+          <button type="button" class="tet-chip active" data-val="daifugo" data-i18n="s49">大富豪</button>
+          <button type="button" class="tet-chip" data-val="babanuki" data-i18n="s50">ババ抜き</button>
+          <button type="button" class="tet-chip" data-val="sevens" data-i18n="s51">七並べ</button>
         </div>
         <div class="tet-settings-readonly" id="tr-gametype-readonly" style="display:none;"></div>
       </div>
@@ -2354,22 +2354,22 @@
       <ul id="tr-lobby-players"></ul>
 
       <div class="tet-btn-row">
-        <button type="button" class="tet-secondary-btn" id="tr-invite-btn">📨 SIGNALで招待</button>
-        <button type="button" class="tet-primary-btn" id="tr-start-btn" style="display:none;">対戦開始</button>
-        <button type="button" class="tet-secondary-btn danger" id="tr-leave-btn">退出</button>
+        <button type="button" class="tet-secondary-btn" id="tr-invite-btn" data-i18n="s34">📨 SIGNALで招待</button>
+        <button type="button" class="tet-primary-btn" id="tr-start-btn" style="display:none;" data-i18n="s35">対戦開始</button>
+        <button type="button" class="tet-secondary-btn danger" id="tr-leave-btn" data-i18n="s36">退出</button>
       </div>
     </div>
   </div>
 
   <div id="trump-invite-picker" class="tet-view" style="display:none;">
     <div class="tet-card">
-      <h2>友達を招待</h2>
-      <p class="tet-sub">送るとDMに参加ボタン付きの招待が届きます。</p>
+      <h2 data-i18n="s37">友達を招待</h2>
+      <p class="tet-sub" data-i18n="s38">送るとDMに参加ボタン付きの招待が届きます。</p>
       <ul id="tr-invite-friend-list"></ul>
-      <div id="tr-invite-empty" style="display:none;">フレンドがいません。先にフレンドを追加してください。</div>
+      <div id="tr-invite-empty" style="display:none;" data-i18n="s39">フレンドがいません。先にフレンドを追加してください。</div>
       <div class="tet-btn-row">
-        <button type="button" class="tet-secondary-btn" id="tr-invite-back-btn">戻る</button>
-        <button type="button" class="tet-primary-btn" id="tr-invite-send-btn">招待を送る</button>
+        <button type="button" class="tet-secondary-btn" id="tr-invite-back-btn" data-i18n="s9">戻る</button>
+        <button type="button" class="tet-primary-btn" id="tr-invite-send-btn" data-i18n="s40">招待を送る</button>
       </div>
     </div>
   </div>
@@ -2390,12 +2390,12 @@
   <div id="trump-result" class="tet-view" style="display:none;">
     <canvas id="tr-confetti-canvas"></canvas>
     <div class="tet-card">
-      <h2 id="tr-result-title">試合終了</h2>
+      <h2 id="tr-result-title" data-i18n="s44">試合終了</h2>
       <p class="tet-sub" id="tr-result-sub"></p>
       <ul id="tr-result-list"></ul>
       <div class="tet-btn-row">
-        <button type="button" class="tet-primary-btn" id="tr-rematch-btn">🔄 もう一度対戦</button>
-        <button type="button" class="tet-secondary-btn danger" id="tr-result-close-btn">退出</button>
+        <button type="button" class="tet-primary-btn" id="tr-rematch-btn" data-i18n="s45">🔄 もう一度対戦</button>
+        <button type="button" class="tet-secondary-btn danger" id="tr-result-close-btn" data-i18n="s36">退出</button>
       </div>
     </div>
   </div>
@@ -2412,31 +2412,31 @@
 <div class="modal-scrim bottom-sheet" id="nick-modal">
   <div class="modal-card">
     <div class="eyebrow">PROFILE</div>
-    <h2>周波数に接続</h2>
-    <p>チャットで表示される名前とアイコンを設定してください。あとから変更できます。</p>
+    <h2 data-i18n="s52">周波数に接続</h2>
+    <p data-i18n="s53">チャットで表示される名前とアイコンを設定してください。あとから変更できます。</p>
 
     <div class="profile-preview"><div class="preview-avatar" id="preview-avatar">–</div></div>
 
-    <div class="field-label">表示名(重複OK・チャットに表示される名前)</div>
-    <input type="text" id="nick-input" maxlength="20" placeholder="太郎" autocomplete="off">
-    <div class="field-error" id="nick-error">保存に失敗しました</div>
+    <div class="field-label" data-i18n="s54">表示名(重複OK・チャットに表示される名前)</div>
+    <input type="text" id="nick-input" maxlength="20" placeholder="太郎" data-i18n-placeholder="s163" autocomplete="off">
+    <div class="field-error" id="nick-error" data-i18n="s55">保存に失敗しました</div>
 
-    <div class="field-label">ユーザー名(@から始まる・他の人と重複不可・メンションに使用)</div>
+    <div class="field-label" data-i18n="s56">ユーザー名(@から始まる・他の人と重複不可・メンションに使用)</div>
     <div class="username-input-row">
       <span class="username-at">@</span>
       <input type="text" id="username-input" maxlength="20" placeholder="taro_1234" autocomplete="off">
     </div>
-    <div class="field-hint">半角英数字とアンダースコアのみ・3〜20文字</div>
-    <div class="field-error" id="username-error">そのユーザー名はすでに使われています</div>
+    <div class="field-hint" data-i18n="s57">半角英数字とアンダースコアのみ・3〜20文字</div>
+    <div class="field-error" id="username-error" data-i18n="s58">そのユーザー名はすでに使われています</div>
 
-    <div class="field-label">画像アイコン(任意・自動で圧縮されます)</div>
+    <div class="field-label" data-i18n="s59">画像アイコン(任意・自動で圧縮されます)</div>
     <div class="image-pick-row">
-      <label class="image-pick-btn" for="icon-file">📷 画像を選択</label>
+      <label class="image-pick-btn" for="icon-file" data-i18n="s60">📷 画像を選択</label>
       <input type="file" id="icon-file" accept="image/*" style="display:none;">
-      <button type="button" id="icon-img-clear" class="mini-btn-outline">画像を削除</button>
+      <button type="button" id="icon-img-clear" class="mini-btn-outline" data-i18n="s61">画像を削除</button>
     </div>
 
-    <div class="field-label">絵文字アイコン(画像が無いときに使われます)</div>
+    <div class="field-label" data-i18n="s62">絵文字アイコン(画像が無いときに使われます)</div>
     <div class="icon-picker" id="icon-picker">
       <button type="button" class="icon-btn" data-icon="">Aa</button>
       <button type="button" class="icon-btn" data-icon="🔥">🔥</button>
@@ -2453,29 +2453,29 @@
       <button type="button" class="icon-btn" data-icon="🧊">🧊</button>
       <button type="button" class="icon-btn" data-icon="🚀">🚀</button>
     </div>
-    <input type="text" id="icon-input" maxlength="4" placeholder="自由入力も可(例: 🐧)" autocomplete="off">
+    <input type="text" id="icon-input" maxlength="4" placeholder="自由入力も可(例: 🐧)" data-i18n-placeholder="s164" autocomplete="off">
 
-    <div class="field-label">自己紹介(任意)</div>
-    <textarea id="bio-input" maxlength="140" rows="3" placeholder="よろしくお願いします！"></textarea>
+    <div class="field-label" data-i18n="s63">自己紹介(任意)</div>
+    <textarea id="bio-input" maxlength="140" rows="3" placeholder="よろしくお願いします！" data-i18n-placeholder="s165"></textarea>
     <div class="char-counter" id="bio-counter">0/140</div>
 
-    <div class="field-label">リンク(任意・X・ウェブサイトなど)</div>
+    <div class="field-label" data-i18n="s64">リンク(任意・X・ウェブサイトなど)</div>
     <input type="url" id="link-input" maxlength="120" placeholder="https://…" autocomplete="off">
 
-    <div class="field-label">認証バッジ</div>
+    <div class="field-label" data-i18n="s65">認証バッジ</div>
     <div class="verify-row" id="verify-status"></div>
 
-    <div class="field-label">UID(管理者設定に使います)</div>
-    <div class="uid-row"><code id="my-uid-display">読み込み中…</code><button type="button" id="copy-uid-btn" class="mini-btn-outline">コピー</button></div>
+    <div class="field-label" data-i18n="s66">UID(管理者設定に使います)</div>
+    <div class="uid-row"><code id="my-uid-display" data-i18n="s19">読み込み中…</code><button type="button" id="copy-uid-btn" class="mini-btn-outline" data-i18n="s67">コピー</button></div>
 
-    <div class="field-label">アカウント保護(任意・推奨)</div>
+    <div class="field-label" data-i18n="s68">アカウント保護(任意・推奨)</div>
     <div id="account-protect-status" style="font-size:12px;color:var(--text-faint);margin-bottom:4px;"></div>
-    <input type="email" id="account-email-input" maxlength="120" placeholder="メールアドレス" autocomplete="username">
-    <input type="password" id="account-password-input" maxlength="64" placeholder="パスワード(6文字以上)" autocomplete="new-password">
-    <div class="field-error" id="account-protect-error">入力内容を確認してください</div>
-    <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">設定しておくと、機種変更やキャッシュ削除後もこのアカウントに戻れます。</div>
+    <input type="email" id="account-email-input" maxlength="120" placeholder="メールアドレス" data-i18n-placeholder="s5" autocomplete="username">
+    <input type="password" id="account-password-input" maxlength="64" placeholder="パスワード(6文字以上)" data-i18n-placeholder="s166" autocomplete="new-password">
+    <div class="field-error" id="account-protect-error" data-i18n="s69">入力内容を確認してください</div>
+    <div style="font-size:11px;color:var(--text-faint);margin-top:2px;" data-i18n="s70">設定しておくと、機種変更やキャッシュ削除後もこのアカウントに戻れます。</div>
 
-    <button class="primary" id="nick-confirm" disabled>チャットを開始</button>
+    <button class="primary" id="nick-confirm" disabled data-i18n="s71">チャットを開始</button>
   </div>
 </div>
 
@@ -2483,11 +2483,11 @@
 <div class="modal-scrim" id="channel-modal" style="display:none;">
   <div class="modal-card">
     <div class="eyebrow">NEW CHANNEL</div>
-    <h2>チャンネルを作成</h2>
-    <p>新しい話題用のチャンネルを作ります。</p>
-    <input type="text" id="channel-input" maxlength="24" placeholder="例: 雑談" autocomplete="off">
-    <button class="primary" id="channel-confirm" disabled>作成する</button>
-    <button class="cancel" id="channel-cancel">キャンセル</button>
+    <h2 data-i18n="s72">チャンネルを作成</h2>
+    <p data-i18n="s73">新しい話題用のチャンネルを作ります。</p>
+    <input type="text" id="channel-input" maxlength="24" placeholder="例: 雑談" data-i18n-placeholder="s167" autocomplete="off">
+    <button class="primary" id="channel-confirm" disabled data-i18n="s74">作成する</button>
+    <button class="cancel" id="channel-cancel" data-i18n="s75">キャンセル</button>
   </div>
 </div>
 
@@ -2495,25 +2495,25 @@
 <div class="modal-scrim" id="poll-modal" style="display:none;">
   <div class="modal-card admin-card">
     <div class="eyebrow">NEW POLL</div>
-    <h2>アンケートを作成</h2>
-    <input type="text" id="poll-question-input" maxlength="120" placeholder="質問を入力…" autocomplete="off">
+    <h2 data-i18n="s23">アンケートを作成</h2>
+    <input type="text" id="poll-question-input" maxlength="120" placeholder="質問を入力…" data-i18n-placeholder="s168" autocomplete="off">
     <div class="poll-form-row">
-      <label for="poll-option-count">選択肢の数</label>
+      <label for="poll-option-count" data-i18n="s76">選択肢の数</label>
       <select id="poll-option-count">
-        <option value="2">2個</option>
-        <option value="3">3個</option>
-        <option value="4">4個</option>
-        <option value="5">5個</option>
-        <option value="6">6個</option>
+        <option value="2" data-i18n="s77">2個</option>
+        <option value="3" data-i18n="s78">3個</option>
+        <option value="4" data-i18n="s79">4個</option>
+        <option value="5" data-i18n="s80">5個</option>
+        <option value="6" data-i18n="s81">6個</option>
       </select>
     </div>
     <div id="poll-options-inputs"></div>
     <label class="poll-freetext-toggle">
       <input type="checkbox" id="poll-allow-freetext">
-      <span>自由記述での回答も許可する</span>
+      <span data-i18n="s82">自由記述での回答も許可する</span>
     </label>
-    <button class="primary" id="poll-create-confirm" disabled>アンケートを作成</button>
-    <button class="cancel" id="poll-create-cancel">キャンセル</button>
+    <button class="primary" id="poll-create-confirm" disabled data-i18n="s23">アンケートを作成</button>
+    <button class="cancel" id="poll-create-cancel" data-i18n="s75">キャンセル</button>
   </div>
 </div>
 
@@ -2523,7 +2523,7 @@
     <div class="eyebrow">📊 POLL</div>
     <h2 id="poll-view-question"></h2>
     <div class="admin-panel-body" id="poll-view-body"></div>
-    <button class="cancel" id="poll-view-close">閉じる</button>
+    <button class="cancel" id="poll-view-close" data-i18n="s83">閉じる</button>
   </div>
 </div>
 
@@ -2531,11 +2531,11 @@
 <div class="modal-scrim" id="schedule-modal" style="display:none;">
   <div class="modal-card admin-card">
     <div class="eyebrow">⏰ SCHEDULE</div>
-    <h2>送信する日時を指定</h2>
+    <h2 data-i18n="s84">送信する日時を指定</h2>
     <p id="schedule-modal-desc" class="schedule-modal-desc"></p>
     <input type="datetime-local" id="schedule-datetime-input">
-    <button class="primary" id="schedule-confirm">この時間に予約する</button>
-    <button class="cancel" id="schedule-cancel">キャンセル</button>
+    <button class="primary" id="schedule-confirm" data-i18n="s85">この時間に予約する</button>
+    <button class="cancel" id="schedule-cancel" data-i18n="s75">キャンセル</button>
   </div>
 </div>
 
@@ -2543,9 +2543,9 @@
 <div class="modal-scrim" id="schedule-list-modal" style="display:none;">
   <div class="modal-card admin-card">
     <div class="eyebrow">⏰ SCHEDULED</div>
-    <h2>予約中のメッセージ</h2>
+    <h2 data-i18n="s86">予約中のメッセージ</h2>
     <div class="admin-panel-body" id="schedule-list-body"></div>
-    <button class="cancel" id="schedule-list-close">閉じる</button>
+    <button class="cancel" id="schedule-list-close" data-i18n="s83">閉じる</button>
   </div>
 </div>
 
@@ -2553,12 +2553,12 @@
 <div class="modal-scrim" id="channel-rename-modal" style="display:none;">
   <div class="modal-card">
     <div class="eyebrow">RENAME CHANNEL</div>
-    <h2>チャンネル名を変更</h2>
-    <p id="channel-rename-desc">この変更を誰に適用しますか？</p>
-    <input type="text" id="channel-rename-input" maxlength="24" placeholder="新しいチャンネル名" autocomplete="off">
-    <button class="primary" id="channel-rename-personal">自分だけに適用(このブラウザのみ)</button>
-    <button class="primary" id="channel-rename-global" style="display:none; margin-top:8px; background:linear-gradient(150deg, var(--teal), #1c9c80);">全員に適用(管理者)</button>
-    <button class="cancel" id="channel-rename-cancel">キャンセル</button>
+    <h2 data-i18n="s87">チャンネル名を変更</h2>
+    <p id="channel-rename-desc" data-i18n="s88">この変更を誰に適用しますか？</p>
+    <input type="text" id="channel-rename-input" maxlength="24" placeholder="新しいチャンネル名" data-i18n-placeholder="s169" autocomplete="off">
+    <button class="primary" id="channel-rename-personal" data-i18n="s89">自分だけに適用(このブラウザのみ)</button>
+    <button class="primary" id="channel-rename-global" style="display:none; margin-top:8px; background:linear-gradient(150deg, var(--teal), #1c9c80);" data-i18n="s90">全員に適用(管理者)</button>
+    <button class="cancel" id="channel-rename-cancel" data-i18n="s75">キャンセル</button>
   </div>
 </div>
 
@@ -2571,21 +2571,21 @@
     <div class="profile-header-row">
       <div class="profile-card-avatar" id="profile-card-avatar">–</div>
       <div class="profile-card-actions" id="profile-card-actions">
-        <button type="button" class="mini-btn" id="profile-dm-btn">DMを送る</button>
-        <button type="button" class="mini-btn-outline" id="profile-add-friend-btn">フレンド申請</button>
-        <button type="button" class="mini-btn-outline" id="profile-edit-btn" style="display:none;">編集する</button>
+        <button type="button" class="mini-btn" id="profile-dm-btn" data-i18n="s91">DMを送る</button>
+        <button type="button" class="mini-btn-outline" id="profile-add-friend-btn" data-i18n="s92">フレンド申請</button>
+        <button type="button" class="mini-btn-outline" id="profile-edit-btn" style="display:none;" data-i18n="s93">編集する</button>
       </div>
     </div>
     <div class="profile-card-body">
       <div class="profile-card-name" id="profile-card-name">–</div>
       <div class="profile-card-username" id="profile-card-username"></div>
       <div class="profile-card-tags" id="profile-card-tags"></div>
-      <div class="profile-card-status"><span class="dot" id="profile-card-dot"></span><span id="profile-card-status-text">オフライン</span></div>
+      <div class="profile-card-status"><span class="dot" id="profile-card-dot"></span><span id="profile-card-status-text" data-i18n="s94">オフライン</span></div>
       <div class="profile-card-bio" id="profile-card-bio" style="display:none;"></div>
       <div class="profile-card-meta-row" id="profile-card-meta-row"></div>
       <div class="profile-card-uid-row" id="profile-card-uid-row" style="display:none;">
         <code id="profile-card-uid"></code>
-        <button type="button" class="mini-btn-outline" id="profile-card-uid-copy">コピー</button>
+        <button type="button" class="mini-btn-outline" id="profile-card-uid-copy" data-i18n="s67">コピー</button>
       </div>
     </div>
   </div>
@@ -2595,15 +2595,15 @@
 <div class="modal-scrim bottom-sheet" id="friends-modal" style="display:none;">
   <div class="modal-card admin-card">
     <div class="eyebrow">FRIENDS</div>
-    <h2>フレンド</h2>
+    <h2 data-i18n="s95">フレンド</h2>
     <div class="admin-panel-body" id="friends-panel-body"></div>
     <div class="admin-tabs" id="friends-tabs">
       <div class="tab-thumb"></div>
-      <button class="admin-tab active" data-ftab="list">友達</button>
-      <button class="admin-tab" data-ftab="requests">申請<span id="friend-tab-dot"></span></button>
-      <button class="admin-tab" data-ftab="add">追加</button>
+      <button class="admin-tab active" data-ftab="list" data-i18n="s96">友達</button>
+      <button class="admin-tab" data-ftab="requests"><span data-i18n="s176">申請</span><span id="friend-tab-dot"></span></button>
+      <button class="admin-tab" data-ftab="add" data-i18n="s97">追加</button>
     </div>
-    <button class="cancel" id="friends-close">閉じる</button>
+    <button class="cancel" id="friends-close" data-i18n="s83">閉じる</button>
   </div>
 </div>
 
@@ -2611,18 +2611,18 @@
 <div class="modal-scrim bottom-sheet" id="game-picker-modal" style="display:none;">
   <div class="modal-card admin-card">
     <div class="eyebrow">GAMES</div>
-    <h2>ゲーム</h2>
+    <h2 data-i18n="s98">ゲーム</h2>
     <ul id="game-picker-list" style="list-style:none; margin:4px 0 18px; padding:0; display:flex; flex-direction:column; gap:8px;">
       <li class="tet-player-row" id="game-picker-tetris" style="cursor:pointer;">
         <div class="tic-icon" style="font-size:22px;">🎮</div>
-        <span class="tet-pname">Block Drop<span id="game-picker-tetris-sub" style="display:block;font-weight:400;font-size:11px;color:var(--text-faint);">最大8人・SIGNALで招待できるバトルロイヤル</span></span>
+        <span class="tet-pname">Block Drop<span id="game-picker-tetris-sub" style="display:block;font-weight:400;font-size:11px;color:var(--text-faint);" data-i18n="s99">最大8人・SIGNALで招待できるバトルロイヤル</span></span>
       </li>
       <li class="tet-player-row" id="game-picker-trump" style="cursor:pointer;">
         <div class="tic-icon" style="font-size:22px;">🃏</div>
-        <span class="tet-pname">トランプ<span id="game-picker-trump-sub" style="display:block;font-weight:400;font-size:11px;color:var(--text-faint);">大富豪・ババ抜き・七並べ／2〜6人</span></span>
+        <span class="tet-pname">トランプ<span id="game-picker-trump-sub" style="display:block;font-weight:400;font-size:11px;color:var(--text-faint);" data-i18n="s100">大富豪・ババ抜き・七並べ／2〜6人</span></span>
       </li>
     </ul>
-    <button class="cancel" id="game-picker-close">閉じる</button>
+    <button class="cancel" id="game-picker-close" data-i18n="s83">閉じる</button>
   </div>
 </div>
 
@@ -2630,26 +2630,26 @@
 <div class="modal-scrim bottom-sheet" id="admin-modal" style="display:none;">
   <div class="modal-card admin-card">
     <div class="eyebrow">ADMIN</div>
-    <h2>管理者パネル</h2>
+    <h2 data-i18n="s15">管理者パネル</h2>
     <div class="admin-panel-body" id="admin-panel-body"></div>
     <div class="admin-tabs" id="admin-tabs">
       <div class="tab-thumb"></div>
-      <button class="admin-tab active" data-tab="requests">認証申請</button>
-      <button class="admin-tab" data-tab="users">ユーザー</button>
-      <button class="admin-tab" data-tab="channels">チャンネル</button>
-      <button class="admin-tab" data-tab="maintenance">メンテナンス</button>
+      <button class="admin-tab active" data-tab="requests" data-i18n="s101">認証申請</button>
+      <button class="admin-tab" data-tab="users" data-i18n="s102">ユーザー</button>
+      <button class="admin-tab" data-tab="channels" data-i18n="s16">チャンネル</button>
+      <button class="admin-tab" data-tab="maintenance" data-i18n="s103">メンテナンス</button>
     </div>
-    <button class="cancel" id="admin-close">閉じる</button>
+    <button class="cancel" id="admin-close" data-i18n="s83">閉じる</button>
   </div>
 </div>
 
 <div class="modal-scrim bottom-sheet" id="settings-modal" style="display:none;">
   <div class="modal-card settings-card">
     <div class="settings-header">
-      <button type="button" class="settings-back-btn" id="settings-back-btn" style="display:none;" aria-label="戻る">‹</button>
+      <button type="button" class="settings-back-btn" id="settings-back-btn" style="display:none;" aria-label="戻る" data-i18n-aria-label="s9">‹</button>
       <div class="settings-header-text">
         <div class="eyebrow" id="settings-eyebrow">SETTINGS</div>
-        <h2 id="settings-title">設定・カスタマイズ</h2>
+        <h2 id="settings-title" data-i18n="s104">設定・カスタマイズ</h2>
       </div>
     </div>
     <div class="settings-body" id="settings-body">
@@ -2657,44 +2657,49 @@
       <!-- ===== 項目一覧（トップ） ===== -->
       <div id="settings-menu-view">
         <div class="settings-menu-list">
+          <button type="button" class="settings-menu-item" id="lang-toggle-btn">
+            <span class="smi-icon">🌐</span>
+            <span class="smi-text"><span class="smi-label" data-i18n="s181">言語</span><span class="smi-sub" id="lang-toggle-sub">日本語</span></span>
+            <span class="smi-chev">›</span>
+          </button>
           <button type="button" class="settings-menu-item" data-panel="colors">
             <span class="smi-icon">🖌</span>
-            <span class="smi-text"><span class="smi-label">配色</span><span class="smi-sub">アクセントカラーなど12項目</span></span>
+            <span class="smi-text"><span class="smi-label" data-i18n="s105">配色</span><span class="smi-sub" data-i18n="s106">アクセントカラーなど12項目</span></span>
             <span class="smi-chev">›</span>
           </button>
           <button type="button" class="settings-menu-item" data-panel="scale">
             <span class="smi-icon">🔍</span>
-            <span class="smi-text"><span class="smi-label">UIの大きさ</span><span class="smi-sub" id="smi-scale-sub">100%</span></span>
+            <span class="smi-text"><span class="smi-label" data-i18n="s107">UIの大きさ</span><span class="smi-sub" id="smi-scale-sub">100%</span></span>
             <span class="smi-chev">›</span>
           </button>
           <button type="button" class="settings-menu-item" data-panel="opacity">
             <span class="smi-icon">👻</span>
-            <span class="smi-text"><span class="smi-label">透明度</span><span class="smi-sub" id="smi-opacity-sub">100%</span></span>
+            <span class="smi-text"><span class="smi-label" data-i18n="s108">透明度</span><span class="smi-sub" id="smi-opacity-sub">100%</span></span>
             <span class="smi-chev">›</span>
           </button>
           <button type="button" class="settings-menu-item" data-panel="radius">
             <span class="smi-icon">◻</span>
-            <span class="smi-text"><span class="smi-label">角丸の強さ</span><span class="smi-sub" id="smi-radius-sub">100%</span></span>
+            <span class="smi-text"><span class="smi-label" data-i18n="s109">角丸の強さ</span><span class="smi-sub" id="smi-radius-sub">100%</span></span>
             <span class="smi-chev">›</span>
           </button>
           <button type="button" class="settings-menu-item" data-panel="safearea">
             <span class="smi-icon">📱</span>
-            <span class="smi-text"><span class="smi-label">セーフエリア</span><span class="smi-sub" id="smi-safearea-sub">上0px・下0px</span></span>
+            <span class="smi-text"><span class="smi-label" data-i18n="s110">セーフエリア</span><span class="smi-sub" id="smi-safearea-sub" data-i18n="s111">上0px・下0px</span></span>
             <span class="smi-chev">›</span>
           </button>
           <button type="button" class="settings-menu-item" data-panel="behavior">
             <span class="smi-icon">🎬</span>
-            <span class="smi-text"><span class="smi-label">動作設定</span><span class="smi-sub" id="smi-behavior-sub">アニメーション・表示密度</span></span>
+            <span class="smi-text"><span class="smi-label" data-i18n="s112">動作設定</span><span class="smi-sub" id="smi-behavior-sub" data-i18n="s113">アニメーション・表示密度</span></span>
             <span class="smi-chev">›</span>
           </button>
           <button type="button" class="settings-menu-item" data-panel="presets">
             <span class="smi-icon">🎨</span>
-            <span class="smi-text"><span class="smi-label">プリセット</span><span class="smi-sub">まとめて配色を切り替え</span></span>
+            <span class="smi-text"><span class="smi-label" data-i18n="s114">プリセット</span><span class="smi-sub" data-i18n="s115">まとめて配色を切り替え</span></span>
             <span class="smi-chev">›</span>
           </button>
           <button type="button" class="settings-menu-item" data-panel="mods">
             <span class="smi-icon">🧩</span>
-            <span class="smi-text"><span class="smi-label">MOD</span><span class="smi-sub" id="smi-mods-sub">.sxgファイルを読み込み</span></span>
+            <span class="smi-text"><span class="smi-label">MOD</span><span class="smi-sub" id="smi-mods-sub" data-i18n="s116">.sxgファイルを読み込み</span></span>
             <span class="smi-chev">›</span>
           </button>
         </div>
@@ -2702,13 +2707,13 @@
 
       <!-- ===== 配色 ===== -->
       <div id="settings-panel-colors" class="settings-panel" style="display:none;">
-        <p class="settings-hint">変更したい項目を複数選んでから、下のカラーピッカーで色を選ぶとまとめて反映されます。行の丸いスウォッチをクリックすれば個別にも変更できます。</p>
+        <p class="settings-hint" data-i18n="s117">変更したい項目を複数選んでから、下のカラーピッカーで色を選ぶとまとめて反映されます。行の丸いスウォッチをクリックすれば個別にも変更できます。</p>
         <div id="color-target-list" class="color-target-list"></div>
         <div class="color-bulk-row">
           <input type="color" id="color-bulk-picker" value="#F0A93F">
-          <span id="color-bulk-label">0件選択中</span>
-          <button type="button" class="mini-btn-outline" id="color-select-all">全選択</button>
-          <button type="button" class="mini-btn-outline" id="color-select-none">解除</button>
+          <span id="color-bulk-label" data-i18n="s118">0件選択中</span>
+          <button type="button" class="mini-btn-outline" id="color-select-all" data-i18n="s119">全選択</button>
+          <button type="button" class="mini-btn-outline" id="color-select-none" data-i18n="s120">解除</button>
         </div>
       </div>
 
@@ -2745,16 +2750,16 @@
       <!-- ===== セーフエリア ===== -->
       <div id="settings-panel-safearea" class="settings-panel" style="display:none;">
         <div class="settings-group">
-          <div class="settings-group-title" style="margin:0 0 4px;">上側の余白</div>
-          <p class="settings-hint">ノッチ・パンチホールカメラなどでヘッダーが見切れる場合に余白を追加します。</p>
+          <div class="settings-group-title" style="margin:0 0 4px;" data-i18n="s121">上側の余白</div>
+          <p class="settings-hint" data-i18n="s122">ノッチ・パンチホールカメラなどでヘッダーが見切れる場合に余白を追加します。</p>
           <div class="settings-slider-row">
             <input type="range" id="safe-top-slider" min="0" max="60" step="1" value="0">
             <span class="settings-slider-val" id="safe-top-val">0px</span>
           </div>
         </div>
         <div class="settings-group">
-          <div class="settings-group-title" style="margin:0 0 4px;">下側の余白</div>
-          <p class="settings-hint">ホームバー・ナビゲーションバーと入力欄が干渉する場合に余白を追加します。</p>
+          <div class="settings-group-title" style="margin:0 0 4px;" data-i18n="s123">下側の余白</div>
+          <p class="settings-hint" data-i18n="s124">ホームバー・ナビゲーションバーと入力欄が干渉する場合に余白を追加します。</p>
           <div class="settings-slider-row">
             <input type="range" id="safe-bottom-slider" min="0" max="60" step="1" value="0">
             <span class="settings-slider-val" id="safe-bottom-val">0px</span>
@@ -2767,15 +2772,15 @@
         <div class="settings-group">
           <div class="settings-toggle-row">
             <div>
-              <div class="settings-group-title" style="margin:0;">🎬 アニメーションを控えめに</div>
-              <p class="settings-hint" style="margin:2px 0 0;">演出・揺れ・弾むアニメーションを減らします</p>
+              <div class="settings-group-title" style="margin:0;" data-i18n="s125">🎬 アニメーションを控えめに</div>
+              <p class="settings-hint" style="margin:2px 0 0;" data-i18n="s126">演出・揺れ・弾むアニメーションを減らします</p>
             </div>
             <label class="settings-switch"><input type="checkbox" id="reduce-motion-toggle"><span></span></label>
           </div>
           <div class="settings-toggle-row">
             <div>
-              <div class="settings-group-title" style="margin:0;">📦 コンパクト表示</div>
-              <p class="settings-hint" style="margin:2px 0 0;">メッセージや一覧の余白を詰めて多く表示します</p>
+              <div class="settings-group-title" style="margin:0;" data-i18n="s127">📦 コンパクト表示</div>
+              <p class="settings-hint" style="margin:2px 0 0;" data-i18n="s128">メッセージや一覧の余白を詰めて多く表示します</p>
             </div>
             <label class="settings-switch"><input type="checkbox" id="compact-toggle"><span></span></label>
           </div>
@@ -2787,10 +2792,10 @@
         <div class="settings-group">
           <div class="preset-row" id="preset-row">
             <div class="tab-thumb"></div>
-            <button type="button" class="preset-chip" data-preset="default">標準</button>
-            <button type="button" class="preset-chip" data-preset="mono">モノクローム</button>
-            <button type="button" class="preset-chip" data-preset="neon">ネオン</button>
-            <button type="button" class="preset-chip" data-preset="black">ブラック</button>
+            <button type="button" class="preset-chip" data-preset="default" data-i18n="s129">標準</button>
+            <button type="button" class="preset-chip" data-preset="mono" data-i18n="s130">モノクローム</button>
+            <button type="button" class="preset-chip" data-preset="neon" data-i18n="s131">ネオン</button>
+            <button type="button" class="preset-chip" data-preset="black" data-i18n="s132">ブラック</button>
           </div>
         </div>
       </div>
@@ -2799,43 +2804,43 @@
       <div id="settings-panel-mods" class="settings-panel" style="display:none;">
         <div class="settings-group">
           <p class="settings-hint">
-            .sxg ファイル（中身は mod.js を含むzip）を読み込むと、書かれているコードがこのSIGNAL上でそのまま実行されます。
-            見た目・動作をほぼ何でも上書きできる代わり、信頼できる作者のMOD以外は入れないでください。
+<span data-i18n="s177">.sxg ファイル（中身は mod.js を含むzip）を読み込むと、書かれているコードがこのSIGNAL上でそのまま実行されます。
+            見た目・動作をほぼ何でも上書きできる代わり、信頼できる作者のMOD以外は入れないでください。</span>
           </p>
           <input type="file" id="mod-file-input" accept=".sxg" style="display:none;">
-          <button type="button" class="mini-btn" id="mod-add-btn" style="width:100%;">＋ MODファイルを選択（.sxg）</button>
+          <button type="button" class="mini-btn" id="mod-add-btn" style="width:100%;" data-i18n="s134">＋ MODファイルを選択（.sxg）</button>
         </div>
         <div class="settings-group">
           <div class="settings-toggle-row">
             <div>
-              <div class="settings-group-title" style="margin:0;">🛟 セーフモード</div>
-              <p class="settings-hint" style="margin:2px 0 0;">ONの間はどのMODも実行されません。JSがバグった時はこれを付けて再読み込み</p>
+              <div class="settings-group-title" style="margin:0;" data-i18n="s135">🛟 セーフモード</div>
+              <p class="settings-hint" style="margin:2px 0 0;" data-i18n="s136">ONの間はどのMODも実行されません。JSがバグった時はこれを付けて再読み込み</p>
             </div>
             <label class="settings-switch"><input type="checkbox" id="mod-safemode-toggle"><span></span></label>
           </div>
           <p class="settings-hint" style="margin:6px 0 0;">
-            画面が壊れてこのトグルまで辿り着けない場合は、アドレスの末尾に <code>?safemode=1</code> を付けて開いてください。
+            <span data-i18n-html="s178">画面が壊れてこのトグルまで辿り着けない場合は、アドレスの末尾に <code>?safemode=1</code> を付けて開いてください。</span>
           </p>
         </div>
         <div class="settings-group">
-          <div class="settings-group-title">導入済みMOD</div>
+          <div class="settings-group-title" data-i18n="s137">導入済みMOD</div>
           <div id="mod-list"></div>
-          <p class="settings-hint" id="mod-empty-hint" style="display:none;">まだMODは読み込まれていません</p>
+          <p class="settings-hint" id="mod-empty-hint" style="display:none;" data-i18n="s138">まだMODは読み込まれていません</p>
         </div>
       </div>
 
     </div>
-    <button type="button" class="mini-btn-danger" id="settings-reset" style="width:100%; margin-bottom:8px;">すべてリセット</button>
-    <button type="button" class="mini-btn-danger" id="settings-logout" style="width:100%; margin-bottom:8px;">ログアウト</button>
-    <button class="cancel" id="settings-close">閉じる</button>
+    <button type="button" class="mini-btn-danger" id="settings-reset" style="width:100%; margin-bottom:8px;" data-i18n="s139">すべてリセット</button>
+    <button type="button" class="mini-btn-danger" id="settings-logout" style="width:100%; margin-bottom:8px;" data-i18n="s140">ログアウト</button>
+    <button class="cancel" id="settings-close" data-i18n="s83">閉じる</button>
   </div>
 </div>
 
 
 <!-- ===================== 設定未完了 / エラーの警告 ===================== -->
 <div id="config-warning" style="display:none;">
-  <b>⚠ Firebase未設定</b><br>
-  このファイル内の <b>firebaseConfig</b> がプレースホルダのままです。
+  <b data-i18n="s141">⚠ Firebase未設定</b><br>
+  <span data-i18n-html="s179">このファイル内の <b>firebaseConfig</b> がプレースホルダのままです。</span>
 </div>
 
 <!-- 絵文字を機種のフォントに依存させず、常に同じ見た目(Twemoji)で描画するためのライブラリ -->
@@ -2858,6 +2863,69 @@ import {
   EmailAuthProvider, linkWithCredential, signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+/* ===================== 多言語対応 (i18n) / Multi-language support =====================
+   キーごとに ja/en を持つ辞書。data-i18n / data-i18n-html / data-i18n-placeholder /
+   data-i18n-title / data-i18n-aria-label / data-i18n-content 属性を持つ要素へ適用する。
+   JS側の動的テキストは t('キー') を通して取得する。 */
+const I18N_TRANSLATIONS = {"s1": {"ja": "SIGNALへようこそ", "en": "Welcome to SIGNAL"}, "s2": {"ja": "はじめての方は新規登録、すでにアカウントをお持ちの方はログインしてください。", "en": "New here? Sign up. Already have an account? Log in."}, "s3": {"ja": "新規登録", "en": "Sign Up"}, "s4": {"ja": "UIDでログイン", "en": "Log in with Email"}, "s5": {"ja": "メールアドレス", "en": "Email address"}, "s6": {"ja": "パスワード", "en": "Password"}, "s7": {"ja": "メールアドレスまたはパスワードが違います", "en": "Incorrect email or password"}, "s8": {"ja": "ログイン", "en": "Log In"}, "s9": {"ja": "戻る", "en": "Back"}, "s10": {"ja": "ただいまメンテナンス中です", "en": "Under Maintenance"}, "s11": {"ja": "現在SIGNALはメンテナンスのため一時的にご利用いただけません。", "en": "SIGNAL is temporarily unavailable for maintenance."}, "s12": {"ja": "金認証バッジをお持ちの方のみログインできます。", "en": "Only accounts with the gold verified badge can log in."}, "s13": {"ja": "しばらくしてから再度アクセスしてください", "en": "Please try again later."}, "s14": {"ja": "送信可能", "en": "Available"}, "s15": {"ja": "管理者パネル", "en": "Admin Panel"}, "s16": {"ja": "チャンネル", "en": "Channels"}, "s17": {"ja": "自分だけ", "en": "Just me"}, "s18": {"ja": "全体(管理者)", "en": "Everyone (Admin)"}, "s19": {"ja": "読み込み中…", "en": "Loading…"}, "s20": {"ja": "接続中", "en": "Connecting"}, "s21": {"ja": "画像を送信", "en": "Send image"}, "s22": {"ja": "ファイルを送信", "en": "Send file"}, "s23": {"ja": "アンケートを作成", "en": "Create poll"}, "s24": {"ja": "送信予約", "en": "Schedule"}, "s25": {"ja": "最後まで生き残った1人が勝利。SIGNALのDMで友達を招待しよう。", "en": "Last one standing wins. Invite friends via SIGNAL DM."}, "s26": {"ja": "速度", "en": "Speed"}, "s27": {"ja": "スロー", "en": "Slow"}, "s28": {"ja": "ノーマル", "en": "Normal"}, "s29": {"ja": "ハイスピード", "en": "Fast"}, "s30": {"ja": "ミノ", "en": "Pieces"}, "s31": {"ja": "フル7種", "en": "All 7 pieces"}, "s32": {"ja": "S・Zなし", "en": "No S/Z"}, "s33": {"ja": "Oだけ祭り", "en": "O-piece only"}, "s34": {"ja": "📨 SIGNALで招待", "en": "📨 Invite via SIGNAL"}, "s35": {"ja": "対戦開始", "en": "Start Match"}, "s36": {"ja": "退出", "en": "Leave"}, "s37": {"ja": "友達を招待", "en": "Invite Friends"}, "s38": {"ja": "送るとDMに参加ボタン付きの招待が届きます。", "en": "Sending will deliver a join invite to their DMs."}, "s39": {"ja": "フレンドがいません。先にフレンドを追加してください。", "en": "You have no friends yet. Add some friends first."}, "s40": {"ja": "招待を送る", "en": "Send Invite"}, "s41": {"ja": "0 ライン", "en": "0 lines"}, "s42": {"ja": "観戦中", "en": "Spectating"}, "s43": {"ja": "⤓ ハードドロップ", "en": "⤓ Hard Drop"}, "s44": {"ja": "試合終了", "en": "Match Over"}, "s45": {"ja": "🔄 もう一度対戦", "en": "🔄 Rematch"}, "s46": {"ja": "🃏 トランプ", "en": "🃏 Cards"}, "s47": {"ja": "大富豪・ババ抜き・七並べで対戦しよう。SIGNALのDMで友達を招待できます。", "en": "Play Daifugo, Old Maid, or Sevens. Invite friends via SIGNAL DM."}, "s48": {"ja": "遊ぶゲーム", "en": "Choose a game"}, "s49": {"ja": "大富豪", "en": "Daifugo"}, "s50": {"ja": "ババ抜き", "en": "Old Maid"}, "s51": {"ja": "七並べ", "en": "Sevens"}, "s52": {"ja": "周波数に接続", "en": "Tune In"}, "s53": {"ja": "チャットで表示される名前とアイコンを設定してください。あとから変更できます。", "en": "Set the name and icon shown in chat. You can change these later."}, "s54": {"ja": "表示名(重複OK・チャットに表示される名前)", "en": "Display name (duplicates OK — shown in chat)"}, "s55": {"ja": "保存に失敗しました", "en": "Failed to save"}, "s56": {"ja": "ユーザー名(@から始まる・他の人と重複不可・メンションに使用)", "en": "Username (starts with @, must be unique, used for mentions)"}, "s57": {"ja": "半角英数字とアンダースコアのみ・3〜20文字", "en": "Letters, numbers, and underscores only · 3–20 characters"}, "s58": {"ja": "そのユーザー名はすでに使われています", "en": "That username is already taken"}, "s59": {"ja": "画像アイコン(任意・自動で圧縮されます)", "en": "Icon image (optional, compressed automatically)"}, "s60": {"ja": "📷 画像を選択", "en": "📷 Choose Image"}, "s61": {"ja": "画像を削除", "en": "Remove Image"}, "s62": {"ja": "絵文字アイコン(画像が無いときに使われます)", "en": "Emoji icon (used when no image is set)"}, "s63": {"ja": "自己紹介(任意)", "en": "Bio (optional)"}, "s64": {"ja": "リンク(任意・X・ウェブサイトなど)", "en": "Link (optional — X, website, etc.)"}, "s65": {"ja": "認証バッジ", "en": "Verified badge"}, "s66": {"ja": "UID(管理者設定に使います)", "en": "UID (used for admin settings)"}, "s67": {"ja": "コピー", "en": "Copy"}, "s68": {"ja": "アカウント保護(任意・推奨)", "en": "Account protection (optional, recommended)"}, "s69": {"ja": "入力内容を確認してください", "en": "Please check your input"}, "s70": {"ja": "設定しておくと、機種変更やキャッシュ削除後もこのアカウントに戻れます。", "en": "Set this up to recover this account after switching devices or clearing cache."}, "s71": {"ja": "チャットを開始", "en": "Start Chatting"}, "s72": {"ja": "チャンネルを作成", "en": "Create Channel"}, "s73": {"ja": "新しい話題用のチャンネルを作ります。", "en": "Create a channel for a new topic."}, "s74": {"ja": "作成する", "en": "Create"}, "s75": {"ja": "キャンセル", "en": "Cancel"}, "s76": {"ja": "選択肢の数", "en": "Number of options"}, "s77": {"ja": "2個", "en": "2 options"}, "s78": {"ja": "3個", "en": "3 options"}, "s79": {"ja": "4個", "en": "4 options"}, "s80": {"ja": "5個", "en": "5 options"}, "s81": {"ja": "6個", "en": "6 options"}, "s82": {"ja": "自由記述での回答も許可する", "en": "Allow free-text answers"}, "s83": {"ja": "閉じる", "en": "Close"}, "s84": {"ja": "送信する日時を指定", "en": "Choose send date & time"}, "s85": {"ja": "この時間に予約する", "en": "Schedule for this time"}, "s86": {"ja": "予約中のメッセージ", "en": "Scheduled Messages"}, "s87": {"ja": "チャンネル名を変更", "en": "Rename Channel"}, "s88": {"ja": "この変更を誰に適用しますか？", "en": "Who should this change apply to?"}, "s89": {"ja": "自分だけに適用(このブラウザのみ)", "en": "Just me (this browser only)"}, "s90": {"ja": "全員に適用(管理者)", "en": "Everyone (Admin)"}, "s91": {"ja": "DMを送る", "en": "Send DM"}, "s92": {"ja": "フレンド申請", "en": "Add Friend"}, "s93": {"ja": "編集する", "en": "Edit"}, "s94": {"ja": "オフライン", "en": "Offline"}, "s95": {"ja": "フレンド", "en": "Friends"}, "s96": {"ja": "友達", "en": "Friends"}, "s97": {"ja": "追加", "en": "Add"}, "s98": {"ja": "ゲーム", "en": "Games"}, "s99": {"ja": "最大8人・SIGNALで招待できるバトルロイヤル", "en": "Up to 8 players · Invite via SIGNAL"}, "s100": {"ja": "大富豪・ババ抜き・七並べ／2〜6人", "en": "Daifugo, Old Maid, Sevens · 2–6 players"}, "s101": {"ja": "認証申請", "en": "Verification"}, "s102": {"ja": "ユーザー", "en": "Users"}, "s103": {"ja": "メンテナンス", "en": "Maintenance"}, "s104": {"ja": "設定・カスタマイズ", "en": "Settings & Customization"}, "s105": {"ja": "配色", "en": "Colors"}, "s106": {"ja": "アクセントカラーなど12項目", "en": "Accent color and 12 other items"}, "s107": {"ja": "UIの大きさ", "en": "UI Scale"}, "s108": {"ja": "透明度", "en": "Opacity"}, "s109": {"ja": "角丸の強さ", "en": "Corner Roundness"}, "s110": {"ja": "セーフエリア", "en": "Safe Area"}, "s111": {"ja": "上0px・下0px", "en": "Top 0px · Bottom 0px"}, "s112": {"ja": "動作設定", "en": "Behavior"}, "s113": {"ja": "アニメーション・表示密度", "en": "Animations & density"}, "s114": {"ja": "プリセット", "en": "Presets"}, "s115": {"ja": "まとめて配色を切り替え", "en": "Switch the whole color scheme at once"}, "s116": {"ja": ".sxgファイルを読み込み", "en": "Load .sxg files"}, "s117": {"ja": "変更したい項目を複数選んでから、下のカラーピッカーで色を選ぶとまとめて反映されます。行の丸いスウォッチをクリックすれば個別にも変更できます。", "en": "Select multiple items, then pick a color below to apply it to all of them at once. Click a row's round swatch to change it individually."}, "s118": {"ja": "0件選択中", "en": "0 selected"}, "s119": {"ja": "全選択", "en": "Select All"}, "s120": {"ja": "解除", "en": "Clear"}, "s121": {"ja": "上側の余白", "en": "Top margin"}, "s122": {"ja": "ノッチ・パンチホールカメラなどでヘッダーが見切れる場合に余白を追加します。", "en": "Adds margin when a notch or punch-hole camera cuts off the header."}, "s123": {"ja": "下側の余白", "en": "Bottom margin"}, "s124": {"ja": "ホームバー・ナビゲーションバーと入力欄が干渉する場合に余白を追加します。", "en": "Adds margin when the home bar or nav bar overlaps the input field."}, "s125": {"ja": "🎬 アニメーションを控えめに", "en": "🎬 Reduce Animations"}, "s126": {"ja": "演出・揺れ・弾むアニメーションを減らします", "en": "Reduces effects, shaking, and bouncy animations"}, "s127": {"ja": "📦 コンパクト表示", "en": "📦 Compact View"}, "s128": {"ja": "メッセージや一覧の余白を詰めて多く表示します", "en": "Tightens spacing to show more messages and list items"}, "s129": {"ja": "標準", "en": "Standard"}, "s130": {"ja": "モノクローム", "en": "Monochrome"}, "s131": {"ja": "ネオン", "en": "Neon"}, "s132": {"ja": "ブラック", "en": "Black"}, "s134": {"ja": "＋ MODファイルを選択（.sxg）", "en": "＋ Choose MOD File (.sxg)"}, "s135": {"ja": "🛟 セーフモード", "en": "🛟 Safe Mode"}, "s136": {"ja": "ONの間はどのMODも実行されません。JSがバグった時はこれを付けて再読み込み", "en": "No MODs run while this is on. Enable it and reload if a script breaks."}, "s137": {"ja": "導入済みMOD", "en": "Installed MODs"}, "s138": {"ja": "まだMODは読み込まれていません", "en": "No MODs loaded yet"}, "s139": {"ja": "すべてリセット", "en": "Reset Everything"}, "s140": {"ja": "ログアウト", "en": "Log Out"}, "s141": {"ja": "⚠ Firebase未設定", "en": "⚠ Firebase Not Configured"}, "s142": {"ja": "登録したメールアドレス", "en": "Your registered email"}, "s143": {"ja": "設定", "en": "Settings"}, "s144": {"ja": "プロフィールを編集", "en": "Edit Profile"}, "s145": {"ja": "並び替え・名前変更", "en": "Reorder & rename"}, "s146": {"ja": "チャンネルを追加", "en": "Add channel"}, "s147": {"ja": "チャット内を検索", "en": "Search this chat"}, "s148": {"ja": "キーワード", "en": "Keyword"}, "s149": {"ja": "画像を取り消す", "en": "Remove image"}, "s150": {"ja": "ファイルを取り消す", "en": "Remove file"}, "s151": {"ja": "返信を取り消す", "en": "Cancel reply"}, "s152": {"ja": "送信予約(日時指定)", "en": "Schedule send (pick date & time)"}, "s153": {"ja": "その他の操作", "en": "More actions"}, "s154": {"ja": "メッセージを入力…(@でメンション)", "en": "Type a message… (@ to mention)"}, "s155": {"ja": "送信", "en": "Send"}, "s156": {"ja": "ホールド", "en": "Hold"}, "s157": {"ja": "左回転", "en": "Rotate left"}, "s158": {"ja": "右回転", "en": "Rotate right"}, "s159": {"ja": "左へ", "en": "Move left"}, "s160": {"ja": "ソフトドロップ", "en": "Soft drop"}, "s161": {"ja": "右へ", "en": "Move right"}, "s162": {"ja": "ハードドロップ", "en": "Hard drop"}, "s163": {"ja": "太郎", "en": "Alex"}, "s164": {"ja": "自由入力も可(例: 🐧)", "en": "You can also type your own (e.g. 🐧)"}, "s165": {"ja": "よろしくお願いします！", "en": "Nice to meet you!"}, "s166": {"ja": "パスワード(6文字以上)", "en": "Password (6+ characters)"}, "s167": {"ja": "例: 雑談", "en": "e.g. General"}, "s168": {"ja": "質問を入力…", "en": "Type your question…"}, "s169": {"ja": "新しいチャンネル名", "en": "New channel name"}, "s170": {"ja": "フレンド", "en": "Friends"}, "s171": {"ja": "🎮 ゲーム", "en": "🎮 Games"}, "s172": {"ja": "オンライン —", "en": "Online —"}, "s173": {"ja": "人", "en": ""}, "s174": {"ja": "まだメッセージがありません。<br>最初の一言を送信してみましょう。", "en": "No messages yet.<br>Send the first one!", "html": true}, "s175": {"ja": "生存", "en": "Alive"}, "s176": {"ja": "申請", "en": "Requests"}, "s177": {"ja": ".sxg ファイル（中身は mod.js を含むzip）を読み込むと、書かれているコードがこのSIGNAL上でそのまま実行されます。\n            見た目・動作をほぼ何でも上書きできる代わり、信頼できる作者のMOD以外は入れないでください。", "en": "Loading a .sxg file (a zip containing mod.js) will run its code directly inside this SIGNAL instance.\n            It can override nearly anything about the look and behavior — only load MODs from authors you trust."}, "s178": {"ja": "画面が壊れてこのトグルまで辿り着けない場合は、アドレスの末尾に <code>?safemode=1</code> を付けて開いてください。", "en": "If the screen breaks before you can reach this toggle, open the app with <code>?safemode=1</code> added to the URL.", "html": true}, "s179": {"ja": "このファイル内の <b>firebaseConfig</b> がプレースホルダのままです。", "en": "The <b>firebaseConfig</b> in this file is still a placeholder.", "html": true}, "s180": {"ja": "リアルタイム・グループチャット", "en": "Real-time group chat"}, "s181": {"ja": "言語", "en": "Language"}, "t1": {"ja": "✕ 閉じる", "en": "✕ Close"}, "t2": {"ja": "未接続", "en": "Disconnected"}, "t3": {"ja": "認証準備中…", "en": "Preparing verification…"}, "t4": {"ja": "初期化中", "en": "Initializing"}, "t5": {"ja": "該当ユーザーがいません", "en": "No matching users"}, "t6": {"ja": "選択肢 {n}", "en": "Option {n}"}, "t7": {"ja": "アカウントが利用停止されているため投稿できません", "en": "Your account is suspended and cannot post."}, "t8": {"ja": "このチャンネルは金認証バッジを持つユーザーのみ投稿できます", "en": "Only users with the gold verified badge can post in this channel."}, "t9": {"ja": "「{q}」に一致するメッセージが見つかりません", "en": "No messages match \"{q}\""}, "t10": {"ja": "画像ファイルを選択してください", "en": "Please choose an image file"}, "t11": {"ja": "画像の読み込みに失敗しました", "en": "Failed to load the image"}, "t12": {"ja": "ファイルサイズが大きすぎます（上限 {max}）", "en": "File is too large (limit {max})"}, "t13": {"ja": "ファイルの読み込みに失敗しました", "en": "Failed to load the file"}, "t14": {"ja": "未設定", "en": "Not set"}, "t15": {"ja": "画像の圧縮に失敗しました。\nJPEG / PNG / WebP などの一般的な形式を試してください。\n（プレビューは出ていますが、このまま保存すると画像は付きません）", "en": "Failed to compress the image.\nPlease try a common format like JPEG, PNG, or WebP.\n(The preview is showing, but the image will not be attached if you save as-is.)"}, "t16": {"ja": "コピー済み", "en": "Copied"}, "t17": {"ja": "ゴールド認証アカウントです", "en": "This is a gold-verified account"}, "t18": {"ja": "認証済みアカウントです", "en": "This account is verified"}, "t19": {"ja": "審査中です…", "en": "Under review…"}, "t20": {"ja": "前回の申請は却下されました", "en": "Your last request was rejected"}, "t21": {"ja": "✓ 再度申請する", "en": "✓ Apply Again"}, "t22": {"ja": "✓ 認証を申請する", "en": "✓ Apply for Verification"}, "t23": {"ja": "保存する", "en": "Save"}, "t24": {"ja": "認証中…", "en": "Verifying…"}, "t25": {"ja": "✓ 保護済み({email})。別の端末でもこのメールでログインできます。", "en": "✓ Protected ({email}). You can log in with this email from another device too."}, "t26": {"ja": "未設定です。メールアドレスとパスワードを登録しておくと安心です。", "en": "Not set up. Registering an email and password gives you peace of mind."}, "t27": {"ja": "ユーザー名は半角英数字とアンダースコアのみ・3〜20文字で入力してください", "en": "Username must be letters, numbers, and underscores only, 3–20 characters"}, "t28": {"ja": "メールアドレスと6文字以上のパスワードを両方入力してください", "en": "Please enter both an email and a password of at least 6 characters"}, "t29": {"ja": "確認中…", "en": "Checking…"}, "t30": {"ja": "保存に失敗しました。もう一度お試しください", "en": "Failed to save. Please try again."}, "t31": {"ja": "アカウントが利用停止されています", "en": "Your account is suspended"}, "t32": {"ja": "メッセージを入力…", "en": "Type a message…"}, "t33": {"ja": "並び替えに失敗しました", "en": "Failed to reorder"}, "t34": {"ja": "変更に失敗しました", "en": "Failed to update"}, "t35": {"ja": "まだフレンドがいません。「🤝 フレンド」から追加できます。", "en": "No friends yet. Add some from \"🤝 Friends\"."}, "t36": {"ja": "既読: ", "en": "Read: "}, "t37": {"ja": "このメッセージを削除しますか？", "en": "Delete this message?"}, "t38": {"ja": "削除に失敗しました", "en": "Failed to delete"}, "t39": {"ja": "予約中のメッセージはありません。", "en": "No scheduled messages."}, "t40": {"ja": "予約の取り消しに失敗しました", "en": "Failed to cancel the schedule"}, "t41": {"ja": "先に送信するメッセージを入力してください", "en": "Please enter a message to send first"}, "t42": {"ja": "「{text}」を指定した時間に送信します。", "en": "Will send \"{text}\" at the chosen time."}, "t43": {"ja": "画像を指定した時間に送信します。", "en": "Will send the image at the chosen time."}, "t44": {"ja": "ファイルを指定した時間に送信します。", "en": "Will send the file at the chosen time."}, "t45": {"ja": "日時を指定してください", "en": "Please choose a date and time"}, "t46": {"ja": "未来の日時を指定してください", "en": "Please choose a time in the future"}, "t47": {"ja": "予約の作成に失敗しました", "en": "Failed to create the schedule"}, "t48": {"ja": "✓ 申請済み", "en": "✓ Request Sent"}, "t49": {"ja": "すでにフレンドです", "en": "Already friends"}, "t50": {"ja": "すでに申請済みです", "en": "Request already sent"}, "t51": {"ja": "申請の送信に失敗しました", "en": "Failed to send the request"}, "t52": {"ja": "オンライン", "en": "Online"}, "t53": {"ja": "承認に失敗しました", "en": "Failed to approve"}, "t54": {"ja": "フレンドを解除しますか？", "en": "Remove this friend?"}, "t55": {"ja": "まだフレンドがいません", "en": "No friends yet"}, "t56": {"ja": "保留中の申請はありません", "en": "No pending requests"}, "t57": {"ja": "(無名)", "en": "(unnamed)"}, "t58": {"ja": "解除", "en": "Remove"}, "t59": {"ja": "承認", "en": "Accept"}, "t60": {"ja": "却下", "en": "Reject"}, "t61": {"ja": "名前で検索…", "en": "Search by name…"}, "t62": {"ja": "見つかりませんでした", "en": "No results found"}, "t63": {"ja": "申請", "en": "Add"}, "t64": {"ja": "フレンド済み", "en": "Already friends"}, "t65": {"ja": "申請済み", "en": "Request sent"}, "t66": {"ja": "申請が届いています", "en": "Request received"}, "t67": {"ja": "カスタマイズ設定をすべてリセットしますか？", "en": "Reset all customization settings?"}, "t68": {"ja": "ログアウトしますか？このブラウザに保存されているアカウント情報を消去し、ログイン選択画面に戻ります。", "en": "Log out? This will clear the account info saved in this browser and return you to the login screen."}, "t69": {"ja": "エラー", "en": "Error"}, "t70": {"ja": "メールアドレスとパスワードを入力してください", "en": "Please enter your email and password"}, "t71": {"ja": "準備中です。少し待ってからもう一度お試しください", "en": "Still getting ready. Please wait a moment and try again."}, "t72": {"ja": "そのメールアドレスは登録されていません", "en": "That email address is not registered"}, "t73": {"ja": "パスワードが違います", "en": "Incorrect password"}, "t74": {"ja": "試行回数が多すぎます。少し時間をおいてお試しください", "en": "Too many attempts. Please wait a while and try again."}, "t75": {"ja": "ログインに失敗しました。もう一度お試しください", "en": "Failed to log in. Please try again."}, "t76": {"ja": "脱落しました（観戦中）", "en": "You were eliminated (spectating)"}, "t77": {"ja": "{n} ライン", "en": "{n} lines"}, "t78": {"ja": "観戦中の相手がいません", "en": "No one to spectate"}, "t79": {"ja": "{name} を観戦中", "en": "Spectating {name}"}, "t80": {"ja": "設定: {speed} / {pieces}", "en": "Settings: {speed} / {pieces}"}, "t81": {"ja": "ROUND OVER ／ {rank}位", "en": "ROUND OVER ／ Rank {rank}"}, "t82": {"ja": "🏆 勝利！", "en": "🏆 Victory!"}, "t83": {"ja": "あなたの順位: {rank} / {total}", "en": "Your rank: {rank} / {total}"}, "t84": {"ja": "接続準備中です。少し待ってから再度お試しください", "en": "Still connecting. Please wait a moment and try again."}, "t85": {"ja": "ルーム作成に失敗しました", "en": "Failed to create the room"}, "t86": {"ja": "このルームは見つかりません（終了した可能性があります）", "en": "This room could not be found (it may have ended)."}, "t87": {"ja": "この対戦はすでに開始または終了しています", "en": "This match has already started or ended."}, "t88": {"ja": "参加に失敗しました", "en": "Failed to join"}, "t89": {"ja": "対戦中です。退出すると脱落扱いになります。よろしいですか？", "en": "A match is in progress. Leaving will count as elimination. Continue?"}, "t90": {"ja": "ゲーム: {game}", "en": "Game: {game}"}, "t91": {"ja": "2人以上集まってから開始してください", "en": "Please wait for at least 2 players before starting"}, "t92": {"ja": "参加人数が多すぎます(最大6人)", "en": "Too many players (max 6)"}, "t93": {"ja": "あなたの番です", "en": "Your turn"}, "t94": {"ja": "{name}さんの番", "en": "{name}'s turn"}, "t95": {"ja": "あがり済みです。他のプレイヤーの対戦を見守りましょう。", "en": "You have finished. Watch how the other players do."}, "t96": {"ja": "{name}さんの番です。順番をお待ちください。", "en": "It's {name}'s turn. Please wait for your turn."}, "t97": {"ja": "ホストのみが再戦を開始できます", "en": "Only the host can start a rematch"}, "t98": {"ja": "MOD『{name}』でエラー: {err}", "en": "Error in MOD \"{name}\": {err}"}, "t99": {"ja": "{n}件導入中", "en": "{n} installed"}, "t100": {"ja": "MODの読み込みに失敗しました: {err}", "en": "Failed to load the MOD: {err}"}, "t101": {"ja": "MOD『{name}』を削除しますか？", "en": "Delete the MOD \"{name}\"?"}, "t102": {"ja": "🛟 セーフモード中：MODは実行されていません", "en": "🛟 Safe Mode is on: no MODs are running"}};
+const I18N_STORAGE_KEY = 'signal_lang';
+function i18nDetectDefaultLang(){
+  try {
+    const saved = localStorage.getItem(I18N_STORAGE_KEY);
+    if (saved === 'ja' || saved === 'en') return saved;
+  } catch(_) {}
+  try {
+    const nav = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    if (nav && !nav.startsWith('ja')) return 'en';
+  } catch(_) {}
+  return 'ja';
+}
+let currentLang = i18nDetectDefaultLang();
+function t(key, params){
+  const entry = I18N_TRANSLATIONS[key];
+  let val;
+  if (!entry) val = key;
+  else if (currentLang === 'en' && entry.en) val = entry.en;
+  else if (entry.ja !== undefined) val = entry.ja;
+  else val = key;
+  if (params && typeof params === 'object') {
+    val = val.replace(/\{(\w+)\}/g, (m, k) => (params[k] !== undefined ? params[k] : m));
+  }
+  return val;
+}
+function applyI18n(root){
+  root = root || document;
+  root.querySelectorAll('[data-i18n]').forEach(el => {
+    const val = t(el.getAttribute('data-i18n'));
+    if (val !== undefined && val !== null) el.textContent = val;
+  });
+  root.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const val = t(el.getAttribute('data-i18n-html'));
+    if (val !== undefined && val !== null) el.innerHTML = val;
+  });
+  ['placeholder','title','aria-label','content'].forEach(attr => {
+    root.querySelectorAll('[data-i18n-' + attr + ']').forEach(el => {
+      const val = t(el.getAttribute('data-i18n-' + attr));
+      if (val !== undefined && val !== null) el.setAttribute(attr, val);
+    });
+  });
+  const sub = document.getElementById('lang-toggle-sub');
+  if (sub) sub.textContent = (currentLang === 'en') ? 'English' : '日本語';
+}
+function i18nSetLang(lang){
+  currentLang = (lang === 'en') ? 'en' : 'ja';
+  try { localStorage.setItem(I18N_STORAGE_KEY, currentLang); } catch(_) {}
+  document.documentElement.lang = currentLang;
+  applyI18n(document);
+  try { window.dispatchEvent(new CustomEvent('signal-lang-change', { detail: { lang: currentLang } })); } catch(_) {}
+}
+document.documentElement.lang = currentLang;
+applyI18n(document);
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest && e.target.closest('#lang-toggle-btn');
+  if (btn) i18nSetLang(currentLang === 'en' ? 'ja' : 'en');
+});
+
 /* ===================== 一時デバッグ用: 画面上にJSエラーを表示 =====================
    スマホ実機でデベロッパーツールが使えない状況の調査用。原因が特定できたら
    このブロックごと削除してよい。 */
@@ -2871,7 +2939,7 @@ import {
       'font:11px/1.5 monospace;padding:10px 12px;border-radius:10px;' +
       'border:1px solid #ff6b5b;white-space:pre-wrap;word-break:break-all;box-shadow:0 6px 24px #000c;';
     const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ 閉じる';
+    closeBtn.textContent = t('t1');
     closeBtn.style.cssText = 'display:block;margin-bottom:6px;background:#ff6b5b;color:#1a0505;' +
       'border:none;border-radius:6px;padding:4px 10px;font-weight:bold;';
     closeBtn.onclick = () => { box.remove(); box = null; };
@@ -2958,7 +3026,7 @@ if (isConfigured) {
   auth = getAuth(app);
 } else {
   document.getElementById('config-warning').style.display = 'block';
-  document.getElementById('onair-text').textContent = '未接続';
+  document.getElementById('onair-text').textContent = t('t2');
 }
 
 const CHECK_SVG = '<svg class="verify-badge" viewBox="0 0 20 20" width="13" height="13" fill="none"><defs><radialGradient id="vbBlueGrad" cx="35%" cy="28%" r="80%"><stop offset="0%" stop-color="#8FC3FF"/><stop offset="55%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#1D4ED8"/></radialGradient></defs><circle cx="10" cy="10" r="9" fill="url(#vbBlueGrad)"/><path d="M6 10.5l2.5 2.5L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -3114,10 +3182,10 @@ document.addEventListener('contextmenu', (e) => {
 // スクリプトが動いている証拠として即座に表示を変える
 // （ここが「読み込み中…」のままなら、JSが読み込めていないかデプロイが古い）
 if (els.myUidDisplay) {
-  els.myUidDisplay.textContent = '認証準備中…';
+  els.myUidDisplay.textContent = t('t3');
 }
 if (els.onairText) {
-  els.onairText.textContent = '初期化中';
+  els.onairText.textContent = t('t4');
 }
 
 const avatarColor = (seed) => {
@@ -3228,7 +3296,7 @@ function closeMentionSuggest(){
 
 function renderMentionSuggest(){
   if (!mentionItems.length) {
-    els.mentionSuggest.innerHTML = `<div class="mention-suggest-empty">該当ユーザーがいません</div>`;
+    els.mentionSuggest.innerHTML = `<div class="mention-suggest-empty">${t('t5')}</div>`;
     els.mentionSuggest.style.display = 'block';
     return;
   }
@@ -3616,7 +3684,7 @@ function renderPollOptionInputs(){
     const input = document.createElement('input');
     input.type = 'text';
     input.maxLength = 40;
-    input.placeholder = `選択肢 ${i + 1}`;
+    input.placeholder = t('t6', {n: i + 1});
     input.value = existing[i] || '';
     input.addEventListener('input', updatePollCreateButtonState);
     els.pollOptionsInputs.appendChild(input);
@@ -3639,7 +3707,7 @@ function openPollModal(){
 }
 function closePollModal(){ closeModal(els.pollModal); }
 els.pollBtn.addEventListener('click', () => {
-  if (!canPostInCurrentChannel()) { alert(isSuspended() ? 'アカウントが利用停止されているため投稿できません' : 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
+  if (!canPostInCurrentChannel()) { alert(isSuspended() ? t('t7') : t('t8')); return; }
   openPollModal();
 });
 els.pollQuestionInput.addEventListener('input', updatePollCreateButtonState);
@@ -3841,7 +3909,7 @@ function runSearch(query){
     .reverse() // 新しいメッセージから順に
     .slice(0, 30);
   if (!matches.length) {
-    els.searchResults.innerHTML = `<div class="search-result-empty">「${escapeHtml(q)}」に一致するメッセージが見つかりません</div>`;
+    els.searchResults.innerHTML = `<div class="search-result-empty">${t('t9', {q: escapeHtml(q)})}</div>`;
     els.searchResults.classList.add('show');
     return;
   }
@@ -3977,14 +4045,14 @@ els.attachBtn.addEventListener('click', () => els.imageFileInput.click());
 els.imageFileInput.addEventListener('change', async () => {
   const file = els.imageFileInput.files && els.imageFileInput.files[0];
   if (!file) return;
-  if (!file.type.startsWith('image/')) { alert('画像ファイルを選択してください'); clearImagePreview(); return; }
+  if (!file.type.startsWith('image/')) { alert(t('t10')); clearImagePreview(); return; }
   try {
     pendingImage = await fileToChatImageDataUrl(file);
     clearFilePreview(); // 添付は画像/ファイルのどちらか一方のみ
     showImagePreview();
   } catch (e) {
     console.error('画像の圧縮に失敗しました', e);
-    alert('画像の読み込みに失敗しました');
+    alert(t('t11'));
     clearImagePreview();
   }
 });
@@ -4008,7 +4076,7 @@ els.fileFileInput.addEventListener('change', async () => {
   const file = els.fileFileInput.files && els.fileFileInput.files[0];
   if (!file) return;
   if (file.size > CHAT_FILE_MAX_BYTES) {
-    alert(`ファイルサイズが大きすぎます（上限 ${formatBytes(CHAT_FILE_MAX_BYTES)}）`);
+    alert(t('t12', {max: formatBytes(CHAT_FILE_MAX_BYTES)}));
     clearFilePreview();
     return;
   }
@@ -4019,7 +4087,7 @@ els.fileFileInput.addEventListener('change', async () => {
     showFilePreview();
   } catch (e) {
     console.error('ファイルの読み込みに失敗しました', e);
-    alert('ファイルの読み込みに失敗しました');
+    alert(t('t13'));
     clearFilePreview();
   }
 });
@@ -4119,7 +4187,7 @@ function refreshSelfCard(){
   const selfProf = usersCache[myUid] || {};
   const verified = selfProf.verified === true;
   const gold = selfProf.goldVerified === true;
-  els.selfName.innerHTML = nameWithBadge(myName || '未設定', verified, gold);
+  els.selfName.innerHTML = nameWithBadge(myName || t('t14'), verified, gold);
   els.selfUsername.textContent = selfProf.username ? '@' + selfProf.username : '';
   els.selfAvatar.innerHTML = avatarInner({ icon: myIcon, iconImg: myIconImg, name: myName || myUid });
   const c = avatarColor(myUid || myName);
@@ -4177,7 +4245,7 @@ els.iconFile.addEventListener('change', async (e) => {
     if (els.previewAvatar._tempUrl) URL.revokeObjectURL(els.previewAvatar._tempUrl);
     els.previewAvatar._tempUrl = tempUrl;
   } catch (_) {
-    els.previewAvatar.innerHTML = '<span style="font-size:11px;color:var(--text-faint);">読み込み中…</span>';
+    els.previewAvatar.innerHTML = `<span style="font-size:11px;color:var(--text-faint);">${t('s19')}</span>`;
   }
 
   // 裏で圧縮して保存用のdata URLを作る
@@ -4188,7 +4256,7 @@ els.iconFile.addEventListener('change', async (e) => {
     console.error('画像の圧縮に失敗しました', err);
     // プレビューは残すが、保存用データはクリア
     pendingIconImg = '';
-    alert('画像の圧縮に失敗しました。\nJPEG / PNG / WebP などの一般的な形式を試してください。\n（プレビューは出ていますが、このまま保存すると画像は付きません）');
+    alert(t('t15'));
   }
 });
 els.iconImgClear.addEventListener('click', () => {
@@ -4203,8 +4271,8 @@ els.iconImgClear.addEventListener('click', () => {
 els.copyUidBtn.addEventListener('click', () => {
   if (!myUid) return;
   navigator.clipboard?.writeText(myUid).catch(() => {});
-  els.copyUidBtn.textContent = 'コピー済み';
-  setTimeout(() => { els.copyUidBtn.textContent = 'コピー'; }, 1500);
+  els.copyUidBtn.textContent = t('t16');
+  setTimeout(() => { els.copyUidBtn.textContent = t('s67'); }, 1500);
 });
 
 function renderVerifyRow(){
@@ -4212,15 +4280,15 @@ function renderVerifyRow(){
   const verified = selfProf.verified === true;
   const gold = selfProf.goldVerified === true;
   if (gold) {
-    els.verifyStatus.innerHTML = `<span class="verify-badge-lg gold">${GOLD_CHECK_SVG}ゴールド認証アカウントです</span>`;
+    els.verifyStatus.innerHTML = `<span class="verify-badge-lg gold">${GOLD_CHECK_SVG}${t('t17')}</span>`;
   } else if (verified) {
-    els.verifyStatus.innerHTML = `<span class="verify-badge-lg">${CHECK_SVG}認証済みアカウントです</span>`;
+    els.verifyStatus.innerHTML = `<span class="verify-badge-lg">${CHECK_SVG}${t('t18')}</span>`;
   } else if (myVerifyStatus && myVerifyStatus.status === 'pending') {
-    els.verifyStatus.innerHTML = `<span class="verify-pending">審査中です…</span>`;
+    els.verifyStatus.innerHTML = `<span class="verify-pending">${t('t19')}</span>`;
   } else if (myVerifyStatus && myVerifyStatus.status === 'rejected') {
-    els.verifyStatus.innerHTML = `<span class="verify-pending">前回の申請は却下されました</span><br><button type="button" class="mini-btn" id="apply-verify-btn" style="margin-top:6px;">✓ 再度申請する</button>`;
+    els.verifyStatus.innerHTML = `<span class="verify-pending">${t('t20')}</span><br><button type="button" class="mini-btn" id="apply-verify-btn" style="margin-top:6px;">${t('t21')}</button>`;
   } else {
-    els.verifyStatus.innerHTML = `<button type="button" class="mini-btn" id="apply-verify-btn">✓ 認証を申請する</button>`;
+    els.verifyStatus.innerHTML = `<button type="button" class="mini-btn" id="apply-verify-btn">${t('t22')}</button>`;
   }
 }
 els.verifyStatus.addEventListener('click', (e) => {
@@ -4245,7 +4313,7 @@ function openNickModal(prefillName, prefillIcon, prefillImg, triggerBtn){
   els.nickError.style.display = 'none';
   els.usernameError.style.display = 'none';
   updateNickConfirmState();
-  els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
+  els.nickConfirm.textContent = myName ? t('t23') : t('s71');
   els.accountPasswordInput.value = '';
   els.accountEmailInput.value = '';
   els.accountProtectError.classList.remove('show');
@@ -4253,7 +4321,7 @@ function openNickModal(prefillName, prefillIcon, prefillImg, triggerBtn){
   if (myUid) {
     els.myUidDisplay.textContent = myUid;
   } else if (!els.myUidDisplay.textContent || els.myUidDisplay.textContent.includes('読み込み') || els.myUidDisplay.textContent.includes('準備')) {
-    els.myUidDisplay.textContent = '認証中…';
+    els.myUidDisplay.textContent = t('t24');
   }
   renderVerifyRow();
   els.nickModal.classList.remove('closing');
@@ -4296,15 +4364,15 @@ function renderAccountProtectStatus(){
   if (!els.accountProtectStatus) return;
   if (isAccountProtected()) {
     const email = auth.currentUser.providerData.find((p) => p.providerId === 'password').email;
-    els.accountProtectStatus.textContent = `✓ 保護済み(${email})。別の端末でもこのメールでログインできます。`;
+    els.accountProtectStatus.textContent = t('t25', {email});
     els.accountEmailInput.style.display = 'none';
     els.accountPasswordInput.style.display = 'none';
   } else {
-    els.accountProtectStatus.textContent = '未設定です。メールアドレスとパスワードを登録しておくと安心です。';
+    els.accountProtectStatus.textContent = t('t26');
     els.accountEmailInput.style.display = '';
     els.accountPasswordInput.style.display = '';
-    els.accountEmailInput.placeholder = 'メールアドレス';
-    els.accountPasswordInput.placeholder = 'パスワード(6文字以上)';
+    els.accountEmailInput.placeholder = t('s5');
+    els.accountPasswordInput.placeholder = t('s166');
   }
 }
 
@@ -4313,7 +4381,7 @@ els.nickConfirm.addEventListener('click', async () => {
   const uKey = normalizeUsername(els.usernameInput.value);
   if (!v || !db || !myUid) return;
   if (!isValidUsername(uKey)) {
-    els.usernameError.textContent = 'ユーザー名は半角英数字とアンダースコアのみ・3〜20文字で入力してください';
+    els.usernameError.textContent = t('t27');
     els.usernameError.style.display = 'block';
     return;
   }
@@ -4322,13 +4390,13 @@ els.nickConfirm.addEventListener('click', async () => {
   els.accountProtectError.classList.remove('show');
   if (!isAccountProtected() && (protectEmail || protectPw)) {
     if (!protectEmail || !protectPw || protectPw.length < 6) {
-      els.accountProtectError.textContent = 'メールアドレスと6文字以上のパスワードを両方入力してください';
+      els.accountProtectError.textContent = t('t28');
       els.accountProtectError.classList.add('show');
       return;
     }
   }
   els.nickConfirm.disabled = true;
-  els.nickConfirm.textContent = '確認中…';
+  els.nickConfirm.textContent = t('t29');
   els.nickError.style.display = 'none';
   els.usernameError.style.display = 'none';
   try {
@@ -4370,18 +4438,18 @@ els.nickConfirm.addEventListener('click', async () => {
     if (currentChannelId) markRead(currentChannelId);
   } catch (e) {
     if (e && e.message === 'TAKEN') {
-      els.usernameError.textContent = 'そのユーザー名はすでに使われています';
+      els.usernameError.textContent = t('s58');
       els.usernameError.style.display = 'block';
     } else if (e && e.message === 'INVALID') {
-      els.usernameError.textContent = 'ユーザー名は半角英数字とアンダースコアのみ・3〜20文字で入力してください';
+      els.usernameError.textContent = t('t27');
       els.usernameError.style.display = 'block';
     } else {
-      els.nickError.textContent = '保存に失敗しました。もう一度お試しください';
+      els.nickError.textContent = t('t30');
       els.nickError.style.display = 'block';
     }
   } finally {
     updateNickConfirmState();
-    els.nickConfirm.textContent = myName ? '保存する' : 'チャットを開始';
+    els.nickConfirm.textContent = myName ? t('t23') : t('s71');
   }
 });
 els.editNameBtn.addEventListener('click', () => openNickModal(myName, myIcon, myIconImg, els.editNameBtn));
@@ -4572,13 +4640,13 @@ function updateComposerPermission(){
   els.input.disabled = !allowed;
   els.attachBtn.disabled = !allowed;
   if (isSuspended()) {
-    els.input.placeholder = 'アカウントが利用停止されています';
+    els.input.placeholder = t('t31');
     els.sendBtn.disabled = true;
   } else if (!allowed) {
-    els.input.placeholder = 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます';
+    els.input.placeholder = t('t8');
     els.sendBtn.disabled = true;
   } else if (currentKind === 'channel') {
-    els.input.placeholder = 'メッセージを入力…';
+    els.input.placeholder = t('t32');
     els.sendBtn.disabled = !els.input.value.trim() && !pendingImage;
   }
 }
@@ -4596,7 +4664,7 @@ async function moveChannel(id, dir, orderedDocs){
     try {
       await setDoc(doc(db, 'channels', a.id), { order: bOrder }, { merge: true });
       await setDoc(doc(db, 'channels', b.id), { order: aOrder }, { merge: true });
-    } catch (e) { console.error(e); alert('並び替えに失敗しました'); }
+    } catch (e) { console.error(e); alert(t('t33')); }
   } else {
     const ids = orderedDocs.map((d) => d.id);
     const tmp = ids[idx]; ids[idx] = ids[otherIdx]; ids[otherIdx] = tmp;
@@ -4636,7 +4704,7 @@ els.channelRenameGlobal.addEventListener('click', async () => {
     delete localChannelNames[renamingChannelId];
     saveLocalChannelNames();
     closeModal(els.channelRenameModal);
-  } catch (e) { console.error(e); alert('変更に失敗しました'); }
+  } catch (e) { console.error(e); alert(t('t34')); }
   renamingChannelId = null;
 });
 
@@ -4703,7 +4771,7 @@ function selectChannel(id, name){
   currentChannelName = displayChannelName(id, name);
   els.topbarName.innerHTML = twemojiHtml(escapeHtml(currentChannelName));
   els.topbarFreq.textContent = pseudoFreq(id) + ' MHz';
-  els.input.placeholder = 'メッセージを入力…';
+  els.input.placeholder = t('t32');
   [...els.channelList.children].forEach((li) => li.classList.toggle('active', li.dataset.id === id));
   renderDmList();
   closeSidebarInstant();
@@ -4750,7 +4818,7 @@ function selectDm(otherUid, otherName){
   currentDmOtherName = otherName;
   els.topbarName.innerHTML = twemojiHtml(escapeHtml(otherName));
   els.topbarFreq.textContent = 'DM';
-  els.input.placeholder = 'メッセージを入力…';
+  els.input.placeholder = t('t32');
   [...els.channelList.children].forEach((li) => li.classList.remove('active'));
   renderDmList();
   closeSidebarInstant();
@@ -4770,7 +4838,7 @@ function selectDm(otherUid, otherName){
 function renderDmList(){
   const ids = Object.keys(friendsCache);
   if (!ids.length) {
-    els.dmList.innerHTML = `<li class="dm-empty">まだフレンドがいません。「🤝 フレンド」から追加できます。</li>`;
+    els.dmList.innerHTML = `<li class="dm-empty">${t('t35')}</li>`;
     return;
   }
   ids.sort((a, b) => (friendsCache[a].name || '').localeCompare(friendsCache[b].name || ''));
@@ -5019,7 +5087,7 @@ function renderMessages(docs){
         ).join('');
         const names = document.createElement('div');
         names.className = 'read-names';
-        names.textContent = '既読: ' + receipts.map(r => r.name).join('、');
+        names.textContent = t('t36') + receipts.map(r => r.name).join(currentLang === 'en' ? ', ' : '、');
         body.appendChild(chipWrap);
         body.appendChild(names);
       }
@@ -5107,9 +5175,9 @@ els.messages.addEventListener('click', (e) => {
   const delBtn = e.target.closest('.msg-del-btn');
   const activeTargetId = currentKind === 'dm' ? currentDmId : currentChannelId;
   if (delBtn && activeTargetId && db) {
-    if (confirm('このメッセージを削除しますか？')) {
+    if (confirm(t('t37'))) {
       const [coll, id] = activeBasePath();
-      deleteDoc(doc(db, coll, id, 'messages', delBtn.dataset.id)).catch(() => alert('削除に失敗しました'));
+      deleteDoc(doc(db, coll, id, 'messages', delBtn.dataset.id)).catch(() => alert(t('t38')));
     }
     return;
   }
@@ -5304,7 +5372,7 @@ function fmtScheduleTime(ms){
 }
 function renderScheduleListModal(){
   if (!scheduledCache.length) {
-    els.scheduleListBody.innerHTML = `<div class="schedule-empty">予約中のメッセージはありません。</div>`;
+    els.scheduleListBody.innerHTML = `<div class="schedule-empty">${t('t39')}</div>`;
     return;
   }
   els.scheduleListBody.innerHTML = scheduledCache.map((d) => {
@@ -5330,20 +5398,20 @@ els.scheduleListBody.addEventListener('click', async (e) => {
   const [coll, id] = activeBasePath();
   btn.disabled = true;
   try { await deleteDoc(doc(db, coll, id, 'scheduled', btn.dataset.id)); }
-  catch (err) { console.error(err); alert('予約の取り消しに失敗しました'); btn.disabled = false; }
+  catch (err) { console.error(err); alert(t('t40')); btn.disabled = false; }
 });
 
 els.scheduleBtn.addEventListener('click', () => {
   const text = els.input.value.trim();
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
-  if ((!text && !pendingImage && !pendingFile) || !targetId) { alert('先に送信するメッセージを入力してください'); return; }
-  if (!canPostInCurrentChannel()) { alert(isSuspended() ? 'アカウントが利用停止されているため投稿できません' : 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
+  if ((!text && !pendingImage && !pendingFile) || !targetId) { alert(t('t41')); return; }
+  if (!canPostInCurrentChannel()) { alert(isSuspended() ? t('t7') : t('t8')); return; }
   const d = new Date(Date.now() + 5 * 60 * 1000);
   d.setSeconds(0, 0);
   const pad = (n) => String(n).padStart(2, '0');
   els.scheduleDatetimeInput.min = `${(new Date()).getFullYear()}-${pad(new Date().getMonth() + 1)}-${pad(new Date().getDate())}T${pad(new Date().getHours())}:${pad(new Date().getMinutes())}`;
   els.scheduleDatetimeInput.value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  els.scheduleModalDesc.textContent = text ? `「${text.length > 40 ? text.slice(0, 40) + '…' : text}」を指定した時間に送信します。` : (pendingImage ? '画像を指定した時間に送信します。' : 'ファイルを指定した時間に送信します。');
+  els.scheduleModalDesc.textContent = text ? t('t42', {text: (text.length > 40 ? text.slice(0, 40) + '…' : text)}) : (pendingImage ? t('t43') : t('t44'));
   els.scheduleModal.classList.remove('closing');
   els.scheduleModal.style.display = 'flex';
 });
@@ -5355,9 +5423,9 @@ els.scheduleConfirm.addEventListener('click', async () => {
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
   if ((!text && !image && !file) || !targetId || !db || !myName || !myUid) { closeModal(els.scheduleModal); return; }
   const val = els.scheduleDatetimeInput.value;
-  if (!val) { alert('日時を指定してください'); return; }
+  if (!val) { alert(t('t45')); return; }
   const sendAt = new Date(val);
-  if (isNaN(sendAt.getTime()) || sendAt.getTime() <= Date.now()) { alert('未来の日時を指定してください'); return; }
+  if (isNaN(sendAt.getTime()) || sendAt.getTime() <= Date.now()) { alert(t('t46')); return; }
   const replySnapshot = replyingTo;
   const [coll, id] = activeBasePath();
   els.scheduleConfirm.disabled = true;
@@ -5377,7 +5445,7 @@ els.scheduleConfirm.addEventListener('click', async () => {
     clearFilePreview();
     clearReplyTarget();
     closeModal(els.scheduleModal);
-  } catch (e) { console.error('予約の作成に失敗しました', e); alert('予約の作成に失敗しました'); }
+  } catch (e) { console.error('予約の作成に失敗しました', e); alert(t('t47')); }
   els.scheduleConfirm.disabled = false;
 });
 
@@ -5435,7 +5503,7 @@ async function sendMessage(){
   const file = pendingFile;
   const targetId = currentKind === 'dm' ? currentDmId : currentChannelId;
   if ((!text && !image && !file) || !targetId || !db || !myName || !myUid) return;
-  if (!canPostInCurrentChannel()) { alert(isSuspended() ? 'アカウントが利用停止されているため投稿できません' : 'このチャンネルは金認証バッジを持つユーザーのみ投稿できます'); return; }
+  if (!canPostInCurrentChannel()) { alert(isSuspended() ? t('t7') : t('t8')); return; }
   const replySnapshot = replyingTo;
   const mentionUids = extractMentionUids(text);
   els.input.value = '';
@@ -5758,18 +5826,18 @@ function morphButtonToSent(btn){
   if (!btn) return;
   btn.disabled = true;
   btn.classList.add('req-sent');
-  btn.textContent = '✓ 申請済み';
+  btn.textContent = t('t48');
 }
 async function sendFriendRequest(toUid, toName, triggerBtn){
   if (!db || !myUid || toUid === myUid) return;
-  if (friendsCache[toUid]) { alert('すでにフレンドです'); return; }
+  if (friendsCache[toUid]) { alert(t('t49')); return; }
   const already = sentRequestsCache.find((d) => d.data().to === toUid) || friendRequestsCache.find((d) => d.data().from === toUid);
-  if (already) { alert('すでに申請済みです'); return; }
+  if (already) { alert(t('t50')); return; }
   try {
     await addDoc(collection(db, 'friendRequests'), { from: myUid, fromName: myName, to: toUid, toName, status: 'pending', ts: serverTimestamp() });
     if (triggerBtn) { morphButtonToSent(triggerBtn); setTimeout(renderFriendsPanel, 480); }
     else renderFriendsPanel();
-  } catch (e) { console.error(e); alert('申請の送信に失敗しました'); }
+  } catch (e) { console.error(e); alert(t('t51')); }
 }
 
 /** メッセージのアバターをタップした時に表示する、相手のプロフィールカード */
@@ -5789,7 +5857,7 @@ function openProfileCard(uid){
   els.profileCardUsername.textContent = prof.username ? '@' + prof.username : '';
   const isOnline = isSelf || lastOnline.some((p) => p.uid === uid);
   els.profileCardDot.classList.toggle('online', isOnline);
-  els.profileCardStatusText.textContent = isOnline ? 'オンライン' : 'オフライン';
+  els.profileCardStatusText.textContent = isOnline ? t('t52') : t('s94');
   // バッジ・関係性タグ
   const isFriend = !!friendsCache[uid];
   const tags = [];
@@ -5826,7 +5894,7 @@ function openProfileCard(uid){
   els.profileAddFriendBtn.style.display = (isSelf || isFriend) ? 'none' : '';
   els.profileAddFriendBtn.disabled = false;
   els.profileAddFriendBtn.classList.remove('req-sent');
-  els.profileAddFriendBtn.textContent = 'フレンド申請';
+  els.profileAddFriendBtn.textContent = t('s92');
   els.profileEditBtn.style.display = isSelf ? '' : 'none';
   els.profileModal.classList.remove('closing');
   els.profileModal.style.display = 'flex';
@@ -5835,8 +5903,8 @@ els.profileCardUidCopy.addEventListener('click', () => {
   const text = els.profileCardUid.textContent;
   if (!text) return;
   navigator.clipboard.writeText(text).then(() => {
-    els.profileCardUidCopy.textContent = 'コピー済み';
-    setTimeout(() => { els.profileCardUidCopy.textContent = 'コピー'; }, 1400);
+    els.profileCardUidCopy.textContent = t('t16');
+    setTimeout(() => { els.profileCardUidCopy.textContent = t('s67'); }, 1400);
   }).catch(() => {});
 });
 els.profileModal.addEventListener('click', (e) => { if (e.target === els.profileModal) closeModal(els.profileModal); });
@@ -5905,7 +5973,7 @@ async function acceptFriendRequest(reqId, fromUid, fromName){
     await setDoc(doc(db, 'users', myUid, 'friends', fromUid), { name: fromName, ts: serverTimestamp() });
     await setDoc(doc(db, 'users', fromUid, 'friends', myUid), { name: myName, ts: serverTimestamp() });
     await setDoc(doc(db, 'friendRequests', reqId), { status: 'accepted' }, { merge: true });
-  } catch (e) { console.error(e); alert('承認に失敗しました'); }
+  } catch (e) { console.error(e); alert(t('t53')); }
 }
 async function rejectFriendRequest(reqId){
   if (!db) return;
@@ -5913,7 +5981,7 @@ async function rejectFriendRequest(reqId){
 }
 async function removeFriend(uid){
   if (!db || !myUid) return;
-  if (!confirm('フレンドを解除しますか？')) return;
+  if (!confirm(t('t54'))) return;
   await deleteDoc(doc(db, 'users', myUid, 'friends', uid)).catch(() => {});
   await deleteDoc(doc(db, 'users', uid, 'friends', myUid)).catch(() => {});
   if (currentKind === 'dm' && currentDmOtherUid === uid) { currentKind = 'channel'; currentDmId = null; currentDmOtherUid = null; }
@@ -5924,7 +5992,7 @@ function renderFriendsPanel(){
   const body = els.friendsPanelBody;
   if (currentFriendTab === 'list') {
     const ids = Object.keys(friendsCache);
-    if (!ids.length) { body.innerHTML = `<div class="admin-empty">まだフレンドがいません</div>`; return; }
+    if (!ids.length) { body.innerHTML = `<div class="admin-empty">${t('t55')}</div>`; return; }
     ids.sort((a, b) => (friendsCache[a].name || '').localeCompare(friendsCache[b].name || ''));
     body.innerHTML = '';
     ids.forEach((uid) => {
@@ -5935,23 +6003,23 @@ function renderFriendsPanel(){
         <div class="info">${nameWithBadge(prof.name || friendsCache[uid].name, !!prof.verified, !!prof.goldVerified)}</div>
         <div class="actions">
           <button type="button" class="mini-btn" data-act="dm">DM</button>
-          <button type="button" class="mini-btn-danger" data-act="remove">解除</button>
+          <button type="button" class="mini-btn-danger" data-act="remove">${t('t58')}</button>
         </div>`;
       row.querySelector('[data-act="dm"]').addEventListener('click', () => { closeModal(els.friendsModal); selectDm(uid, prof.name || friendsCache[uid].name); });
       row.querySelector('[data-act="remove"]').addEventListener('click', () => removeFriend(uid));
       body.appendChild(row);
     });
   } else if (currentFriendTab === 'requests') {
-    if (!friendRequestsCache.length) { body.innerHTML = `<div class="admin-empty">保留中の申請はありません</div>`; return; }
+    if (!friendRequestsCache.length) { body.innerHTML = `<div class="admin-empty">${t('t56')}</div>`; return; }
     body.innerHTML = '';
     friendRequestsCache.forEach((d) => {
       const r = d.data();
       const row = document.createElement('div');
       row.className = 'friend-list-row';
-      row.innerHTML = `<div class="info">${escapeHtml(r.fromName || '(無名)')}</div>
+      row.innerHTML = `<div class="info">${escapeHtml(r.fromName || t('t57'))}</div>
         <div class="actions">
-          <button type="button" class="mini-btn" data-act="accept">承認</button>
-          <button type="button" class="mini-btn-outline" data-act="reject">却下</button>
+          <button type="button" class="mini-btn" data-act="accept">${t('t59')}</button>
+          <button type="button" class="mini-btn-outline" data-act="reject">${t('t60')}</button>
         </div>`;
       row.querySelector('[data-act="accept"]').addEventListener('click', () => acceptFriendRequest(d.id, r.from, r.fromName));
       row.querySelector('[data-act="reject"]').addEventListener('click', () => rejectFriendRequest(d.id));
@@ -5959,7 +6027,7 @@ function renderFriendsPanel(){
     });
   } else if (currentFriendTab === 'add') {
     body.innerHTML = `<div class="friend-search-row">
-        <input type="text" id="friend-search-input" placeholder="名前で検索…" autocomplete="off">
+        <input type="text" id="friend-search-input" placeholder="${t('t61')}" autocomplete="off">
       </div><div id="friend-search-results"></div>`;
     const input = document.getElementById('friend-search-input');
     const results = document.getElementById('friend-search-results');
@@ -5969,7 +6037,7 @@ function renderFriendsPanel(){
       const matches = Object.keys(usersCache).filter((uid) =>
         uid !== myUid && (usersCache[uid].name || '').toLowerCase().includes(q)
       ).slice(0, 20);
-      if (!matches.length) { results.innerHTML = `<div class="admin-empty">見つかりませんでした</div>`; return; }
+      if (!matches.length) { results.innerHTML = `<div class="admin-empty">${t('t62')}</div>`; return; }
       results.innerHTML = '';
       matches.forEach((uid) => {
         const prof = usersCache[uid];
@@ -5978,15 +6046,15 @@ function renderFriendsPanel(){
         const isFriend = !!friendsCache[uid];
         const isSent = sentRequestsCache.some((d) => d.data().to === uid);
         const isIncoming = friendRequestsCache.some((d) => d.data().from === uid);
-        let actionHtml = `<button type="button" class="mini-btn" data-act="add">申請</button>`;
-        if (isFriend) actionHtml = `<span class="admin-empty" style="padding:0;">フレンド済み</span>`;
-        else if (isSent) actionHtml = `<span class="admin-empty" style="padding:0;">申請済み</span>`;
-        else if (isIncoming) actionHtml = `<span class="admin-empty" style="padding:0;">申請が届いています</span>`;
+        let actionHtml = `<button type="button" class="mini-btn" data-act="add">${t('t63')}</button>`;
+        if (isFriend) actionHtml = `<span class="admin-empty" style="padding:0;">${t('t64')}</span>`;
+        else if (isSent) actionHtml = `<span class="admin-empty" style="padding:0;">${t('t65')}</span>`;
+        else if (isIncoming) actionHtml = `<span class="admin-empty" style="padding:0;">${t('t66')}</span>`;
         row.innerHTML = `<div class="avatar-sm">${avatarInner(prof)}</div>
-          <div class="info">${nameWithBadge(prof.name || '(無名)', !!prof.verified, !!prof.goldVerified)}</div>
+          <div class="info">${nameWithBadge(prof.name || t('t57'), !!prof.verified, !!prof.goldVerified)}</div>
           <div class="actions">${actionHtml}</div>`;
         const addBtn = row.querySelector('[data-act="add"]');
-        if (addBtn) addBtn.addEventListener('click', () => sendFriendRequest(uid, prof.name || '(無名)', addBtn));
+        if (addBtn) addBtn.addEventListener('click', () => sendFriendRequest(uid, prof.name || t('t57'), addBtn));
         results.appendChild(row);
       });
     };
@@ -6409,7 +6477,7 @@ els.presetRow.addEventListener('click', (e) => {
 });
 
 els.settingsReset.addEventListener('click', () => {
-  if (!confirm('カスタマイズ設定をすべてリセットしますか？')) return;
+  if (!confirm(t('t67'))) return;
   uiSettings = { ...DEFAULT_UI_SETTINGS, colors: {}, activePreset: 'default' };
   selectedColorKeys.clear();
   refreshSettingsUI();
@@ -6441,10 +6509,15 @@ function refreshSettingsUI(){
 }
 
 /* ---- 設定モーダル：一覧 ⇔ 詳細パネルのナビゲーション ---- */
-const SETTINGS_PANEL_TITLES = {
-  colors: '🖌 配色', scale: '🔍 UIの大きさ', opacity: '👻 透明度', radius: '◻ 角丸の強さ',
-  safearea: '📱 セーフエリア', behavior: '🎬 動作設定', presets: '🎨 プリセット', mods: '🧩 MOD',
+const SETTINGS_PANEL_TITLE_KEYS = {
+  colors: ['🖌','s105'], scale: ['🔍','s107'], opacity: ['👻','s108'], radius: ['◻','s109'],
+  safearea: ['📱','s110'], behavior: ['🎬','s112'], presets: ['🎨','s114'],
 };
+function settingsPanelTitle(key){
+  if (key === 'mods') return '🧩 MOD';
+  const pair = SETTINGS_PANEL_TITLE_KEYS[key];
+  return pair ? (pair[0] + ' ' + t(pair[1])) : '';
+}
 function showSettingsMenu(){
   document.querySelectorAll('.settings-panel').forEach((p) => { p.style.display = 'none'; p.classList.remove('slide-in'); });
   els.settingsMenuView.style.display = 'block';
@@ -6453,7 +6526,7 @@ function showSettingsMenu(){
   els.settingsMenuView.classList.add('slide-in');
   els.settingsBackBtn.style.display = 'none';
   els.settingsEyebrow.textContent = 'SETTINGS';
-  els.settingsTitle.textContent = '設定・カスタマイズ';
+  els.settingsTitle.textContent = t('s104');
   els.settingsBody.scrollTop = 0;
 }
 function showSettingsPanel(key){
@@ -6466,7 +6539,7 @@ function showSettingsPanel(key){
   panel.classList.add('slide-in');
   els.settingsBackBtn.style.display = 'flex';
   els.settingsEyebrow.textContent = 'SETTINGS';
-  els.settingsTitle.textContent = SETTINGS_PANEL_TITLES[key] || '設定';
+  els.settingsTitle.textContent = settingsPanelTitle(key) || t('s143');
   els.settingsBody.scrollTop = 0;
   if (key === 'presets') positionTabThumb(els.presetRow);
 }
@@ -6485,7 +6558,7 @@ els.settingsBtn.addEventListener('click', () => {
 });
 els.settingsClose.addEventListener('click', () => { closeModal(els.settingsModal); });
 els.settingsLogout.addEventListener('click', () => {
-  if (!confirm('ログアウトしますか？このブラウザに保存されているアカウント情報を消去し、ログイン選択画面に戻ります。')) return;
+  if (!confirm(t('t68'))) return;
   try {
     localStorage.removeItem(NAME_KEY);
     localStorage.removeItem(ICON_KEY);
@@ -6503,7 +6576,7 @@ applyUiSettings(); // 起動時に保存済みのカスタマイズを反映
 /* ------------------------------------------------------------------ */
 function setOnAir(on){
   els.onair.classList.toggle('off', !on);
-  els.onairText.textContent = on ? 'ON AIR' : (db ? '接続中' : '未接続');
+  els.onairText.textContent = on ? 'ON AIR' : (db ? t('s20') : t('t2'));
 }
 
 /* ------------------------------------------------------------------ */
@@ -6512,7 +6585,7 @@ function setOnAir(on){
 async function afterAuthReady(){
   isAdmin = ADMIN_UIDS.includes(myUid);
   els.adminPanelBtn.style.display = isAdmin ? 'flex' : 'none';
-  els.myUidDisplay.textContent = myUid || '認証中…';
+  els.myUidDisplay.textContent = myUid || t('t24');
   setOnAir(false);
   listenMaintenance();
   applyMaintenanceGate();
@@ -6567,15 +6640,15 @@ function showFatalError(title, detail){
     box.style.display = 'block';
     box.innerHTML = `<b>⚠ ${escapeHtml(title)}</b><br>${escapeHtml(detail)}`;
   }
-  if (els.myUidDisplay) els.myUidDisplay.textContent = 'エラー';
-  if (els.onairText) els.onairText.textContent = 'エラー';
+  if (els.myUidDisplay) els.myUidDisplay.textContent = t('t69');
+  if (els.onairText) els.onairText.textContent = t('t69');
   setOnAir(false);
 }
 
 function boot(){
   if (!auth) {
     setOnAir(false);
-    els.myUidDisplay.textContent = '未設定';
+    els.myUidDisplay.textContent = t('t14');
     hideSplash();
     return;
   }
@@ -6624,10 +6697,10 @@ if (els.authGateSignup) {
     const email = els.authGateUidInput.value.trim();
     const pw = els.authGatePasswordInput.value;
     els.authGateLoginError.classList.remove('show');
-    if (!email || !pw) { els.authGateLoginError.textContent = 'メールアドレスとパスワードを入力してください'; els.authGateLoginError.classList.add('show'); return; }
-    if (!auth || !db) { els.authGateLoginError.textContent = '準備中です。少し待ってからもう一度お試しください'; els.authGateLoginError.classList.add('show'); return; }
+    if (!email || !pw) { els.authGateLoginError.textContent = t('t70'); els.authGateLoginError.classList.add('show'); return; }
+    if (!auth || !db) { els.authGateLoginError.textContent = t('t71'); els.authGateLoginError.classList.add('show'); return; }
     els.authGateLoginSubmit.disabled = true;
-    els.authGateLoginSubmit.textContent = '確認中…';
+    els.authGateLoginSubmit.textContent = t('t29');
     try {
       await signInWithEmailAndPassword(auth, email, pw);
       dismissAuthGate();
@@ -6635,18 +6708,18 @@ if (els.authGateSignup) {
     } catch (e) {
       console.error('ログインに失敗しました', e);
       if (e && (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential' || e.code === 'auth/invalid-email')) {
-        els.authGateLoginError.textContent = 'そのメールアドレスは登録されていません';
+        els.authGateLoginError.textContent = t('t72');
       } else if (e && e.code === 'auth/wrong-password') {
-        els.authGateLoginError.textContent = 'パスワードが違います';
+        els.authGateLoginError.textContent = t('t73');
       } else if (e && e.code === 'auth/too-many-requests') {
-        els.authGateLoginError.textContent = '試行回数が多すぎます。少し時間をおいてお試しください';
+        els.authGateLoginError.textContent = t('t74');
       } else {
-        els.authGateLoginError.textContent = 'ログインに失敗しました。もう一度お試しください';
+        els.authGateLoginError.textContent = t('t75');
       }
       els.authGateLoginError.classList.add('show');
     } finally {
       els.authGateLoginSubmit.disabled = false;
-      els.authGateLoginSubmit.textContent = 'ログイン';
+      els.authGateLoginSubmit.textContent = t('s8');
     }
   };
   els.authGateLoginSubmit.addEventListener('click', submitLogin);
@@ -7044,7 +7117,7 @@ function tetHandleKO(){
   if (tetSyncTimer) { clearInterval(tetSyncTimer); tetSyncTimer = null; }
   tetSyncToFirestore(true);
   const rankEl = $('tet-hud-rank');
-  if (rankEl) { rankEl.style.display = ''; rankEl.textContent = '脱落しました（観戦中）'; }
+  if (rankEl) { rankEl.style.display = ''; rankEl.textContent = t('t76'); }
   const banner = $('tet-ko-banner');
   if (banner) { banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show'); }
   tetSpectateUid = Object.keys(tetOtherPlayers).find((uid) => tetOtherPlayers[uid].alive !== false) || null;
@@ -7142,7 +7215,7 @@ function tetRenderBoard(){
   tetRenderMiniBox('tet-hold-box', tetHoldType);
   for (let i = 0; i < 3; i++) tetRenderMiniBox('tet-next-box-' + i, tetQueue[i]);
   const linesEl = $('tet-hud-lines');
-  if (linesEl) linesEl.textContent = tetLines + ' ライン';
+  if (linesEl) linesEl.textContent = t('t77', {n: tetLines});
 }
 /** ライン消去時のパーティクル演出(#tet-fx-canvas) */
 function tetSpawnClearParticles(rows, big){
@@ -7243,7 +7316,7 @@ function tetRenderSpectateBoard(){
   const p = tetSpectateUid ? tetOtherPlayers[tetSpectateUid] : null;
   if (!p) {
     tetCellEls.forEach((el) => { el.className = 'tet-cell'; el.style.background = ''; });
-    if (nameEl) nameEl.textContent = '観戦中の相手がいません';
+    if (nameEl) nameEl.textContent = t('t78');
     return;
   }
   const str = p.board || '.'.repeat(200);
@@ -7253,7 +7326,7 @@ function tetRenderSpectateBoard(){
     if (ch && ch !== '.') { el.className = 'tet-cell filled'; el.style.background = TET_COLORS[ch] || '#666'; }
     else { el.className = 'tet-cell'; el.style.background = ''; }
   }
-  if (nameEl) nameEl.textContent = (p.name || '?') + ' を観戦中';
+  if (nameEl) nameEl.textContent = t('t79', {name: (p.name || '?')});
 }
 function tetCycleSpectateTarget(dir){
   const aliveUids = Object.keys(tetOtherPlayers).filter((uid) => tetOtherPlayers[uid].alive !== false);
@@ -7532,7 +7605,7 @@ function tetRenderSettingsUi(){
     speedRow.style.display = 'none'; pieceRow.style.display = 'none';
     if (readonly) {
       readonly.style.display = '';
-      readonly.textContent = `設定: ${TET_SPEED_LABEL[tetRoomSettings.speed]} / ${TET_PIECE_LABEL[tetRoomSettings.pieceSet]}`;
+      readonly.textContent = t('t80', {speed: TET_SPEED_LABEL[tetRoomSettings.speed], pieces: TET_PIECE_LABEL[tetRoomSettings.pieceSet]});
     }
   }
 }
@@ -7576,7 +7649,7 @@ function tetShowResult(allPlayers){
   tetResultShownForRoom = tetRoomId;
   tetShowView('game');
   const fx = $('tetris-round-fx-overlay'), fxText = $('tet-round-fx-text');
-  if (fxText) fxText.textContent = myRank === 1 ? '🏆 WINNER!!' : `ROUND OVER ／ ${myRank || '-'}位`;
+  if (fxText) fxText.textContent = myRank === 1 ? '🏆 WINNER!!' : t('t81', {rank: (myRank || '-')});
   if (fx) { fx.classList.remove('show'); void fx.offsetWidth; fx.classList.add('show'); }
   setTimeout(() => {
     if (fx) fx.classList.remove('show');
@@ -7586,8 +7659,8 @@ function tetShowResult(allPlayers){
 }
 function tetRenderResultList(sorted, myRank){
   const titleEl = $('tet-result-title'), subEl = $('tet-result-sub'), listEl = $('tet-result-list');
-  if (titleEl) titleEl.textContent = myRank === 1 ? '🏆 勝利！' : '試合終了';
-  if (subEl) subEl.textContent = myRank ? `あなたの順位: ${myRank} / ${sorted.length}` : '';
+  if (titleEl) titleEl.textContent = myRank === 1 ? t('t82') : t('s44');
+  if (subEl) subEl.textContent = myRank ? t('t83', {rank: myRank, total: sorted.length}) : '';
   if (myRank === 1) setTimeout(tetFireConfetti, 60);
   if (listEl) {
     listEl.innerHTML = sorted.map((p, i) => {
@@ -7686,22 +7759,22 @@ async function tetJoinRoomCore(roomId){
   }, { merge: true });
 }
 async function tetCreateRoom(){
-  if (!db || !myUid) { alert('接続準備中です。少し待ってから再度お試しください'); return; }
+  if (!db || !myUid) { alert(t('t84')); return; }
   try {
     const roomRef = await addDoc(collection(db, 'tetrisRooms'), { hostUid: myUid, status: 'waiting', createdAt: serverTimestamp(), settings: { speed: 'normal', pieceSet: 'full' } });
     await tetJoinRoomCore(roomRef.id);
     tetAttachRoom(roomRef.id);
     tetShowScreen(); tetShowView('lobby');
-  } catch (e) { console.error('Block Dropルーム作成に失敗しました', e); alert('ルーム作成に失敗しました'); }
+  } catch (e) { console.error('Block Drop room creation failed', e); alert(t('t85')); }
 }
 function joinTetrisRoomFromInvite(roomId){
-  if (!db || !myUid) { alert('接続準備中です。少し待ってから再度お試しください'); return; }
+  if (!db || !myUid) { alert(t('t84')); return; }
   getDoc(doc(db, 'tetrisRooms', roomId)).then((roomSnap) => {
-    if (!roomSnap.exists()) { alert('このルームは見つかりません（終了した可能性があります）'); return; }
+    if (!roomSnap.exists()) { alert(t('t86')); return; }
     const room = roomSnap.data();
-    if (room.status !== 'waiting') { alert('この対戦はすでに開始または終了しています'); return; }
+    if (room.status !== 'waiting') { alert(t('t87')); return; }
     return tetJoinRoomCore(roomId).then(() => { tetAttachRoom(roomId); tetShowScreen(); tetShowView('lobby'); });
-  }).catch((e) => { console.error('Block Drop参加に失敗しました', e); alert('参加に失敗しました'); });
+  }).catch((e) => { console.error('Block Drop join failed', e); alert(t('t88')); });
 }
 async function tetSendInviteDm(otherUid, roomId){
   if (!db || !myUid) return;
@@ -7840,7 +7913,7 @@ if (gamePickerClose) gamePickerClose.addEventListener('click', () => closeModal(
 const tetCloseBtn = $('tetris-close-btn');
 if (tetCloseBtn) tetCloseBtn.addEventListener('click', () => {
   if (tetGameActive) {
-    if (!confirm('対戦中です。退出すると脱落扱いになります。よろしいですか？')) return;
+    if (!confirm(t('t89'))) return;
     tetHandleKO();
   }
   tetLeaveRoom();
@@ -8018,22 +8091,22 @@ async function trJoinRoomCore(roomId){
   await updateDoc(doc(db, 'trumpRooms', roomId), { order: arrayUnion(myUid) }).catch(() => {});
 }
 async function trCreateRoom(){
-  if (!db || !myUid) { alert('接続準備中です。少し待ってから再度お試しください'); return; }
+  if (!db || !myUid) { alert(t('t84')); return; }
   try {
     const roomRef = await addDoc(collection(db, 'trumpRooms'), { hostUid: myUid, status: 'waiting', gameType: 'daifugo', order: [], createdAt: serverTimestamp() });
     await trJoinRoomCore(roomRef.id);
     trAttachRoom(roomRef.id);
     trShowScreen(); trShowView('lobby');
-  } catch (e) { console.error('トランプルーム作成に失敗しました', e); alert('ルーム作成に失敗しました'); }
+  } catch (e) { console.error('Cards room creation failed', e); alert(t('t85')); }
 }
 function joinTrumpRoomFromInvite(roomId){
-  if (!db || !myUid) { alert('接続準備中です。少し待ってから再度お試しください'); return; }
+  if (!db || !myUid) { alert(t('t84')); return; }
   getDoc(doc(db, 'trumpRooms', roomId)).then((roomSnap) => {
-    if (!roomSnap.exists()) { alert('このルームは見つかりません（終了した可能性があります）'); return; }
+    if (!roomSnap.exists()) { alert(t('t86')); return; }
     const room = roomSnap.data();
-    if (room.status !== 'waiting') { alert('この対戦はすでに開始または終了しています'); return; }
+    if (room.status !== 'waiting') { alert(t('t87')); return; }
     return trJoinRoomCore(roomId).then(() => { trAttachRoom(roomId); trShowScreen(); trShowView('lobby'); });
-  }).catch((e) => { console.error('トランプ参加に失敗しました', e); alert('参加に失敗しました'); });
+  }).catch((e) => { console.error('Cards join failed', e); alert(t('t88')); });
 }
 async function trSendInviteDm(otherUid, roomId){
   if (!db || !myUid) return;
@@ -8118,7 +8191,7 @@ function trRenderGametypeUi(){
     if (readonly) readonly.style.display = 'none';
   } else {
     if (row) row.style.display = 'none';
-    if (readonly) { readonly.style.display = ''; readonly.textContent = `ゲーム: ${TR_GAMETYPE_LABEL[trGameType]}`; }
+    if (readonly) { readonly.style.display = ''; readonly.textContent = t('t90', {game: TR_GAMETYPE_LABEL[trGameType]}); }
   }
 }
 function trUpdateGameType(val){
@@ -8195,8 +8268,8 @@ function trBeginCountdown(startAtMs){
 async function trStartGame(){
   if (!trIsHost || !trRoomId || !db) return;
   const order = trOrder.filter((uid) => trAllPlayers[uid]);
-  if (order.length < 2) { alert('2人以上集まってから開始してください'); return; }
-  if (order.length > 6) { alert('参加人数が多すぎます(最大6人)'); return; }
+  if (order.length < 2) { alert(t('t91')); return; }
+  if (order.length > 6) { alert(t('t92')); return; }
   const gameType = trGameType;
   const deck = trShuffle(trBuildDeck(gameType === 'babanuki'));
   const hands = {}; order.forEach((uid) => { hands[uid] = []; });
@@ -8358,7 +8431,7 @@ function trRenderOpponents(){
 function trRenderTurnBanner(){
   const hud = $('tr-hud-turn'); const title = $('tr-hud-gametitle');
   if (title) title.textContent = TR_GAMETYPE_LABEL[trGameType] || '';
-  if (hud) hud.textContent = trCurrentTurnUid === myUid ? 'あなたの番です' : `${trPlayerLabel(trCurrentTurnUid)}さんの番`;
+  if (hud) hud.textContent = trCurrentTurnUid === myUid ? t('t93') : t('t94', {name: trPlayerLabel(trCurrentTurnUid)});
   const banner = $('tr-turn-banner'), bt = $('tr-turn-banner-text');
   if (banner && bt && trCurrentTurnUid) {
     const text = trCurrentTurnUid === myUid ? 'あなたの番' : `${trPlayerLabel(trCurrentTurnUid)}の番`;
@@ -8423,7 +8496,7 @@ function trRenderActionBar(){
   const bar = $('tr-action-bar');
   if (!bar) return;
   const myTurn = trCurrentTurnUid === myUid;
-  if (trIsFinished(myUid)) { bar.innerHTML = `<div class="tr-action-note">あがり済みです。他のプレイヤーの対戦を見守りましょう。</div>`; return; }
+  if (trIsFinished(myUid)) { bar.innerHTML = `<div class="tr-action-note">${t('t95')}</div>`; return; }
   if (trGameType === 'daifugo') {
     const field = trTable.fieldCards || [];
     const canPass = myTurn && field.length > 0;
@@ -8444,7 +8517,7 @@ function trRenderActionBar(){
     $('tr-play-btn')?.addEventListener('click', () => { const c = [...trSelected][0]; if (c) trSevensPlay(c); });
   } else if (trGameType === 'babanuki') {
     if (!myTurn) {
-      bar.innerHTML = `<div class="tr-action-note">${escapeHtml(trPlayerLabel(trCurrentTurnUid))}さんの番です。順番をお待ちください。</div>`;
+      bar.innerHTML = `<div class="tr-action-note">${t('t96', {name: escapeHtml(trPlayerLabel(trCurrentTurnUid))})}</div>`;
     } else {
       const targetUid = trBabanukiTarget();
       bar.innerHTML = targetUid
@@ -8492,8 +8565,8 @@ function trRenderResultList(){
   const sorted = trOrder.map((uid) => trAllPlayers[uid]).filter(Boolean).sort((a, b) => (a.rank || 999) - (b.rank || 999));
   const titleEl = $('tr-result-title'), subEl = $('tr-result-sub'), listEl = $('tr-result-list');
   const myRank = (trAllPlayers[myUid] || {}).rank;
-  if (titleEl) titleEl.textContent = myRank === 1 ? '🏆 勝利！' : '試合終了';
-  if (subEl) subEl.textContent = myRank ? `あなたの順位: ${myRank} / ${sorted.length}` : '';
+  if (titleEl) titleEl.textContent = myRank === 1 ? t('t82') : t('s44');
+  if (subEl) subEl.textContent = myRank ? t('t83', {rank: myRank, total: sorted.length}) : '';
   if (myRank === 1) setTimeout(trFireConfetti, 60);
   if (listEl) {
     listEl.innerHTML = sorted.map((p, i) => {
@@ -8559,7 +8632,7 @@ if (gamePickerTrump) gamePickerTrump.addEventListener('click', () => { closeModa
 const trumpCloseBtn = $('trump-close-btn');
 if (trumpCloseBtn) trumpCloseBtn.addEventListener('click', () => {
   if (trGameActive && !trIsFinished(myUid)) {
-    if (!confirm('対戦中です。退出すると脱落扱いになります。よろしいですか？')) return;
+    if (!confirm(t('t89'))) return;
   }
   trLeaveRoom();
 });
@@ -8595,7 +8668,7 @@ const trResultCloseBtn = $('tr-result-close-btn');
 if (trResultCloseBtn) trResultCloseBtn.addEventListener('click', () => trLeaveRoom());
 async function trRematch(){
   if (!trRoomId || !db || !myUid) return;
-  if (!trIsHost) { alert('ホストのみが再戦を開始できます'); return; }
+  if (!trIsHost) { alert(t('t97')); return; }
   await Promise.all(trOrder.map((uid) => setDoc(doc(db, 'trumpRooms', trRoomId, 'players', uid), { hand: [], finished: false, rank: null }, { merge: true })));
   await updateDoc(doc(db, 'trumpRooms', trRoomId), { status: 'waiting', endedAt: null, table: {}, currentTurnUid: null }).catch(() => {});
 }
@@ -8715,7 +8788,7 @@ function showModError(mod, err){
     const bar = document.createElement('div');
     bar.className = 'mod-safemode-banner';
     bar.style.cssText = 'position:fixed; left:12px; right:12px; bottom:12px; z-index:99999;';
-    bar.textContent = `MOD『${mod.name}』でエラー: ${err && err.message ? err.message : err}`;
+    bar.textContent = t('t98', {name: mod.name, err: (err && err.message ? err.message : err)});
     document.body.appendChild(bar);
     setTimeout(() => bar.remove(), 6000);
   } catch (_) {}
@@ -8739,7 +8812,7 @@ function runAllEnabledMods(){
 }
 function modEmptyStateUpdate(){
   if (els.modEmptyHint) els.modEmptyHint.style.display = installedMods.length ? 'none' : 'block';
-  if (els.smiModsSub) els.smiModsSub.textContent = installedMods.length ? `${installedMods.length}件導入中` : '.sxgファイルを読み込み';
+  if (els.smiModsSub) els.smiModsSub.textContent = installedMods.length ? t('t99', {n: installedMods.length}) : t('s116');
 }
 function renderModList(){
   if (!els.modList) return;
@@ -8775,7 +8848,7 @@ els.modFileInput?.addEventListener('change', async () => {
     renderModList();
     if (!isSafeModeActive()) runMod(mod);
   } catch (err) {
-    alert('MODの読み込みに失敗しました: ' + (err && err.message ? err.message : err));
+    alert(t('t100', {err: (err && err.message ? err.message : err)}));
   }
 });
 els.modList?.addEventListener('change', (e) => {
@@ -8811,7 +8884,7 @@ els.modList?.addEventListener('click', (e) => {
   const delBtn = e.target.closest('[data-mod-delete]');
   if (delBtn) {
     const mod = installedMods.find((m) => m.id === delBtn.dataset.modDelete);
-    if (mod && confirm(`MOD『${mod.name}』を削除しますか？`)) {
+    if (mod && confirm(t('t101', {name: mod.name}))) {
       removeModCss(mod.id);
       installedMods = installedMods.filter((m) => m.id !== mod.id);
       saveMods();
@@ -8847,7 +8920,7 @@ if (isSafeModeActive()) {
   const banner = document.createElement('div');
   banner.className = 'mod-safemode-banner';
   banner.style.cssText = 'position:fixed; top:calc(env(safe-area-inset-top,0px) + 8px); left:50%; transform:translateX(-50%); z-index:99999;';
-  banner.textContent = '🛟 セーフモード中：MODは実行されていません';
+  banner.textContent = t('t102');
   document.body.appendChild(banner);
 } else {
   runAllEnabledMods();
