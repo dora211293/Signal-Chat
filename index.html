@@ -895,6 +895,7 @@
   }
   #media-player-close:hover{ background: #000000c0; }
   #media-player-stage{ display: flex; align-items: center; justify-content: center; width: 100%; }
+  #media-player-inner.music-mode #media-player-stage{ height: 100%; }
   #media-player-stage iframe{ width: 100%; aspect-ratio: 16 / 9; border: 0; display: block; }
   #media-player-stage video{ width: 100%; max-height: 80vh; display: block; background: #000; }
   #media-player-stage .mp-audio-wrap{
@@ -903,14 +904,17 @@
   }
   #media-player-stage .mp-audio-icon{ font-size: 54px; }
   /* ---- YouTube Music: 独自UIの音楽プレイヤー（実体のYT埋め込みは1pxで隠し、UIは完全自前） ---- */
-  #media-player-inner.music-mode{ width: min(92vw, 380px); background: transparent; }
+  #media-player-inner.music-mode{
+    position: fixed; inset: 0; width: 100vw; height: 100dvh; max-height: none;
+    border-radius: 0; background: #000; box-shadow: none;
+  }
   #media-player-inner.music-mode #media-player-close{ display: none; } /* 音楽モードは左上の丸ボタンで閉じる */
   #media-player-stage .mp-music-wrap{
-    position: relative; width: 100%; min-height: 480px; border-radius: var(--radius-md); overflow: hidden;
+    position: relative; width: 100%; height: 100%; min-height: 100%; overflow: hidden;
     background-color: #111; display: flex; flex-direction: column; justify-content: space-between;
   }
   #media-player-stage .mp-music-art{
-    position: absolute; inset: 0; background-size: cover; background-position: center;
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
     animation: ytmKenBurns 16s ease-in-out infinite alternate; will-change: transform;
   }
   @keyframes ytmKenBurns{ 0%{ transform: scale(1); } 100%{ transform: scale(1.12); } }
@@ -918,47 +922,43 @@
     position: absolute; inset: 0;
     background: linear-gradient(to bottom, #00000075 0%, transparent 24%, transparent 52%, #000000d0 85%, #000000f2 100%);
   }
-  #media-player-stage .mp-music-topbar{ position: relative; z-index: 2; display: flex; padding: 14px 14px 0; }
+  #media-player-stage .mp-music-topbar{ position: relative; z-index: 2; display: flex; padding: max(14px, env(safe-area-inset-top)) 18px 0; }
   #media-player-stage .mp-music-collapse{
-    width: 34px; height: 34px; border-radius: 50%; border: none; background: #00000060; color: #fff;
-    font-size: 17px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    width: 38px; height: 38px; border-radius: 50%; border: none; background: #00000060; color: #fff;
+    font-size: 19px; display: flex; align-items: center; justify-content: center; cursor: pointer;
     transition: background-color .15s var(--ease-ios), transform .15s var(--ease-ios);
   }
   #media-player-stage .mp-music-collapse:hover{ background: #000000a0; }
   #media-player-stage .mp-music-collapse:active{ transform: scale(.88); }
   #media-player-stage .mp-music-info{
-    position: relative; z-index: 2; padding: 0 22px 24px; display: flex; flex-direction: column; gap: 2px;
+    position: relative; z-index: 2; width: 100%; max-width: 460px; margin: 0 auto;
+    padding: 0 26px calc(28px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 2px;
     animation: ytmFadeUp .5s var(--ease-spring-soft) both .1s;
   }
   @keyframes ytmFadeUp{ 0%{ opacity: 0; transform: translateY(10px); } 100%{ opacity: 1; transform: translateY(0); } }
   #media-player-stage .mp-music-title{
-    font-size: 20px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; margin-bottom: 2px; transition: opacity .25s var(--ease-ios);
+    font-size: 24px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; margin-bottom: 3px; transition: opacity .25s var(--ease-ios);
   }
-  #media-player-stage .mp-music-artist{ font-size: 13px; color: #d8d8d8; margin-bottom: 18px; transition: opacity .25s var(--ease-ios); }
+  #media-player-stage .mp-music-artist{ font-size: 14px; color: #d8d8d8; margin-bottom: 22px; transition: opacity .25s var(--ease-ios); }
   #media-player-stage .mp-music-seek{
     -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 2px;
     background: linear-gradient(to right, #fff 0%, #ffffff40 0%); outline: none; cursor: pointer; margin: 0;
   }
   #media-player-stage .mp-music-seek::-webkit-slider-thumb{
-    -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%;
-    background: #fff; cursor: pointer; opacity: 0; transition: opacity .15s var(--ease-ios);
+    -webkit-appearance: none; appearance: none; width: 13px; height: 13px; border-radius: 50%;
+    background: #fff; cursor: pointer; box-shadow: 0 1px 4px #00000080;
   }
-  #media-player-stage .mp-music-seek:hover::-webkit-slider-thumb,
-  #media-player-stage .mp-music-seek:active::-webkit-slider-thumb{ opacity: 1; }
   #media-player-stage .mp-music-seek::-moz-range-thumb{
-    width: 12px; height: 12px; border: none; border-radius: 50%; background: #fff; opacity: 0;
-    transition: opacity .15s var(--ease-ios);
+    width: 13px; height: 13px; border: none; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px #00000080;
   }
-  #media-player-stage .mp-music-seek:hover::-moz-range-thumb,
-  #media-player-stage .mp-music-seek:active::-moz-range-thumb{ opacity: 1; }
   #media-player-stage .mp-music-time{
-    display: flex; justify-content: space-between; font-size: 11.5px; color: #c9c9c9; margin-top: 6px;
+    display: flex; justify-content: space-between; font-size: 12px; color: #c9c9c9; margin-top: 7px;
   }
-  #media-player-stage .mp-music-controls{ display: flex; justify-content: center; margin-top: 22px; }
+  #media-player-stage .mp-music-controls{ display: flex; justify-content: center; margin-top: 26px; }
   #media-player-stage .mp-music-play{
-    width: 64px; height: 64px; border-radius: 50%; border: none; background: #fff; color: #000;
-    font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    width: 68px; height: 68px; border-radius: 50%; border: none; background: #fff; color: #000;
+    font-size: 23px; display: flex; align-items: center; justify-content: center; cursor: pointer;
     transition: transform .18s var(--ease-spring);
   }
   #media-player-stage .mp-music-play:active{ transform: scale(.88); }
@@ -4468,10 +4468,15 @@ function stopYtmPlayback(){
 }
 /** 自前デザインの音楽プレイヤーUIを組み立てる（実体のYouTube埋め込みは#ytm-player-hostに隠れたまま） */
 function renderYtmPlayerShell(stage, videoId){
-  const thumb = `https://img.youtube.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`;
+  // 解像度優先で試し、無ければ段階的に低い解像度へフォールバックする
+  const thumbCandidates = [
+    `https://img.youtube.com/vi/${encodeURIComponent(videoId)}/maxresdefault.jpg`,
+    `https://img.youtube.com/vi/${encodeURIComponent(videoId)}/sddefault.jpg`,
+    `https://img.youtube.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`,
+  ];
   stage.innerHTML = `
     <div class="mp-music-wrap">
-      <div class="mp-music-art" style="background-image:url('${thumb}')"></div>
+      <img class="mp-music-art" id="mp-music-art" src="${thumbCandidates[0]}" alt="">
       <div class="mp-music-scrim"></div>
       <div class="mp-music-topbar">
         <button type="button" class="mp-music-collapse" id="mp-music-collapse" aria-label="閉じる">⌄</button>
@@ -4486,6 +4491,12 @@ function renderYtmPlayerShell(stage, videoId){
         </div>
       </div>
     </div>`;
+  const artImg = stage.querySelector('#mp-music-art');
+  let thumbIdx = 0;
+  artImg.addEventListener('error', () => {
+    thumbIdx++;
+    if (thumbIdx < thumbCandidates.length) artImg.src = thumbCandidates[thumbIdx];
+  });
   ytmUi = {
     title: stage.querySelector('#mp-music-title'),
     artist: stage.querySelector('#mp-music-artist'),
