@@ -880,6 +880,52 @@
   #lightbox-modal{ background:#04060acc; cursor:zoom-out; }
   #lightbox-inner{ max-width:92vw; max-height:88vh; animation: modalCardIn 0.45s var(--ease-spring-soft); }
   #lightbox-img{ max-width:92vw; max-height:88vh; width:auto; height:auto; border-radius:10px; box-shadow: 0 20px 60px #000000a0; display:block; }
+
+  /* ===================== メディア再生モーダル（独自プレイヤー） ===================== */
+  #media-player-modal{ background:#04060acc; }
+  #media-player-inner{
+    position: relative; width: min(92vw, 880px); max-height: 88vh; background: #000;
+    border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 20px 60px #000000a0;
+    animation: modalCardIn 0.45s var(--ease-spring-soft);
+  }
+  #media-player-close{
+    position: absolute; top: 8px; right: 8px; z-index: 5; width: 34px; height: 34px; border-radius: 50%;
+    border: none; background: #00000090; color: #fff; font-size: 15px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer;
+  }
+  #media-player-close:hover{ background: #000000c0; }
+  #media-player-stage{ display: flex; align-items: center; justify-content: center; width: 100%; }
+  #media-player-stage iframe{ width: 100%; aspect-ratio: 16 / 9; border: 0; display: block; }
+  #media-player-stage video{ width: 100%; max-height: 80vh; display: block; background: #000; }
+  #media-player-stage .mp-audio-wrap{
+    width: 100%; padding: 52px 28px 36px; display: flex; flex-direction: column; align-items: center;
+    gap: 20px; background: linear-gradient(160deg, var(--surface-2), #000);
+  }
+  #media-player-stage .mp-audio-icon{ font-size: 54px; }
+  #media-player-stage audio{ width: 100%; max-width: 380px; }
+
+  /* ===================== メッセージ内リンク & メディアプレビューカード ===================== */
+  .msg-link{ color: var(--amber); text-decoration: underline; word-break: break-all; }
+  .bubble.mine .msg-link{ color: var(--mine-bubble-text); text-decoration-color: currentColor; }
+  .media-preview-card{
+    display: flex; align-items: center; gap: 10px; margin-top: 6px; padding: 8px; border-radius: 12px;
+    background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; max-width: 280px;
+    transition: background-color .15s var(--ease-ios);
+  }
+  .media-preview-card:hover{ background: var(--surface-3); }
+  .mpc-thumb{
+    position: relative; width: 92px; height: 60px; border-radius: 8px; background-size: cover;
+    background-position: center; background-color: #000; flex-shrink: 0; display: flex;
+    align-items: center; justify-content: center; overflow: hidden; font-size: 22px;
+  }
+  .mpc-thumb-generic{ background: linear-gradient(160deg, var(--surface-3), #000); }
+  .mpc-play{
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: #00000055; color: #fff; font-size: 15px;
+  }
+  .mpc-info{ min-width: 0; flex: 1; }
+  .mpc-label{ font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; }
+  .mpc-url{ font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
   #msg-input{
     flex:1; resize:none; max-height: 120px; min-height: 42px;
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
@@ -932,7 +978,7 @@
     100%{ opacity:0; transform: scale(.9); }
   }
   .modal-scrim.closing{ animation: modalScrimOut 0.275s var(--ease-ios) forwards; }
-  .modal-scrim.closing .modal-card, .modal-scrim.closing #lightbox-inner{ animation: modalCardOut 0.25s var(--ease-ios) forwards; }
+  .modal-scrim.closing .modal-card, .modal-scrim.closing #lightbox-inner, .modal-scrim.closing #media-player-inner{ animation: modalCardOut 0.25s var(--ease-ios) forwards; }
   .modal-card{
     background: color-mix(in srgb, var(--surface) calc(var(--panel-alpha) * 100%), transparent);
     backdrop-filter: blur(calc(6px + (1 - var(--panel-alpha)) * 22px)) saturate(180%);
@@ -2485,6 +2531,14 @@
   </div>
 </div>
 
+<!-- ===================== メディア再生モーダル（独自プレイヤー） ===================== -->
+<div class="modal-scrim" id="media-player-modal" style="display:none;">
+  <div id="media-player-inner">
+    <button type="button" id="media-player-close" aria-label="閉じる">✕</button>
+    <div id="media-player-stage"></div>
+  </div>
+</div>
+
 <!-- ===================== プロフィール設定モーダル ===================== -->
 <div class="modal-scrim bottom-sheet" id="nick-modal">
   <div class="modal-card">
@@ -3199,6 +3253,7 @@ const els = {
   replyPreviewStrip: $('reply-preview-strip'), replyPreviewName: $('reply-preview-name'),
   replyPreviewText: $('reply-preview-text'), replyPreviewClear: $('reply-preview-clear'),
   lightboxModal: $('lightbox-modal'), lightboxImg: $('lightbox-img'),
+  mediaPlayerModal: $('media-player-modal'), mediaPlayerStage: $('media-player-stage'), mediaPlayerClose: $('media-player-close'),
   nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
   usernameInput: $('username-input'), usernameError: $('username-error'),
   bioInput: $('bio-input'), bioCounter: $('bio-counter'), linkInput: $('link-input'),
@@ -3300,8 +3355,8 @@ function getUidByUsername(uname){
   }
   return null;
 }
-/** メッセージ本文をHTMLエスケープしつつ、既知ユーザーへの@メンションだけをハイライトする */
-function renderMessageText(text){
+/** メンション部分だけをハイライトしつつHTMLエスケープするヘルパー（URLとの二重処理を避けるため分離） */
+function renderMentionsOnly(text){
   const raw = text || '';
   const re = /@([a-zA-Z0-9_]{3,20})\b/g;
   const myKey = normalizeUsername((usersCache[myUid] || {}).username);
@@ -3318,7 +3373,76 @@ function renderMessageText(text){
     last = re.lastIndex;
   }
   out += escapeHtml(raw.slice(last));
+  return out;
+}
+const URL_RE = /\bhttps?:\/\/[^\s<>"']+[^\s<>"'.,!?:;)\]]/g;
+/** メッセージ本文をHTMLエスケープしつつ、@メンションのハイライトとURLのリンク化を行う */
+function renderMessageText(text){
+  const raw = text || '';
+  const re = new RegExp(URL_RE.source, 'g');
+  let out = '', last = 0, match;
+  while ((match = re.exec(raw))) {
+    out += renderMentionsOnly(raw.slice(last, match.index));
+    const url = match[0];
+    out += `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer nofollow" class="msg-link">${escapeHtml(url)}</a>`;
+    last = re.lastIndex;
+  }
+  out += renderMentionsOnly(raw.slice(last));
   return twemojiHtml(out);
+}
+/** YouTubeのURLから動画IDを取り出す（watch/短縮youtu.be/shorts/embed に対応） */
+function parseYoutubeId(url){
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, '').replace(/^m\./, '');
+    if (host === 'youtu.be') return u.pathname.slice(1).split('/')[0] || null;
+    if (host === 'youtube.com' || host === 'music.youtube.com') {
+      if (u.pathname === '/watch') return u.searchParams.get('v');
+      const shorts = u.pathname.match(/^\/shorts\/([^/]+)/);
+      if (shorts) return shorts[1];
+      const embed = u.pathname.match(/^\/embed\/([^/]+)/);
+      if (embed) return embed[1];
+    }
+  } catch (e) { /* 不正なURLは無視 */ }
+  return null;
+}
+/** 本文中の最初のメディアリンク（YouTube / 動画ファイル / 音声ファイル）を検出する */
+function detectMediaLink(text){
+  const raw = text || '';
+  const re = new RegExp(URL_RE.source, 'g');
+  let m;
+  while ((m = re.exec(raw))) {
+    const url = m[0];
+    const ytId = parseYoutubeId(url);
+    if (ytId) return { type: 'youtube', url, id: ytId };
+    if (/\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(url)) return { type: 'video', url };
+    if (/\.(mp3|wav|ogg|m4a|flac|aac|opus)(\?.*)?$/i.test(url)) return { type: 'audio', url };
+  }
+  return null;
+}
+/** メディアリンクのプレビューカードHTMLを生成する */
+function renderMediaPreviewHtml(media){
+  if (!media) return '';
+  if (media.type === 'youtube') {
+    const thumb = `https://img.youtube.com/vi/${encodeURIComponent(media.id)}/hqdefault.jpg`;
+    return `<div class="media-preview-card" data-media-type="youtube" data-media-id="${escapeHtml(media.id)}">
+      <div class="mpc-thumb" style="background-image:url('${thumb}')"><div class="mpc-play">▶</div></div>
+      <div class="mpc-info"><div class="mpc-label">YouTube</div><div class="mpc-url">${escapeHtml(media.url)}</div></div>
+    </div>`;
+  }
+  if (media.type === 'video') {
+    return `<div class="media-preview-card" data-media-type="video" data-media-url="${escapeHtml(media.url)}">
+      <div class="mpc-thumb mpc-thumb-generic"><div class="mpc-play">▶</div></div>
+      <div class="mpc-info"><div class="mpc-label">動画</div><div class="mpc-url">${escapeHtml(media.url)}</div></div>
+    </div>`;
+  }
+  if (media.type === 'audio') {
+    return `<div class="media-preview-card" data-media-type="audio" data-media-url="${escapeHtml(media.url)}">
+      <div class="mpc-thumb mpc-thumb-generic">🎵<div class="mpc-play">▶</div></div>
+      <div class="mpc-info"><div class="mpc-label">音声</div><div class="mpc-url">${escapeHtml(media.url)}</div></div>
+    </div>`;
+  }
+  return '';
 }
 /** 送信テキストから@メンションされたユーザーのuid一覧を抽出する（自分自身は除く） */
 function extractMentionUids(text){
@@ -4185,6 +4309,47 @@ function openLightbox(src){
   els.lightboxImg.src = src;
   els.lightboxModal.classList.remove('closing'); els.lightboxModal.style.display = 'flex';
 }
+
+/* ===================== メディア再生モーダル（独自プレイヤー） ===================== */
+/** メッセージ内のYouTube/動画/音声リンクを、アプリ内蔵の独自プレイヤーで再生する */
+function openMediaPlayer(media){
+  if (!media || !els.mediaPlayerStage) return;
+  const stage = els.mediaPlayerStage;
+  stage.innerHTML = '';
+  if (media.type === 'youtube') {
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(media.id)}?autoplay=1&rel=0`;
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    iframe.allowFullscreen = true;
+    iframe.title = 'YouTube video player';
+    stage.appendChild(iframe);
+  } else if (media.type === 'video') {
+    const video = document.createElement('video');
+    video.src = media.url; video.controls = true; video.autoplay = true; video.playsInline = true;
+    stage.appendChild(video);
+  } else if (media.type === 'audio') {
+    const wrap = document.createElement('div');
+    wrap.className = 'mp-audio-wrap';
+    wrap.innerHTML = `<div class="mp-audio-icon">🎵</div>`;
+    const audio = document.createElement('audio');
+    audio.src = media.url; audio.controls = true; audio.autoplay = true;
+    wrap.appendChild(audio);
+    stage.appendChild(wrap);
+  } else {
+    return;
+  }
+  els.mediaPlayerModal.classList.remove('closing');
+  els.mediaPlayerModal.style.display = 'flex';
+}
+function closeMediaPlayer(){
+  closeModal(els.mediaPlayerModal);
+  // 再生を確実に止めるため、閉じるアニメーション後に中身を空にする
+  setTimeout(() => { if (els.mediaPlayerStage) els.mediaPlayerStage.innerHTML = ''; }, 280);
+}
+els.mediaPlayerClose?.addEventListener('click', closeMediaPlayer);
+els.mediaPlayerModal?.addEventListener('click', (e) => {
+  if (e.target === els.mediaPlayerModal) closeMediaPlayer();
+});
 
 /** 期限切れ画像の自動削除（クライアント側の遅延掃除）。1メッセージにつき1回だけ試みる。 */
 const imageCleanupAttempted = new Set();
@@ -5104,7 +5269,9 @@ function renderMessages(docs){
     const pollHtml = hasPoll ? renderPollChipHtml(m, d.id) : '';
     const tetInviteHtml = hasTetInvite ? renderTetrisInviteChipHtml(m, d.id) : '';
     const trInviteHtml = hasTrInvite ? renderTrumpInviteChipHtml(m, d.id) : '';
-    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasFile || m.fileExpired ? ' has-file' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '') + (hasTetInvite ? ' has-tet-invite' : '') + (hasTrInvite ? ' has-tet-invite' : '');
+    const media = hasText ? detectMediaLink(m.text) : null;
+    const mediaHtml = media ? renderMediaPreviewHtml(media) : '';
+    const bubbleClass = 'bubble' + (hasImage || m.imgExpired ? ' has-image' : '') + (hasFile || m.fileExpired ? ' has-file' : '') + (hasText ? ' has-text' : '') + (hasPoll ? ' has-poll' : '') + (hasTetInvite ? ' has-tet-invite' : '') + (hasTrInvite ? ' has-tet-invite' : '') + (media ? ' has-media' : '');
 
     // 返信元の引用プレビュー（あれば）
     const replyHtml = m.replyTo
@@ -5143,6 +5310,7 @@ function renderMessages(docs){
       hasPoll, m.poll || null, m.pollResponses || null,
       hasTetInvite, m.tetrisRoomId || null,
       hasTrInvite, m.trumpRoomId || null,
+      media,
       metaHtml, receipts, replyHtml, reactionEntries, mentionsMe
     ]);
 
@@ -5152,7 +5320,7 @@ function renderMessages(docs){
         <div class="msg-avatar" data-uid="${m.uid}" style="color:${color};border:1px solid ${color}55">${avatarInner({ icon: dispIcon, iconImg: dispImg, name: dispName })}</div>
         <div class="msg-body">
           ${metaHtml}
-          <div class="${bubbleClass}">${replyHtml}${imageHtml}${fileHtml}${hasText ? `<div class="msg-text">${renderMessageText(m.text)}</div>` : ''}${pollHtml}${tetInviteHtml}${trInviteHtml}</div>
+          <div class="${bubbleClass}">${replyHtml}${imageHtml}${fileHtml}${hasText ? `<div class="msg-text">${renderMessageText(m.text)}</div>` : ''}${mediaHtml}${pollHtml}${tetInviteHtml}${trInviteHtml}</div>
         </div>`;
 
       const body = row.querySelector('.msg-body');
@@ -5298,6 +5466,14 @@ els.messages.addEventListener('click', (e) => {
   const tetJoinBtn = e.target.closest('.tetris-invite-join-btn');
   if (tetJoinBtn && tetJoinBtn.dataset.roomId) {
     joinTetrisRoomFromInvite(tetJoinBtn.dataset.roomId);
+    return;
+  }
+  const mediaCard = e.target.closest('.media-preview-card');
+  if (mediaCard) {
+    const type = mediaCard.dataset.mediaType;
+    if (type === 'youtube') openMediaPlayer({ type: 'youtube', id: mediaCard.dataset.mediaId });
+    else if (type === 'video') openMediaPlayer({ type: 'video', url: mediaCard.dataset.mediaUrl });
+    else if (type === 'audio') openMediaPlayer({ type: 'audio', url: mediaCard.dataset.mediaUrl });
     return;
   }
   const bubble = e.target.closest('.bubble');
