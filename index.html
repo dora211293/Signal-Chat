@@ -921,10 +921,10 @@
   @keyframes ytmKenBurns{ 0%{ transform: scale(1.2); } 100%{ transform: scale(1.32); } }
   #media-player-stage .mp-music-artwrap{
     position: relative; z-index: 2; flex: 1; min-height: 0; display: flex; align-items: center;
-    justify-content: center; padding: 0 32px; animation: ytmFadeUp .55s var(--ease-spring-soft) both;
+    justify-content: center; padding: 0; animation: ytmFadeUp .55s var(--ease-spring-soft) both;
   }
   #media-player-stage .mp-music-art{
-    width: 100%; max-width: 420px; aspect-ratio: 1 / 1; object-fit: cover; object-position: center;
+    width: 100%; max-width: none; aspect-ratio: 1 / 1; object-fit: cover; object-position: center;
     border-radius: 0; display: block;
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
     mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
