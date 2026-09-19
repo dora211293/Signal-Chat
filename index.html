@@ -1517,7 +1517,6 @@
     isolation: isolate;
   }
   #tetris-screen.show{ opacity: 1; pointer-events: auto; }
-  #tetris-screen.show.chat-peek{ opacity: 0; pointer-events: none; }
   #tet-bg-canvas{ position:absolute; inset:0; width:100%; height:100%; z-index:0; display:block; }
   #tetris-close-btn{
     position: absolute; top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra) + 10px); right: 14px; z-index: 30;
@@ -1830,7 +1829,6 @@
     background-image: radial-gradient(120% 90% at 50% -10%, #0d2b224a 0%, transparent 55%), radial-gradient(100% 80% at 50% 120%, #1a12064a 0%, transparent 60%);
   }
   #trump-screen.show{ opacity: 1; pointer-events: auto; }
-  #trump-screen.show.chat-peek{ opacity: 0; pointer-events: none; }
   #trump-close-btn{
     position: absolute; top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra) + 10px); right: 14px; z-index: 30;
     width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border);
@@ -1981,7 +1979,7 @@
   @media (min-width: 720px){
     .tr-card{ width:56px; height:80px; }
   }
-  /* ===================== ゲーム中チャットFAB ===================== */
+  /* ===================== ゲーム中チャットPiP ===================== */
   #ingame-chat-fab{
     position: fixed; right: 16px;
     bottom: calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom-extra) + 16px);
@@ -1993,7 +1991,7 @@
     transition: transform .32s var(--ease-spring), opacity .22s var(--ease-ios), background-color .2s var(--ease-ios);
   }
   #ingame-chat-fab.visible{ display: flex; transform: scale(1); opacity: 1; }
-  #ingame-chat-fab.icf-return{ background: var(--surface-3); color: var(--text); font-size: 20px; }
+  #ingame-chat-fab.icf-open{ background: var(--surface-3); color: var(--text); font-size: 20px; }
   #ingame-chat-fab .icf-badge{
     position: absolute; top: -3px; right: -3px; min-width: 19px; height: 19px; padding: 0 4px;
     border-radius: 999px; background: var(--danger); color: #fff; font-size: 10.5px; font-weight: 800;
@@ -2001,6 +1999,47 @@
     border: 2px solid var(--bg);
   }
   #ingame-chat-fab .icf-badge.show{ display: flex; }
+
+  #ingame-chat-pip{
+    position: fixed; z-index: 970; width: 300px; height: 380px;
+    right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom-extra) + 80px);
+    max-width: calc(100vw - 24px); max-height: calc(100vh - 120px);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md); display: none; flex-direction: column; overflow: hidden;
+    transform-origin: bottom right; transform: scale(.9); opacity: 0;
+    transition: transform .28s var(--ease-spring-soft), opacity .2s var(--ease-ios);
+  }
+  #ingame-chat-pip.show{ display: flex; transform: scale(1); opacity: 1; }
+  #ingame-chat-pip.dragging{ transition: none; }
+  #ingame-chat-pip.minimized{ height: auto; }
+  #ingame-chat-pip.minimized .icp-body{ display: none; }
+  .icp-header{
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 6px 9px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border);
+    cursor: grab; touch-action: none; user-select: none;
+  }
+  .icp-header:active{ cursor: grabbing; }
+  .icp-title{ font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .icp-header-btns{ display: flex; gap: 2px; }
+  .icp-header-btns button{
+    width: 26px; height: 26px; border-radius: 50%; border: none; background: transparent;
+    color: var(--text-muted); font-size: 13px; display: flex; align-items: center; justify-content: center;
+  }
+  .icp-header-btns button:hover{ background: var(--surface-3); color: var(--text); }
+  .icp-body{ position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+  /* PiP内での #messages / #composer-dock の見た目調整
+     （絶対配置ベースの元レイアウトをやめ、通常のflex積み重ねにして小さな枠でも破綻しないようにする） */
+  #ingame-chat-pip #messages{
+    position: static; flex: 1; min-height: 0; overflow-y: auto;
+    padding: 10px 12px 6px; mask-image: none; -webkit-mask-image: none;
+  }
+  #ingame-chat-pip #composer-dock{ position: static; flex-shrink: 0; }
+  #ingame-chat-pip .msg-row{ max-width: 92%; margin-top: 4px; }
+  #ingame-chat-pip .bubble{ padding: 7px 11px; font-size: 12.5px; }
+  #ingame-chat-pip .msg-avatar{ width: 24px; height: 24px; font-size: 10.5px; }
+  #ingame-chat-pip #composer{ padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); gap: 6px; }
+  #ingame-chat-pip #msg-input{ font-size: 13px; }
 </style>
 </head>
 <body>
@@ -2423,10 +2462,21 @@
   </div>
 </div>
 
-<!-- ===================== ゲーム中チャットFAB ===================== -->
+<!-- ===================== ゲーム中チャットPiP ===================== -->
 <button type="button" id="ingame-chat-fab" title="チャットを見る">
   <span class="icf-icon">💬</span><span class="icf-badge" id="ingame-chat-fab-badge">0</span>
 </button>
+
+<div id="ingame-chat-pip">
+  <div class="icp-header" id="icp-header">
+    <span class="icp-title">💬 チャット</span>
+    <div class="icp-header-btns">
+      <button type="button" id="icp-minimize-btn" title="最小化">–</button>
+      <button type="button" id="icp-close-btn" title="閉じる">✕</button>
+    </div>
+  </div>
+  <div class="icp-body" id="icp-body"></div>
+</div>
 
 <!-- ===================== 画像ライトボックス ===================== -->
 <div class="modal-scrim" id="lightbox-modal" style="display:none;">
@@ -8953,13 +9003,21 @@ if (isSafeModeActive()) {
   runAllEnabledMods();
 }
 
-/* ===================== ゲーム中チャットFAB ===================== */
-(function initIngameChatFab(){
+/* ===================== ゲーム中チャットPiP ===================== */
+(function initIngameChatPip(){
   const fab = $('ingame-chat-fab');
   const badge = $('ingame-chat-fab-badge');
-  if (!fab) return;
+  const pip = $('ingame-chat-pip');
+  const pipHeader = $('icp-header');
+  const pipBody = $('icp-body');
+  const minimizeBtn = $('icp-minimize-btn');
+  const closeBtn = $('icp-close-btn');
+  if (!fab || !pip || !pipBody) return;
+
   const screens = ['tetris-screen', 'trump-screen'].map((id) => $(id)).filter(Boolean);
-  let peeking = false;
+  const mainEl = $('main');
+  const composerDock = $('composer-dock');
+  let open = false;
   let unread = 0;
 
   function activeGameScreen(){
@@ -8968,38 +9026,81 @@ if (isSafeModeActive()) {
   function updateBadge(){
     if (!badge) return;
     badge.textContent = unread > 9 ? '9+' : String(unread);
-    badge.classList.toggle('show', unread > 0 && !peeking);
+    badge.classList.toggle('show', unread > 0 && !open);
   }
-  function setPeek(on){
-    peeking = on;
-    screens.forEach((scr) => scr.classList.toggle('chat-peek', on && scr.classList.contains('show')));
-    fab.classList.toggle('icf-return', on);
-    fab.title = on ? 'ゲームに戻る' : 'チャットを見る';
-    if (on) { unread = 0; }
-    updateBadge();
+  function openPip(){
+    if (open || !els.messages || !composerDock) return;
+    open = true;
+    pipBody.appendChild(els.messages);
+    pipBody.appendChild(composerDock);
+    pip.classList.add('show');
+    pip.classList.remove('minimized');
+    fab.classList.add('icf-open');
+    fab.title = 'チャットを閉じる';
+    unread = 0; updateBadge();
+    setTimeout(() => { if (els.input) els.input.focus(); }, 260);
+  }
+  function closePip(){
+    if (!open || !mainEl) return;
+    open = false;
+    mainEl.appendChild(els.messages);
+    mainEl.appendChild(composerDock);
+    pip.classList.remove('show');
+    fab.classList.remove('icf-open');
+    fab.title = 'チャットを見る';
   }
   function syncFabVisibility(){
-    const gs = activeGameScreen();
-    if (!gs) {
+    if (!activeGameScreen()) {
       fab.classList.remove('visible');
-      if (peeking) setPeek(false);
+      closePip();
       return;
     }
     fab.classList.add('visible');
   }
-  fab.addEventListener('click', () => {
-    if (!activeGameScreen() && !peeking) return;
-    setPeek(!peeking);
-  });
+
+  fab.addEventListener('click', () => { open ? closePip() : openPip(); });
+  closeBtn?.addEventListener('click', closePip);
+  minimizeBtn?.addEventListener('click', () => pip.classList.toggle('minimized'));
+
   screens.forEach((scr) => {
     new MutationObserver(syncFabVisibility).observe(scr, { attributes: true, attributeFilter: ['class'] });
   });
   if (els.messages) {
     new MutationObserver(() => {
-      if (activeGameScreen() && !peeking) { unread++; updateBadge(); }
+      if (activeGameScreen() && !open) { unread++; updateBadge(); }
     }).observe(els.messages, { childList: true });
   }
   syncFabVisibility();
+
+  /* ドラッグ移動（ヘッダーをつかんで移動、right/bottom基準からleft/top基準へ切り替え） */
+  if (pipHeader) {
+    let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+    pipHeader.addEventListener('pointerdown', (e) => {
+      const rect = pip.getBoundingClientRect();
+      pip.style.left = rect.left + 'px';
+      pip.style.top = rect.top + 'px';
+      pip.style.right = 'auto';
+      pip.style.bottom = 'auto';
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      startLeft = rect.left; startTop = rect.top;
+      pip.classList.add('dragging');
+      pipHeader.setPointerCapture(e.pointerId);
+    });
+    pipHeader.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const w = pip.offsetWidth, h = pip.offsetHeight;
+      let nl = startLeft + (e.clientX - startX);
+      let nt = startTop + (e.clientY - startY);
+      nl = Math.min(Math.max(nl, 4), window.innerWidth - w - 4);
+      nt = Math.min(Math.max(nt, 4), window.innerHeight - h - 4);
+      pip.style.left = nl + 'px';
+      pip.style.top = nt + 'px';
+    });
+    const stopDrag = () => { dragging = false; pip.classList.remove('dragging'); };
+    pipHeader.addEventListener('pointerup', stopDrag);
+    pipHeader.addEventListener('pointercancel', stopDrag);
+  }
 })();
 
 </script>
