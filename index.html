@@ -902,39 +902,70 @@
     gap: 20px; background: linear-gradient(160deg, var(--surface-2), #000);
   }
   #media-player-stage .mp-audio-icon{ font-size: 54px; }
-  #media-player-stage audio{ width: 100%; max-width: 380px; }
-
   /* ---- YouTube Music: 独自UIの音楽プレイヤー（実体のYT埋め込みは1pxで隠し、UIは完全自前） ---- */
   #media-player-inner.music-mode{ width: min(92vw, 380px); background: transparent; }
+  #media-player-inner.music-mode #media-player-close{ display: none; } /* 音楽モードは左上の丸ボタンで閉じる */
   #media-player-stage .mp-music-wrap{
-    width: 100%; border-radius: var(--radius-md); overflow: hidden;
-    background-size: cover; background-position: center; background-color: #111;
-    display: flex; flex-direction: column; justify-content: flex-end; min-height: 420px;
+    position: relative; width: 100%; min-height: 480px; border-radius: var(--radius-md); overflow: hidden;
+    background-color: #111; display: flex; flex-direction: column; justify-content: space-between;
   }
+  #media-player-stage .mp-music-art{
+    position: absolute; inset: 0; background-size: cover; background-position: center;
+    animation: ytmKenBurns 16s ease-in-out infinite alternate; will-change: transform;
+  }
+  @keyframes ytmKenBurns{ 0%{ transform: scale(1); } 100%{ transform: scale(1.12); } }
+  #media-player-stage .mp-music-scrim{
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, #00000075 0%, transparent 24%, transparent 52%, #000000d0 85%, #000000f2 100%);
+  }
+  #media-player-stage .mp-music-topbar{ position: relative; z-index: 2; display: flex; padding: 14px 14px 0; }
+  #media-player-stage .mp-music-collapse{
+    width: 34px; height: 34px; border-radius: 50%; border: none; background: #00000060; color: #fff;
+    font-size: 17px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: background-color .15s var(--ease-ios), transform .15s var(--ease-ios);
+  }
+  #media-player-stage .mp-music-collapse:hover{ background: #000000a0; }
+  #media-player-stage .mp-music-collapse:active{ transform: scale(.88); }
   #media-player-stage .mp-music-info{
-    background: linear-gradient(to top, #000000f0 0%, #000000c8 45%, #00000040 85%, transparent 100%);
-    padding: 28px 20px 22px; display: flex; flex-direction: column; gap: 2px;
+    position: relative; z-index: 2; padding: 0 22px 24px; display: flex; flex-direction: column; gap: 2px;
+    animation: ytmFadeUp .5s var(--ease-spring-soft) both .1s;
   }
+  @keyframes ytmFadeUp{ 0%{ opacity: 0; transform: translateY(10px); } 100%{ opacity: 1; transform: translateY(0); } }
   #media-player-stage .mp-music-title{
-    font-size: 18px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; margin-bottom: 2px;
+    font-size: 20px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; margin-bottom: 2px; transition: opacity .25s var(--ease-ios);
   }
-  #media-player-stage .mp-music-artist{ font-size: 12.5px; color: #cfcfcf; margin-bottom: 18px; }
+  #media-player-stage .mp-music-artist{ font-size: 13px; color: #d8d8d8; margin-bottom: 18px; transition: opacity .25s var(--ease-ios); }
   #media-player-stage .mp-music-seek{
     -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 2px;
-    background: #ffffff40; outline: none; cursor: pointer; margin: 0;
+    background: linear-gradient(to right, #fff 0%, #ffffff40 0%); outline: none; cursor: pointer; margin: 0;
   }
   #media-player-stage .mp-music-seek::-webkit-slider-thumb{
     -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%;
-    background: #fff; cursor: pointer;
+    background: #fff; cursor: pointer; opacity: 0; transition: opacity .15s var(--ease-ios);
   }
+  #media-player-stage .mp-music-seek:hover::-webkit-slider-thumb,
+  #media-player-stage .mp-music-seek:active::-webkit-slider-thumb{ opacity: 1; }
+  #media-player-stage .mp-music-seek::-moz-range-thumb{
+    width: 12px; height: 12px; border: none; border-radius: 50%; background: #fff; opacity: 0;
+    transition: opacity .15s var(--ease-ios);
+  }
+  #media-player-stage .mp-music-seek:hover::-moz-range-thumb,
+  #media-player-stage .mp-music-seek:active::-moz-range-thumb{ opacity: 1; }
   #media-player-stage .mp-music-time{
-    display: flex; justify-content: space-between; font-size: 11px; color: #b3b3b3; margin-top: 6px;
+    display: flex; justify-content: space-between; font-size: 11.5px; color: #c9c9c9; margin-top: 6px;
   }
+  #media-player-stage .mp-music-controls{ display: flex; justify-content: center; margin-top: 22px; }
   #media-player-stage .mp-music-play{
-    align-self: center; margin-top: 16px; width: 60px; height: 60px; border-radius: 50%; border: none;
-    background: #fff; color: #000; font-size: 20px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
+    width: 64px; height: 64px; border-radius: 50%; border: none; background: #fff; color: #000;
+    font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: transform .18s var(--ease-spring);
+  }
+  #media-player-stage .mp-music-play:active{ transform: scale(.88); }
+  #media-player-stage .mp-music-play.playing{ animation: ytmPulse 2.4s ease-in-out infinite; }
+  @keyframes ytmPulse{
+    0%, 100%{ box-shadow: 0 0 0 0 #ffffff35; }
+    50%{ box-shadow: 0 0 0 12px #ffffff00; }
   }
   .ytm-hidden-host{ position: fixed; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden; }
 
@@ -4385,6 +4416,11 @@ function formatPlayerTime(seconds){
   const min = Math.floor(s / 60), sec = s % 60;
   return `${min}:${sec < 10 ? '0' : ''}${sec}`;
 }
+/** シークバーの「再生済み部分は白・残りは半透明」の塗り分けをグラデーションで表現する */
+function updateYtmSeekFill(seekEl, value, max){
+  const pct = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
+  seekEl.style.background = `linear-gradient(to right, #fff 0%, #fff ${pct}%, #ffffff40 ${pct}%, #ffffff40 100%)`;
+}
 /** 1px・不可視の <div id="ytm-player-host"> にYT.Playerを一度だけ生成し、以後は使い回す */
 function ensureYtmPlayer(){
   if (ytmPlayerReadyPromise) return ytmPlayerReadyPromise;
@@ -4400,6 +4436,7 @@ function onYtmStateChange(event){
   if (!ytmUi) return;
   if (event.data === YT.PlayerState.PLAYING) {
     ytmUi.playBtn.textContent = '❚❚';
+    ytmUi.playBtn.classList.add('playing');
     const data = ytmPlayer.getVideoData ? ytmPlayer.getVideoData() : null;
     if (data && data.title) ytmUi.title.textContent = data.title;
     if (data && data.author) ytmUi.artist.textContent = data.author;
@@ -4409,11 +4446,14 @@ function onYtmStateChange(event){
     ytmProgressTimer = setInterval(() => {
       if (!ytmPlayer || !ytmUi) return;
       const cur = ytmPlayer.getCurrentTime ? ytmPlayer.getCurrentTime() : 0;
+      const max = Number(ytmUi.seek.max) || 0;
       ytmUi.seek.value = cur;
       ytmUi.cur.textContent = formatPlayerTime(cur);
+      updateYtmSeekFill(ytmUi.seek, cur, max);
     }, 500);
   } else {
     ytmUi.playBtn.textContent = '▶';
+    ytmUi.playBtn.classList.remove('playing');
     stopYtmProgressTimer();
   }
 }
@@ -4430,13 +4470,20 @@ function stopYtmPlayback(){
 function renderYtmPlayerShell(stage, videoId){
   const thumb = `https://img.youtube.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`;
   stage.innerHTML = `
-    <div class="mp-music-wrap" style="background-image:url('${thumb}')">
+    <div class="mp-music-wrap">
+      <div class="mp-music-art" style="background-image:url('${thumb}')"></div>
+      <div class="mp-music-scrim"></div>
+      <div class="mp-music-topbar">
+        <button type="button" class="mp-music-collapse" id="mp-music-collapse" aria-label="閉じる">⌄</button>
+      </div>
       <div class="mp-music-info">
         <div class="mp-music-title" id="mp-music-title">読み込み中…</div>
         <div class="mp-music-artist" id="mp-music-artist">YouTube Music</div>
         <input type="range" class="mp-music-seek" id="mp-music-seek" value="0" min="0" max="100" step="0.1">
         <div class="mp-music-time"><span id="mp-music-cur">0:00</span><span id="mp-music-dur">0:00</span></div>
-        <button type="button" class="mp-music-play" id="mp-music-play">▶</button>
+        <div class="mp-music-controls">
+          <button type="button" class="mp-music-play" id="mp-music-play">▶</button>
+        </div>
       </div>
     </div>`;
   ytmUi = {
@@ -4453,9 +4500,12 @@ function renderYtmPlayerShell(stage, videoId){
     else ytmPlayer.playVideo();
   });
   ytmUi.seek.addEventListener('input', (e) => {
-    if (ytmPlayer && ytmPlayer.seekTo) ytmPlayer.seekTo(Number(e.target.value), true);
-    ytmUi.cur.textContent = formatPlayerTime(Number(e.target.value));
+    const val = Number(e.target.value);
+    if (ytmPlayer && ytmPlayer.seekTo) ytmPlayer.seekTo(val, true);
+    ytmUi.cur.textContent = formatPlayerTime(val);
+    updateYtmSeekFill(ytmUi.seek, val, Number(ytmUi.seek.max) || 0);
   });
+  stage.querySelector('#mp-music-collapse').addEventListener('click', closeMediaPlayer);
 }
 
 els.lightboxModal.addEventListener('click', () => { closeModal(els.lightboxModal); });
