@@ -904,18 +904,6 @@
   #media-player-stage .mp-audio-icon{ font-size: 54px; }
   #media-player-stage audio{ width: 100%; max-width: 380px; }
 
-  /* ---- YouTube Music: 音楽プレイヤー風レイアウト ---- */
-  #media-player-inner.music-mode{ width: min(92vw, 380px); }
-  #media-player-stage .mp-music-wrap{ width: 100%; display: flex; flex-direction: column; background: linear-gradient(180deg, var(--surface-2), #000); }
-  #media-player-stage .mp-music-art{
-    position: relative; width: 100%; aspect-ratio: 1 / 1; background-size: cover; background-position: center;
-    background-color: #111; display: flex; align-items: flex-end; justify-content: flex-start;
-  }
-  #media-player-stage .mp-music-art::after{ content:''; position:absolute; inset:0; background: linear-gradient(180deg, transparent 55%, #000000cc); }
-  #media-player-stage .mp-music-art-note{ position: relative; z-index: 1; padding: 14px 16px; font-size: 26px; color: #fff; opacity: .9; }
-  #media-player-stage .mp-music-frame{ width: 100%; height: 78px; background: #0a0a0a; flex-shrink: 0; }
-  #media-player-stage .mp-music-frame iframe{ width: 100%; height: 100%; border: 0; display: block; aspect-ratio: unset; }
-
   /* ===================== メッセージ内リンク & メディアプレビューカード ===================== */
   .msg-link{ color: var(--amber); text-decoration: underline; word-break: break-all; }
   .bubble.mine .msg-link{ color: var(--mine-bubble-text); text-decoration-color: currentColor; }
@@ -938,11 +926,6 @@
   .mpc-info{ min-width: 0; flex: 1; }
   .mpc-label{ font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; }
   .mpc-url{ font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-  /* ---- YouTube Music専用のプレビューカード（正方形アートワーク + 音符アイコン） ---- */
-  .media-preview-card.yt-music{ border-color: #ff004f55; }
-  .media-preview-card.yt-music .mpc-label{ color: #ff5f8f; }
-  .mpc-thumb-square{ width: 60px; height: 60px; border-radius: 8px; }
-  .mpc-note{ font-size: 20px; background: #000000a0; }
   #msg-input{
     flex:1; resize:none; max-height: 120px; min-height: 42px;
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
@@ -2066,16 +2049,23 @@
   #ingame-chat-pip{
     position: fixed; z-index: 970; width: 300px; height: 380px;
     right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom-extra) + 80px);
+    min-width: 220px; min-height: 220px;
     max-width: calc(100vw - 24px); max-height: calc(100vh - 120px);
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
     box-shadow: var(--shadow-md); display: none; flex-direction: column; overflow: hidden;
     transform-origin: bottom right; transform: scale(.9); opacity: 0;
-    transition: transform .28s var(--ease-spring-soft), opacity .2s var(--ease-ios);
+    transition: transform .28s var(--ease-spring-soft), opacity .2s var(--ease-ios),
+                width .3s var(--ease-spring-soft), height .3s var(--ease-spring-soft);
   }
   #ingame-chat-pip.show{ display: flex; transform: scale(1); opacity: 1; }
-  #ingame-chat-pip.dragging{ transition: none; }
-  #ingame-chat-pip.minimized{ height: auto; }
-  #ingame-chat-pip.minimized .icp-body{ display: none; }
+  #ingame-chat-pip.dragging, #ingame-chat-pip.resizing{ transition: none; }
+  #ingame-chat-pip.snapping{
+    transition: left .32s var(--ease-spring-soft), top .32s var(--ease-spring-soft),
+                transform .28s var(--ease-spring-soft), opacity .2s var(--ease-ios);
+  }
+  #ingame-chat-pip.minimized{ height: auto !important; }
+  #ingame-chat-pip.minimized .icp-body, #ingame-chat-pip.minimized .floatwin-resize-handle{ display: none; }
+  #ingame-chat-pip.maximized{ border-radius: var(--radius-md); }
   .icp-header{
     flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
     padding: 9px 6px 9px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border);
@@ -2103,6 +2093,65 @@
   #ingame-chat-pip .msg-avatar{ width: 24px; height: 24px; font-size: 10.5px; }
   #ingame-chat-pip #composer{ padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); gap: 6px; }
   #ingame-chat-pip #msg-input{ font-size: 13px; }
+
+  /* 汎用フローティングウィンドウのヘッダー（ゲームPiPチュームで使用） */
+  .floatwin-header{
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 6px 8px 12px; background: var(--surface-2); border: 1px solid var(--border); border-bottom: none;
+    cursor: grab; touch-action: none; user-select: none; height: 32px; box-sizing: border-box;
+  }
+  .floatwin-header:active{ cursor: grabbing; }
+  .floatwin-title{ font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .floatwin-btns{ display: flex; gap: 2px; flex-shrink: 0; }
+  .floatwin-btns button{
+    width: 24px; height: 24px; border-radius: 50%; border: none; background: transparent;
+    color: var(--text-muted); font-size: 12px; display: flex; align-items: center; justify-content: center;
+  }
+  .floatwin-btns button:hover{ background: var(--surface-3); color: var(--text); }
+
+  /* 汎用リサイズハンドル（右下つまみ） */
+  .floatwin-resize-handle{
+    position: absolute; right: 0; bottom: 0; width: 24px; height: 24px; z-index: 5;
+    cursor: nwse-resize; touch-action: none;
+  }
+  .floatwin-resize-handle::after{
+    content: ''; position: absolute; right: 6px; bottom: 6px; width: 9px; height: 9px;
+    border-right: 2px solid var(--text-faint); border-bottom: 2px solid var(--text-faint);
+    border-radius: 0 0 2px 0; opacity: .65; transition: opacity .2s ease, border-color .2s ease;
+  }
+  .floatwin-resize-handle:hover::after{ border-color: var(--amber); opacity: 1; }
+
+  /* ===================== ミニゲームのフローティング表示（チャットと同時操作用） =====================
+     ゲーム画面自体は内部のレイアウト計算（キャンバスサイズ等）を壊さないよう実寸(100vw/100vh)のまま保ち、
+     transform: scale() で見た目だけを縮小してウィンドウ化する。 */
+  #tetris-screen.game-floating, #trump-screen.game-floating{
+    top: 0; left: 0; right: auto; bottom: auto; width: 100vw; height: 100vh;
+    transform-origin: top left; z-index: 966;
+    border: 1px solid var(--border); border-radius: 0 0 var(--radius-md) var(--radius-md);
+    box-shadow: var(--shadow-md);
+  }
+  #tetris-screen.game-floating #tetris-close-btn, #tetris-screen.game-floating #tetris-float-btn,
+  #trump-screen.game-floating #trump-close-btn, #trump-screen.game-floating #trump-float-btn{ display: none; }
+
+  .game-float-btn{
+    position: absolute; top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra) + 10px); right: 56px; z-index: 30;
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface-2) 78%, transparent); backdrop-filter: blur(14px);
+    color: var(--text-muted); font-size: 14px; display: flex; align-items: center; justify-content: center;
+    transition: background-color .2s var(--ease-ios), color .2s var(--ease-ios), border-color .2s var(--ease-ios);
+  }
+  .game-float-btn:hover{ color: var(--amber); border-color: color-mix(in srgb, var(--amber) 45%, transparent); }
+
+  #game-float-chrome{
+    position: fixed; z-index: 967; display: none; flex-direction: column; pointer-events: none;
+  }
+  #game-float-chrome.show{ display: flex; }
+  #game-float-chrome .floatwin-header{
+    border-radius: var(--radius-md) var(--radius-md) 0 0; pointer-events: auto;
+    box-shadow: var(--shadow-sm);
+  }
+  #game-float-chrome.dragging .floatwin-header{ cursor: grabbing; }
+  #gfc-resize{ position: fixed; pointer-events: auto; }
 </style>
 </head>
 <body>
@@ -2348,6 +2397,7 @@
 <!-- ===================== Block Drop (SIGNAL BATTLE) ===================== -->
 <div id="tetris-screen">
   <canvas id="tet-bg-canvas"></canvas>
+  <button type="button" id="tetris-float-btn" class="game-float-btn" title="フローティング表示（チャットと同時に操作）">⤢</button>
   <button id="tetris-close-btn" title="閉じる" data-i18n-title="s83">✕</button>
 
   <div id="tetris-lobby" class="tet-view">
@@ -2458,6 +2508,7 @@
 
 <!-- ===================== トランプ (大富豪・ババ抜き・七並べ) ===================== -->
 <div id="trump-screen">
+  <button type="button" id="trump-float-btn" class="game-float-btn" title="フローティング表示（チャットと同時に操作）">⤢</button>
   <button id="trump-close-btn" title="閉じる" data-i18n-title="s83">✕</button>
 
   <div id="trump-lobby" class="tet-view">
@@ -2534,12 +2585,26 @@
   <div class="icp-header" id="icp-header">
     <span class="icp-title">💬 チャット</span>
     <div class="icp-header-btns">
+      <button type="button" id="icp-maximize-btn" title="拡大／元のサイズ">⤢</button>
       <button type="button" id="icp-minimize-btn" title="最小化">–</button>
       <button type="button" id="icp-close-btn" title="閉じる">✕</button>
     </div>
   </div>
   <div class="icp-body" id="icp-body"></div>
+  <div class="floatwin-resize-handle" id="icp-resize"></div>
 </div>
+
+<!-- ===================== ミニゲームのフローティング表示チューム ===================== -->
+<div id="game-float-chrome">
+  <div class="floatwin-header" id="gfc-header">
+    <span class="floatwin-title" id="gfc-title">🎮</span>
+    <div class="floatwin-btns">
+      <button type="button" id="gfc-restore-btn" title="全画面に戻す">⤡</button>
+      <button type="button" id="gfc-close-btn" title="退出">✕</button>
+    </div>
+  </div>
+</div>
+<div class="floatwin-resize-handle" id="gfc-resize" style="display:none;"></div>
 
 <!-- ===================== 画像ライトボックス ===================== -->
 <div class="modal-scrim" id="lightbox-modal" style="display:none;">
@@ -3271,7 +3336,6 @@ const els = {
   replyPreviewText: $('reply-preview-text'), replyPreviewClear: $('reply-preview-clear'),
   lightboxModal: $('lightbox-modal'), lightboxImg: $('lightbox-img'),
   mediaPlayerModal: $('media-player-modal'), mediaPlayerStage: $('media-player-stage'), mediaPlayerClose: $('media-player-close'),
-  mediaPlayerInner: $('media-player-inner'),
   nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
   usernameInput: $('username-input'), usernameError: $('username-error'),
   bioInput: $('bio-input'), bioCounter: $('bio-counter'), linkInput: $('link-input'),
@@ -3409,38 +3473,30 @@ function renderMessageText(text){
   return twemojiHtml(out);
 }
 /** YouTubeのURLから動画IDを取り出す（watch/短縮youtu.be/shorts/embed に対応） */
-/** YouTube系URLから { id, isMusic } を取り出す（watch/短縮youtu.be/shorts/embed、music.youtube.comに対応） */
-function parseYoutubeInfo(url){
+function parseYoutubeId(url){
   try {
     const u = new URL(url);
     const host = u.hostname.replace(/^www\./, '').replace(/^m\./, '');
-    const isMusic = host === 'music.youtube.com';
-    if (host === 'youtu.be') {
-      const id = u.pathname.slice(1).split('/')[0] || null;
-      return id ? { id, isMusic } : null;
-    }
-    if (host === 'youtube.com' || isMusic) {
-      if (u.pathname === '/watch') {
-        const id = u.searchParams.get('v');
-        return id ? { id, isMusic } : null;
-      }
+    if (host === 'youtu.be') return u.pathname.slice(1).split('/')[0] || null;
+    if (host === 'youtube.com' || host === 'music.youtube.com') {
+      if (u.pathname === '/watch') return u.searchParams.get('v');
       const shorts = u.pathname.match(/^\/shorts\/([^/]+)/);
-      if (shorts) return { id: shorts[1], isMusic };
+      if (shorts) return shorts[1];
       const embed = u.pathname.match(/^\/embed\/([^/]+)/);
-      if (embed) return { id: embed[1], isMusic };
+      if (embed) return embed[1];
     }
   } catch (e) { /* 不正なURLは無視 */ }
   return null;
 }
-/** 本文中の最初のメディアリンク（YouTube / YouTube Music / 動画ファイル / 音声ファイル）を検出する */
+/** 本文中の最初のメディアリンク（YouTube / 動画ファイル / 音声ファイル）を検出する */
 function detectMediaLink(text){
   const raw = text || '';
   const re = new RegExp(URL_RE.source, 'g');
   let m;
   while ((m = re.exec(raw))) {
     const url = m[0];
-    const yt = parseYoutubeInfo(url);
-    if (yt) return { type: yt.isMusic ? 'youtube_music' : 'youtube', url, id: yt.id };
+    const ytId = parseYoutubeId(url);
+    if (ytId) return { type: 'youtube', url, id: ytId };
     if (/\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(url)) return { type: 'video', url };
     if (/\.(mp3|wav|ogg|m4a|flac|aac|opus)(\?.*)?$/i.test(url)) return { type: 'audio', url };
   }
@@ -3454,13 +3510,6 @@ function renderMediaPreviewHtml(media){
     return `<div class="media-preview-card" data-media-type="youtube" data-media-id="${escapeHtml(media.id)}">
       <div class="mpc-thumb" style="background-image:url('${thumb}')"><div class="mpc-play">▶</div></div>
       <div class="mpc-info"><div class="mpc-label">YouTube</div><div class="mpc-url">${escapeHtml(media.url)}</div></div>
-    </div>`;
-  }
-  if (media.type === 'youtube_music') {
-    const thumb = `https://img.youtube.com/vi/${encodeURIComponent(media.id)}/hqdefault.jpg`;
-    return `<div class="media-preview-card yt-music" data-media-type="youtube_music" data-media-id="${escapeHtml(media.id)}">
-      <div class="mpc-thumb mpc-thumb-square" style="background-image:url('${thumb}')"><div class="mpc-play mpc-note">♪</div></div>
-      <div class="mpc-info"><div class="mpc-label">YouTube Music</div><div class="mpc-url">${escapeHtml(media.url)}</div></div>
     </div>`;
   }
   if (media.type === 'video') {
@@ -4349,7 +4398,6 @@ function openMediaPlayer(media){
   if (!media || !els.mediaPlayerStage) return;
   const stage = els.mediaPlayerStage;
   stage.innerHTML = '';
-  els.mediaPlayerInner?.classList.toggle('music-mode', media.type === 'youtube_music');
   if (media.type === 'youtube') {
     const iframe = document.createElement('iframe');
     iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(media.id)}?autoplay=1&rel=0`;
@@ -4357,24 +4405,6 @@ function openMediaPlayer(media){
     iframe.allowFullscreen = true;
     iframe.title = 'YouTube video player';
     stage.appendChild(iframe);
-  } else if (media.type === 'youtube_music') {
-    const wrap = document.createElement('div');
-    wrap.className = 'mp-music-wrap';
-    const art = document.createElement('div');
-    art.className = 'mp-music-art';
-    art.style.backgroundImage = `url('https://img.youtube.com/vi/${encodeURIComponent(media.id)}/hqdefault.jpg')`;
-    art.innerHTML = '<div class="mp-music-art-note">♪</div>';
-    const frame = document.createElement('div');
-    frame.className = 'mp-music-frame';
-    const iframe = document.createElement('iframe');
-    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(media.id)}?autoplay=1&rel=0`;
-    iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-    iframe.allowFullscreen = true;
-    iframe.title = 'YouTube Music player';
-    frame.appendChild(iframe);
-    wrap.appendChild(art);
-    wrap.appendChild(frame);
-    stage.appendChild(wrap);
   } else if (media.type === 'video') {
     const video = document.createElement('video');
     video.src = media.url; video.controls = true; video.autoplay = true; video.playsInline = true;
@@ -5524,7 +5554,6 @@ els.messages.addEventListener('click', (e) => {
   if (mediaCard) {
     const type = mediaCard.dataset.mediaType;
     if (type === 'youtube') openMediaPlayer({ type: 'youtube', id: mediaCard.dataset.mediaId });
-    else if (type === 'youtube_music') openMediaPlayer({ type: 'youtube_music', id: mediaCard.dataset.mediaId });
     else if (type === 'video') openMediaPlayer({ type: 'video', url: mediaCard.dataset.mediaUrl });
     else if (type === 'audio') openMediaPlayer({ type: 'audio', url: mediaCard.dataset.mediaUrl });
     return;
@@ -9239,24 +9268,65 @@ if (isSafeModeActive()) {
   const pip = $('ingame-chat-pip');
   const pipHeader = $('icp-header');
   const pipBody = $('icp-body');
+  const resizeHandle = $('icp-resize');
   const minimizeBtn = $('icp-minimize-btn');
+  const maximizeBtn = $('icp-maximize-btn');
   const closeBtn = $('icp-close-btn');
   if (!fab || !pip || !pipBody) return;
+
+  const PIP_GEOM_KEY = 'signal_chatpip_geom_v1';
+  const MARGIN = 8;
+  const MIN_W = 220, MIN_H = 220;
+  const SNAP_DIST = 36; // このピクセル以内までヘッダーをドラッグすると画面端にスナップする
 
   const screens = ['tetris-screen', 'trump-screen'].map((id) => $(id)).filter(Boolean);
   const mainEl = $('main');
   const composerDock = $('composer-dock');
   let open = false;
   let unread = 0;
+  let preMaxGeom = null; // 最大化前の位置・サイズを保持して元に戻せるようにする
 
   function activeGameScreen(){
     return screens.find((scr) => scr.classList.contains('show')) || null;
+  }
+  function gameFloating(){
+    const scr = activeGameScreen();
+    return !!(scr && scr.classList.contains('game-floating'));
   }
   function updateBadge(){
     if (!badge) return;
     badge.textContent = unread > 9 ? '9+' : String(unread);
     badge.classList.toggle('show', unread > 0 && !open);
   }
+  function clampGeom(left, top, w, h){
+    const maxW = Math.min(w, window.innerWidth - MARGIN * 2);
+    const maxH = Math.min(h, window.innerHeight - MARGIN * 2);
+    const nw = Math.max(MIN_W, maxW);
+    const nh = Math.max(MIN_H, maxH);
+    const nl = Math.min(Math.max(left, MARGIN), window.innerWidth - nw - MARGIN);
+    const nt = Math.min(Math.max(top, MARGIN), window.innerHeight - nh - MARGIN);
+    return { left: nl, top: nt, w: nw, h: nh };
+  }
+  function loadGeom(){
+    try { return JSON.parse(localStorage.getItem(PIP_GEOM_KEY) || 'null'); } catch(_){ return null; }
+  }
+  function saveGeom(){
+    if (pip.classList.contains('maximized')) return; // 最大化中の一時サイズは保存しない
+    const rect = pip.getBoundingClientRect();
+    try {
+      localStorage.setItem(PIP_GEOM_KEY, JSON.stringify({ left: rect.left, top: rect.top, w: rect.width, h: rect.height }));
+    } catch(_){}
+  }
+  function applyGeom(g){
+    const c = clampGeom(g.left, g.top, g.w, g.h);
+    pip.style.left = c.left + 'px'; pip.style.top = c.top + 'px'; pip.style.right = 'auto'; pip.style.bottom = 'auto';
+    pip.style.width = c.w + 'px'; pip.style.height = c.h + 'px';
+  }
+  function currentGeomFromRect(){
+    const rect = pip.getBoundingClientRect();
+    return { left: rect.left, top: rect.top, w: rect.width, h: rect.height };
+  }
+
   function openPip(){
     if (open || !els.messages || !composerDock) return;
     open = true;
@@ -9264,6 +9334,8 @@ if (isSafeModeActive()) {
     pipBody.appendChild(composerDock);
     pip.classList.add('show');
     pip.classList.remove('minimized');
+    const saved = loadGeom();
+    if (saved) applyGeom(saved);
     fab.classList.add('icf-open');
     fab.title = 'チャットを閉じる';
     unread = 0; updateBadge();
@@ -9279,7 +9351,10 @@ if (isSafeModeActive()) {
     fab.title = 'チャットを見る';
   }
   function syncFabVisibility(){
-    if (!activeGameScreen()) {
+    const active = activeGameScreen();
+    if (!active || active.classList.contains('game-floating')) {
+      // ゲーム自体がフローティング中はチャットの方が既にメイン画面として見えているので、
+      // 重複するチャットPiPのFABは出さない
       fab.classList.remove('visible');
       closePip();
       return;
@@ -9291,6 +9366,25 @@ if (isSafeModeActive()) {
   closeBtn?.addEventListener('click', closePip);
   minimizeBtn?.addEventListener('click', () => pip.classList.toggle('minimized'));
 
+  function toggleMaximize(){
+    if (pip.classList.contains('maximized')) {
+      pip.classList.add('snapping');
+      pip.classList.remove('maximized');
+      if (preMaxGeom) applyGeom(preMaxGeom);
+      preMaxGeom = null;
+    } else {
+      preMaxGeom = currentGeomFromRect();
+      pip.classList.add('snapping');
+      pip.classList.add('maximized');
+      const w = Math.min(window.innerWidth - MARGIN * 2, Math.round(window.innerWidth * 0.94));
+      const h = Math.min(window.innerHeight - MARGIN * 2, Math.round(window.innerHeight * 0.72));
+      applyGeom({ left: (window.innerWidth - w) / 2, top: (window.innerHeight - h) / 2, w, h });
+    }
+    setTimeout(() => pip.classList.remove('snapping'), 340);
+  }
+  maximizeBtn?.addEventListener('click', toggleMaximize);
+  pipHeader?.addEventListener('dblclick', toggleMaximize);
+
   screens.forEach((scr) => {
     new MutationObserver(syncFabVisibility).observe(scr, { attributes: true, attributeFilter: ['class'] });
   });
@@ -9301,10 +9395,17 @@ if (isSafeModeActive()) {
   }
   syncFabVisibility();
 
-  /* ドラッグ移動（ヘッダーをつかんで移動、right/bottom基準からleft/top基準へ切り替え） */
+  window.addEventListener('resize', () => {
+    if (!open) return;
+    applyGeom(currentGeomFromRect());
+  });
+
+  /* ドラッグ移動（ヘッダーをつかんで移動。話した位置は画面端に近ければマグネットでスナップする） */
   if (pipHeader) {
     let dragging = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
     pipHeader.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.icp-header-btns')) return;
+      if (pip.classList.contains('maximized')) return;
       const rect = pip.getBoundingClientRect();
       pip.style.left = rect.left + 'px';
       pip.style.top = rect.top + 'px';
@@ -9326,10 +9427,224 @@ if (isSafeModeActive()) {
       pip.style.left = nl + 'px';
       pip.style.top = nt + 'px';
     });
-    const stopDrag = () => { dragging = false; pip.classList.remove('dragging'); };
+    const stopDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      pip.classList.remove('dragging');
+      // 画面端スナップ：ヘッダーを離した位置が端に近ければピタッと寄せる
+      const rect = pip.getBoundingClientRect();
+      let nl = rect.left, nt = rect.top;
+      if (nl <= MARGIN + SNAP_DIST) nl = MARGIN;
+      else if (nl >= window.innerWidth - rect.width - MARGIN - SNAP_DIST) nl = window.innerWidth - rect.width - MARGIN;
+      if (nt <= MARGIN + SNAP_DIST) nt = MARGIN;
+      else if (nt >= window.innerHeight - rect.height - MARGIN - SNAP_DIST) nt = window.innerHeight - rect.height - MARGIN;
+      if (nl !== rect.left || nt !== rect.top) {
+        pip.classList.add('snapping');
+        pip.style.left = nl + 'px'; pip.style.top = nt + 'px';
+        setTimeout(() => pip.classList.remove('snapping'), 340);
+      }
+      saveGeom();
+    };
     pipHeader.addEventListener('pointerup', stopDrag);
     pipHeader.addEventListener('pointercancel', stopDrag);
   }
+
+  /* リサイズ（右下ハンドルをドラッグしてウィンドウサイズを変更） */
+  if (resizeHandle) {
+    let resizing = false, rStartX = 0, rStartY = 0, rStartW = 0, rStartH = 0;
+    resizeHandle.addEventListener('pointerdown', (e) => {
+      if (pip.classList.contains('maximized') || pip.classList.contains('minimized')) return;
+      const rect = pip.getBoundingClientRect();
+      pip.style.left = rect.left + 'px'; pip.style.top = rect.top + 'px';
+      pip.style.right = 'auto'; pip.style.bottom = 'auto';
+      resizing = true;
+      rStartX = e.clientX; rStartY = e.clientY;
+      rStartW = rect.width; rStartH = rect.height;
+      pip.classList.add('resizing');
+      resizeHandle.setPointerCapture(e.pointerId);
+      e.stopPropagation();
+    });
+    resizeHandle.addEventListener('pointermove', (e) => {
+      if (!resizing) return;
+      const rect = pip.getBoundingClientRect();
+      let nw = rStartW + (e.clientX - rStartX);
+      let nh = rStartH + (e.clientY - rStartY);
+      nw = Math.min(Math.max(nw, MIN_W), window.innerWidth - rect.left - MARGIN);
+      nh = Math.min(Math.max(nh, MIN_H), window.innerHeight - rect.top - MARGIN);
+      pip.style.width = nw + 'px'; pip.style.height = nh + 'px';
+    });
+    const stopResize = () => {
+      if (!resizing) return;
+      resizing = false;
+      pip.classList.remove('resizing');
+      saveGeom();
+    };
+    resizeHandle.addEventListener('pointerup', stopResize);
+    resizeHandle.addEventListener('pointercancel', stopResize);
+  }
+})();
+
+/* ===================== ミニゲームのフローティング表示（チャットと同時に操作） =====================
+   ゲーム画面（Block Drop / トランプ）を全画面から小さなウィンドウへ縮小し、裏にあるチャット画面を
+   メイン画面として使いながら、ゲームもそのままプレイし続けられるようにする。
+   内部のcanvas等のサイズ計算を壊さないよう、要素自体は実寸(100vw/100vh)のまま transform: scale() だけで
+   見た目を縮小し、実際の当たり判定・クリック範囲もその縮小後の見た目に追従する（ブラウザの標準挙動）。 */
+(function initGameFloatWindow(){
+  const chrome = $('game-float-chrome');
+  const chromeHeader = $('gfc-header');
+  const chromeTitle = $('gfc-title');
+  const restoreBtn = $('gfc-restore-btn');
+  const chromeCloseBtn = $('gfc-close-btn');
+  const resizeHandle = $('gfc-resize');
+  if (!chrome || !chromeHeader || !resizeHandle) return;
+
+  const HEADER_H = 32;
+  const MARGIN = 14;
+  const MIN_W = 160;
+  const STORE_KEY = 'signal_gamefloat_geom_v1';
+  const games = {
+    'tetris-screen': { title: '🎮 Block Drop', closeBtnId: 'tetris-close-btn', floatBtnId: 'tetris-float-btn' },
+    'trump-screen': { title: '🃏 トランプ', closeBtnId: 'trump-close-btn', floatBtnId: 'trump-float-btn' },
+  };
+
+  let state = null; // { id, el, footW, footH, left, top }
+
+  function loadSaved(){
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch(_){ return null; }
+  }
+  function saveState(){
+    if (!state) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify({ footW: state.footW, left: state.left, top: state.top })); } catch(_){}
+  }
+  function clampPos(left, top, footW, footH){
+    const maxLeft = Math.max(MARGIN, window.innerWidth - footW - MARGIN);
+    const maxTop = Math.max(MARGIN + HEADER_H, window.innerHeight - footH - MARGIN);
+    return {
+      left: Math.min(Math.max(left, MARGIN), maxLeft),
+      top: Math.min(Math.max(top, MARGIN + HEADER_H), maxTop),
+    };
+  }
+  function layout(){
+    if (!state) return;
+    const scale = state.footW / window.innerWidth;
+    const footH = window.innerHeight * scale;
+    state.footH = footH;
+    const pos = clampPos(state.left, state.top, state.footW, footH);
+    state.left = pos.left; state.top = pos.top;
+    state.el.style.transform = `scale(${scale})`;
+    state.el.style.left = state.left + 'px';
+    state.el.style.top = state.top + 'px';
+    chrome.style.left = state.left + 'px';
+    chrome.style.top = (state.top - HEADER_H) + 'px';
+    chrome.style.width = state.footW + 'px';
+    resizeHandle.style.left = (state.left + state.footW - 22) + 'px';
+    resizeHandle.style.top = (state.top + footH - 22) + 'px';
+  }
+  function openFloat(id){
+    const scr = $(id);
+    const cfg = games[id];
+    if (!scr || !cfg) return;
+    if (state) closeFloat();
+    const saved = loadSaved();
+    const maxFootW = window.innerWidth - MARGIN * 2;
+    const footW = Math.min(Math.max((saved && saved.footW) || 240, MIN_W), maxFootW);
+    const scale = footW / window.innerWidth;
+    const footH = window.innerHeight * scale;
+    const defLeft = window.innerWidth - footW - MARGIN;
+    const defTop = window.innerHeight - footH - MARGIN;
+    const left = (saved && typeof saved.left === 'number') ? saved.left : defLeft;
+    const top = (saved && typeof saved.top === 'number') ? saved.top : defTop;
+    state = { id, el: scr, footW, footH, left, top };
+    scr.classList.add('game-floating');
+    if (chromeTitle) chromeTitle.textContent = cfg.title;
+    chrome.classList.add('show');
+    resizeHandle.style.display = 'block';
+    layout();
+    saveState();
+  }
+  function closeFloat(){
+    if (!state) return;
+    const scr = state.el;
+    scr.classList.remove('game-floating');
+    scr.style.transform = ''; scr.style.left = ''; scr.style.top = '';
+    chrome.classList.remove('show');
+    resizeHandle.style.display = 'none';
+    state = null;
+  }
+
+  Object.entries(games).forEach(([id, cfg]) => {
+    const btn = $(cfg.floatBtnId);
+    btn?.addEventListener('click', () => {
+      if (state && state.id === id) closeFloat();
+      else openFloat(id);
+    });
+  });
+  restoreBtn?.addEventListener('click', () => closeFloat());
+  chromeCloseBtn?.addEventListener('click', () => {
+    if (!state) return;
+    const cfg = games[state.id];
+    closeFloat();
+    $(cfg.closeBtnId)?.click();
+  });
+
+  window.addEventListener('resize', () => { if (state) layout(); });
+
+  /* ドラッグ移動 */
+  let dragging = false, dStartX = 0, dStartY = 0, dStartLeft = 0, dStartTop = 0;
+  chromeHeader.addEventListener('pointerdown', (e) => {
+    if (!state || e.target.closest('.floatwin-btns')) return;
+    dragging = true; dStartX = e.clientX; dStartY = e.clientY;
+    dStartLeft = state.left; dStartTop = state.top;
+    chrome.classList.add('dragging'); state.el.classList.add('dragging');
+    chromeHeader.setPointerCapture(e.pointerId);
+  });
+  chromeHeader.addEventListener('pointermove', (e) => {
+    if (!dragging || !state) return;
+    state.left = dStartLeft + (e.clientX - dStartX);
+    state.top = dStartTop + (e.clientY - dStartY);
+    layout();
+  });
+  const stopDrag = () => {
+    if (!dragging) return;
+    dragging = false; chrome.classList.remove('dragging'); state?.el.classList.remove('dragging');
+    saveState();
+  };
+  chromeHeader.addEventListener('pointerup', stopDrag);
+  chromeHeader.addEventListener('pointercancel', stopDrag);
+
+  /* リサイズ（右下ハンドル、横ドラッグでフットプリント幅を変更。縦横比は端末画面比のまま） */
+  let resizing = false, rStartX = 0, rStartW = 0;
+  resizeHandle.addEventListener('pointerdown', (e) => {
+    if (!state) return;
+    resizing = true; rStartX = e.clientX; rStartW = state.footW;
+    chrome.classList.add('dragging'); state.el.classList.add('dragging');
+    resizeHandle.setPointerCapture(e.pointerId);
+    e.stopPropagation();
+  });
+  resizeHandle.addEventListener('pointermove', (e) => {
+    if (!resizing || !state) return;
+    const maxW = window.innerWidth - MARGIN * 2;
+    let nextW = rStartW + (e.clientX - rStartX);
+    nextW = Math.min(Math.max(nextW, MIN_W), maxW);
+    state.footW = nextW;
+    layout();
+  });
+  const stopResize = () => {
+    if (!resizing) return;
+    resizing = false; chrome.classList.remove('dragging'); state?.el.classList.remove('dragging');
+    saveState();
+  };
+  resizeHandle.addEventListener('pointerup', stopResize);
+  resizeHandle.addEventListener('pointercancel', stopResize);
+
+  /* ゲーム画面自体が閉じられたら（対戦から退出したら）フローティングも自動解除 */
+  ['tetris-screen', 'trump-screen'].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
+    new MutationObserver(() => {
+      if (!el.classList.contains('show') && state && state.id === id) closeFloat();
+    }).observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
 })();
 
 </script>
