@@ -904,6 +904,18 @@
   #media-player-stage .mp-audio-icon{ font-size: 54px; }
   #media-player-stage audio{ width: 100%; max-width: 380px; }
 
+  /* ---- YouTube Music: 音楽プレイヤー風レイアウト ---- */
+  #media-player-inner.music-mode{ width: min(92vw, 380px); }
+  #media-player-stage .mp-music-wrap{ width: 100%; display: flex; flex-direction: column; background: linear-gradient(180deg, var(--surface-2), #000); }
+  #media-player-stage .mp-music-art{
+    position: relative; width: 100%; aspect-ratio: 1 / 1; background-size: cover; background-position: center;
+    background-color: #111; display: flex; align-items: flex-end; justify-content: flex-start;
+  }
+  #media-player-stage .mp-music-art::after{ content:''; position:absolute; inset:0; background: linear-gradient(180deg, transparent 55%, #000000cc); }
+  #media-player-stage .mp-music-art-note{ position: relative; z-index: 1; padding: 14px 16px; font-size: 26px; color: #fff; opacity: .9; }
+  #media-player-stage .mp-music-frame{ width: 100%; height: 78px; background: #0a0a0a; flex-shrink: 0; }
+  #media-player-stage .mp-music-frame iframe{ width: 100%; height: 100%; border: 0; display: block; aspect-ratio: unset; }
+
   /* ===================== メッセージ内リンク & メディアプレビューカード ===================== */
   .msg-link{ color: var(--amber); text-decoration: underline; word-break: break-all; }
   .bubble.mine .msg-link{ color: var(--mine-bubble-text); text-decoration-color: currentColor; }
@@ -926,6 +938,11 @@
   .mpc-info{ min-width: 0; flex: 1; }
   .mpc-label{ font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; }
   .mpc-url{ font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  /* ---- YouTube Music専用のプレビューカード（正方形アートワーク + 音符アイコン） ---- */
+  .media-preview-card.yt-music{ border-color: #ff004f55; }
+  .media-preview-card.yt-music .mpc-label{ color: #ff5f8f; }
+  .mpc-thumb-square{ width: 60px; height: 60px; border-radius: 8px; }
+  .mpc-note{ font-size: 20px; background: #000000a0; }
   #msg-input{
     flex:1; resize:none; max-height: 120px; min-height: 42px;
     background: color-mix(in srgb, var(--surface-2) calc(97% * var(--panel-alpha)), transparent);
@@ -3254,6 +3271,7 @@ const els = {
   replyPreviewText: $('reply-preview-text'), replyPreviewClear: $('reply-preview-clear'),
   lightboxModal: $('lightbox-modal'), lightboxImg: $('lightbox-img'),
   mediaPlayerModal: $('media-player-modal'), mediaPlayerStage: $('media-player-stage'), mediaPlayerClose: $('media-player-close'),
+  mediaPlayerInner: $('media-player-inner'),
   nickModal: $('nick-modal'), nickInput: $('nick-input'), nickConfirm: $('nick-confirm'), nickError: $('nick-error'),
   usernameInput: $('username-input'), usernameError: $('username-error'),
   bioInput: $('bio-input'), bioCounter: $('bio-counter'), linkInput: $('link-input'),
@@ -3391,30 +3409,38 @@ function renderMessageText(text){
   return twemojiHtml(out);
 }
 /** YouTubeのURLから動画IDを取り出す（watch/短縮youtu.be/shorts/embed に対応） */
-function parseYoutubeId(url){
+/** YouTube系URLから { id, isMusic } を取り出す（watch/短縮youtu.be/shorts/embed、music.youtube.comに対応） */
+function parseYoutubeInfo(url){
   try {
     const u = new URL(url);
     const host = u.hostname.replace(/^www\./, '').replace(/^m\./, '');
-    if (host === 'youtu.be') return u.pathname.slice(1).split('/')[0] || null;
-    if (host === 'youtube.com' || host === 'music.youtube.com') {
-      if (u.pathname === '/watch') return u.searchParams.get('v');
+    const isMusic = host === 'music.youtube.com';
+    if (host === 'youtu.be') {
+      const id = u.pathname.slice(1).split('/')[0] || null;
+      return id ? { id, isMusic } : null;
+    }
+    if (host === 'youtube.com' || isMusic) {
+      if (u.pathname === '/watch') {
+        const id = u.searchParams.get('v');
+        return id ? { id, isMusic } : null;
+      }
       const shorts = u.pathname.match(/^\/shorts\/([^/]+)/);
-      if (shorts) return shorts[1];
+      if (shorts) return { id: shorts[1], isMusic };
       const embed = u.pathname.match(/^\/embed\/([^/]+)/);
-      if (embed) return embed[1];
+      if (embed) return { id: embed[1], isMusic };
     }
   } catch (e) { /* 不正なURLは無視 */ }
   return null;
 }
-/** 本文中の最初のメディアリンク（YouTube / 動画ファイル / 音声ファイル）を検出する */
+/** 本文中の最初のメディアリンク（YouTube / YouTube Music / 動画ファイル / 音声ファイル）を検出する */
 function detectMediaLink(text){
   const raw = text || '';
   const re = new RegExp(URL_RE.source, 'g');
   let m;
   while ((m = re.exec(raw))) {
     const url = m[0];
-    const ytId = parseYoutubeId(url);
-    if (ytId) return { type: 'youtube', url, id: ytId };
+    const yt = parseYoutubeInfo(url);
+    if (yt) return { type: yt.isMusic ? 'youtube_music' : 'youtube', url, id: yt.id };
     if (/\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(url)) return { type: 'video', url };
     if (/\.(mp3|wav|ogg|m4a|flac|aac|opus)(\?.*)?$/i.test(url)) return { type: 'audio', url };
   }
@@ -3428,6 +3454,13 @@ function renderMediaPreviewHtml(media){
     return `<div class="media-preview-card" data-media-type="youtube" data-media-id="${escapeHtml(media.id)}">
       <div class="mpc-thumb" style="background-image:url('${thumb}')"><div class="mpc-play">▶</div></div>
       <div class="mpc-info"><div class="mpc-label">YouTube</div><div class="mpc-url">${escapeHtml(media.url)}</div></div>
+    </div>`;
+  }
+  if (media.type === 'youtube_music') {
+    const thumb = `https://img.youtube.com/vi/${encodeURIComponent(media.id)}/hqdefault.jpg`;
+    return `<div class="media-preview-card yt-music" data-media-type="youtube_music" data-media-id="${escapeHtml(media.id)}">
+      <div class="mpc-thumb mpc-thumb-square" style="background-image:url('${thumb}')"><div class="mpc-play mpc-note">♪</div></div>
+      <div class="mpc-info"><div class="mpc-label">YouTube Music</div><div class="mpc-url">${escapeHtml(media.url)}</div></div>
     </div>`;
   }
   if (media.type === 'video') {
@@ -4316,6 +4349,7 @@ function openMediaPlayer(media){
   if (!media || !els.mediaPlayerStage) return;
   const stage = els.mediaPlayerStage;
   stage.innerHTML = '';
+  els.mediaPlayerInner?.classList.toggle('music-mode', media.type === 'youtube_music');
   if (media.type === 'youtube') {
     const iframe = document.createElement('iframe');
     iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(media.id)}?autoplay=1&rel=0`;
@@ -4323,6 +4357,24 @@ function openMediaPlayer(media){
     iframe.allowFullscreen = true;
     iframe.title = 'YouTube video player';
     stage.appendChild(iframe);
+  } else if (media.type === 'youtube_music') {
+    const wrap = document.createElement('div');
+    wrap.className = 'mp-music-wrap';
+    const art = document.createElement('div');
+    art.className = 'mp-music-art';
+    art.style.backgroundImage = `url('https://img.youtube.com/vi/${encodeURIComponent(media.id)}/hqdefault.jpg')`;
+    art.innerHTML = '<div class="mp-music-art-note">♪</div>';
+    const frame = document.createElement('div');
+    frame.className = 'mp-music-frame';
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(media.id)}?autoplay=1&rel=0`;
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    iframe.allowFullscreen = true;
+    iframe.title = 'YouTube Music player';
+    frame.appendChild(iframe);
+    wrap.appendChild(art);
+    wrap.appendChild(frame);
+    stage.appendChild(wrap);
   } else if (media.type === 'video') {
     const video = document.createElement('video');
     video.src = media.url; video.controls = true; video.autoplay = true; video.playsInline = true;
@@ -5472,6 +5524,7 @@ els.messages.addEventListener('click', (e) => {
   if (mediaCard) {
     const type = mediaCard.dataset.mediaType;
     if (type === 'youtube') openMediaPlayer({ type: 'youtube', id: mediaCard.dataset.mediaId });
+    else if (type === 'youtube_music') openMediaPlayer({ type: 'youtube_music', id: mediaCard.dataset.mediaId });
     else if (type === 'video') openMediaPlayer({ type: 'video', url: mediaCard.dataset.mediaUrl });
     else if (type === 'audio') openMediaPlayer({ type: 'audio', url: mediaCard.dataset.mediaUrl });
     return;
