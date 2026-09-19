@@ -1517,6 +1517,7 @@
     isolation: isolate;
   }
   #tetris-screen.show{ opacity: 1; pointer-events: auto; }
+  #tetris-screen.show.chat-peek{ opacity: 0; pointer-events: none; }
   #tet-bg-canvas{ position:absolute; inset:0; width:100%; height:100%; z-index:0; display:block; }
   #tetris-close-btn{
     position: absolute; top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra) + 10px); right: 14px; z-index: 30;
@@ -1829,6 +1830,7 @@
     background-image: radial-gradient(120% 90% at 50% -10%, #0d2b224a 0%, transparent 55%), radial-gradient(100% 80% at 50% 120%, #1a12064a 0%, transparent 60%);
   }
   #trump-screen.show{ opacity: 1; pointer-events: auto; }
+  #trump-screen.show.chat-peek{ opacity: 0; pointer-events: none; }
   #trump-close-btn{
     position: absolute; top: calc(env(safe-area-inset-top, 0px) + var(--safe-top-extra) + 10px); right: 14px; z-index: 30;
     width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border);
@@ -1979,6 +1981,26 @@
   @media (min-width: 720px){
     .tr-card{ width:56px; height:80px; }
   }
+  /* ===================== ゲーム中チャットFAB ===================== */
+  #ingame-chat-fab{
+    position: fixed; right: 16px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--safe-bottom-extra) + 16px);
+    z-index: 960; width: 52px; height: 52px; border-radius: 50%;
+    background: var(--amber); color: #14100a; border: none; display: none;
+    align-items: center; justify-content: center; font-size: 22px; line-height: 1;
+    box-shadow: var(--shadow-md); cursor: pointer;
+    transform: scale(0); opacity: 0;
+    transition: transform .32s var(--ease-spring), opacity .22s var(--ease-ios), background-color .2s var(--ease-ios);
+  }
+  #ingame-chat-fab.visible{ display: flex; transform: scale(1); opacity: 1; }
+  #ingame-chat-fab.icf-return{ background: var(--surface-3); color: var(--text); font-size: 20px; }
+  #ingame-chat-fab .icf-badge{
+    position: absolute; top: -3px; right: -3px; min-width: 19px; height: 19px; padding: 0 4px;
+    border-radius: 999px; background: var(--danger); color: #fff; font-size: 10.5px; font-weight: 800;
+    display: none; align-items: center; justify-content: center; font-family: var(--font-mono);
+    border: 2px solid var(--bg);
+  }
+  #ingame-chat-fab .icf-badge.show{ display: flex; }
 </style>
 </head>
 <body>
@@ -2400,6 +2422,11 @@
     </div>
   </div>
 </div>
+
+<!-- ===================== ゲーム中チャットFAB ===================== -->
+<button type="button" id="ingame-chat-fab" title="チャットを見る">
+  <span class="icf-icon">💬</span><span class="icf-badge" id="ingame-chat-fab-badge">0</span>
+</button>
 
 <!-- ===================== 画像ライトボックス ===================== -->
 <div class="modal-scrim" id="lightbox-modal" style="display:none;">
@@ -8925,6 +8952,55 @@ if (isSafeModeActive()) {
 } else {
   runAllEnabledMods();
 }
+
+/* ===================== ゲーム中チャットFAB ===================== */
+(function initIngameChatFab(){
+  const fab = $('ingame-chat-fab');
+  const badge = $('ingame-chat-fab-badge');
+  if (!fab) return;
+  const screens = ['tetris-screen', 'trump-screen'].map((id) => $(id)).filter(Boolean);
+  let peeking = false;
+  let unread = 0;
+
+  function activeGameScreen(){
+    return screens.find((scr) => scr.classList.contains('show')) || null;
+  }
+  function updateBadge(){
+    if (!badge) return;
+    badge.textContent = unread > 9 ? '9+' : String(unread);
+    badge.classList.toggle('show', unread > 0 && !peeking);
+  }
+  function setPeek(on){
+    peeking = on;
+    screens.forEach((scr) => scr.classList.toggle('chat-peek', on && scr.classList.contains('show')));
+    fab.classList.toggle('icf-return', on);
+    fab.title = on ? 'ゲームに戻る' : 'チャットを見る';
+    if (on) { unread = 0; }
+    updateBadge();
+  }
+  function syncFabVisibility(){
+    const gs = activeGameScreen();
+    if (!gs) {
+      fab.classList.remove('visible');
+      if (peeking) setPeek(false);
+      return;
+    }
+    fab.classList.add('visible');
+  }
+  fab.addEventListener('click', () => {
+    if (!activeGameScreen() && !peeking) return;
+    setPeek(!peeking);
+  });
+  screens.forEach((scr) => {
+    new MutationObserver(syncFabVisibility).observe(scr, { attributes: true, attributeFilter: ['class'] });
+  });
+  if (els.messages) {
+    new MutationObserver(() => {
+      if (activeGameScreen() && !peeking) { unread++; updateBadge(); }
+    }).observe(els.messages, { childList: true });
+  }
+  syncFabVisibility();
+})();
 
 </script>
 </body>
