@@ -913,11 +913,15 @@
     position: relative; width: 100%; height: 100%; min-height: 100%; overflow: hidden;
     background-color: #111; display: flex; flex-direction: column; justify-content: space-between;
   }
-  #media-player-stage .mp-music-art{
+  #media-player-stage .mp-music-bg{
     position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
-    animation: ytmKenBurns 16s ease-in-out infinite alternate; will-change: transform;
+    filter: blur(38px) brightness(.65) saturate(1.15); transform: scale(1.2); will-change: transform;
+    animation: ytmKenBurns 16s ease-in-out infinite alternate;
   }
-  @keyframes ytmKenBurns{ 0%{ transform: scale(1); } 100%{ transform: scale(1.12); } }
+  @keyframes ytmKenBurns{ 0%{ transform: scale(1.2); } 100%{ transform: scale(1.32); } }
+  #media-player-stage .mp-music-art{
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center;
+  }
   #media-player-stage .mp-music-scrim{
     position: absolute; inset: 0;
     background: linear-gradient(to bottom, #00000075 0%, transparent 24%, transparent 52%, #000000d0 85%, #000000f2 100%);
@@ -4476,6 +4480,7 @@ function renderYtmPlayerShell(stage, videoId){
   ];
   stage.innerHTML = `
     <div class="mp-music-wrap">
+      <img class="mp-music-bg" id="mp-music-bg" src="${thumbCandidates[0]}" alt="" aria-hidden="true">
       <img class="mp-music-art" id="mp-music-art" src="${thumbCandidates[0]}" alt="">
       <div class="mp-music-scrim"></div>
       <div class="mp-music-topbar">
@@ -4491,11 +4496,15 @@ function renderYtmPlayerShell(stage, videoId){
         </div>
       </div>
     </div>`;
+  const bgImg = stage.querySelector('#mp-music-bg');
   const artImg = stage.querySelector('#mp-music-art');
   let thumbIdx = 0;
   artImg.addEventListener('error', () => {
     thumbIdx++;
-    if (thumbIdx < thumbCandidates.length) artImg.src = thumbCandidates[thumbIdx];
+    if (thumbIdx < thumbCandidates.length) {
+      bgImg.src = thumbCandidates[thumbIdx];
+      artImg.src = thumbCandidates[thumbIdx];
+    }
   });
   ytmUi = {
     title: stage.querySelector('#mp-music-title'),
