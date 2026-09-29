@@ -24,7 +24,7 @@
      未読込のため元々ブラウザの疑似太字で表示されており、500/600を読み込んでも
      見た目には使われていなかった）。未使用ウェイトの読み込みを削減。 -->
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -4035,6 +4035,61 @@ html:has(#search-wrap.open) #sx-island{ opacity:0; pointer-events:none; }
 .sxi-chip{ display:inline-block; padding:8px 16px; border-radius:16px; background:#ffffff26; font-size:13px; font-weight:700; cursor:pointer; transition:transform .25s var(--sx-spring); }
 .sxi-chip:first-child{ background:var(--amber); color:#14100a; } .sxi-chip:active{ transform:scale(.93); }
 html.reduce-motion .sxi-bars i{ animation:none; }
+</style>
+<style id="sx-modern">
+/* ===== SIGNAL v5: modern look (neutral surfaces, indigo accent, Inter, tile lists) ===== */
+:root{
+  --font-display:"Inter","Noto Sans JP",-apple-system,"Hiragino Sans",sans-serif;
+  --font-body:"Inter","Noto Sans JP",-apple-system,"Hiragino Sans",sans-serif;
+  --font-mono:var(--font-body);
+  --bg:#0a0a0d; --bg-glow-1:transparent; --bg-grad:var(--bg);
+  --surface:#101014; --surface-2:#17171c; --surface-3:#212128; --surface-4:#2e2e37;
+  --border:#ffffff10; --text:#f5f5f7; --text-muted:#9b9ba8; --text-faint:#6c6c79;
+  --amber:#6C7CFF; --amber-dim:#6c7cff2e;
+  --segment-active:#2c2c36; --segment-active-text:#f5f5f7;
+  --mine-bubble-1:#6C7CFF; --mine-bubble-text:#fff;
+  --shadow-sm:0 2px 10px #0000003a; --shadow-md:0 16px 40px #0000004d;
+}
+body{ background:var(--bg); animation:none; letter-spacing:-.005em; }
+.field-label,
+.mpc-label,
+.section-label{ text-transform:none !important; letter-spacing:0 !important; }
+
+/* type */
+#topbar .titles h1,#topbar-name{ font-size:34px !important; font-weight:700; letter-spacing:-.035em; }
+.brand-text b{ font-size:30px; font-weight:700; letter-spacing:-.04em; }
+.section-label{ font-size:13px; font-weight:600; letter-spacing:0; color:var(--text-muted); padding:14px 20px 8px; }
+.channel-freq{ display:none !important; }
+
+/* bubbles: solid accent for me, flat surface for others, round avatars */
+.msg-avatar,.self-avatar,.dm-avatar{ border-radius:50%; }
+.bubble{ padding:10px 15px; font-size:15.5px; }
+.msg-row.mine .bubble{ background:var(--mine-bubble-1); color:var(--mine-bubble-text); box-shadow:none; }
+.msg-row.mine .bubble .msg-text{ color:var(--mine-bubble-text); }
+.msg-row.mine .bubble .reply-quote{ background:#00000026; border-color:#ffffff88; color:inherit; }
+.msg-row.mine .bubble a{ color:inherit; text-decoration:underline; }
+#send-btn{ color:#fff; } #send-btn:disabled{ color:var(--text-faint); }
+
+/* home: flat background, tile list */
+#sidebar{ background:var(--bg); }
+.sidebar-tabs{ background:var(--surface-2); border:none; padding:4px; }
+.self-card{ background:none; }
+.uiplus-side-actions .friends-btn,.admin-btn{ background:var(--surface-2); border-radius:22px; font-weight:600; }
+.channel-item,.dm-item{ padding:10px 12px; gap:14px; border-radius:22px; font-size:16px; font-weight:600; }
+.channel-item::before{ content:'#'; display:grid !important; place-items:center; position:static; inset:auto; left:auto; top:auto; bottom:auto;
+  width:42px; height:42px; flex:none; transform:none; opacity:1; box-shadow:none; border-radius:15px;
+  background:var(--surface-2); color:var(--text-muted); font-size:19px; font-weight:700; transition:background .3s,color .3s; }
+.channel-item.active::before{ background:var(--amber); color:#fff; }
+.channel-item.active,.dm-item.active{ background:var(--surface-2); }
+.dm-avatar{ width:42px; height:42px; flex:none; }
+.channel-unread{ background:var(--amber); color:#fff; border-radius:999px; min-width:22px; height:22px; font-size:12px; font-weight:700; }
+
+/* dialogs */
+.modal-card{ background:var(--surface); border-radius:28px; box-shadow:var(--shadow-md); }
+
+/* Dynamic Island: ignores the safe area, pinned to the very top */
+#sx-island{ top:11px; }
+.sxi-av{ color:#fff; } .sxi-chip:first-child{ color:#fff; }
 </style>
 </head>
 <body>
