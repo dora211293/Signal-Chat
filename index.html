@@ -4134,6 +4134,12 @@ html:has(#search-wrap.open) #sx-island{ opacity:1; pointer-events:auto; }
 .sxi-glow{ position:absolute; left:-10%; top:-35%; width:120%; height:150%; object-fit:cover; filter:blur(40px) saturate(1.9); opacity:.5; pointer-events:none; }
 html.reduce-motion .sx-art-glow{ animation:none; }
 </style>
+<style id="sx-viewport">
+/* ===== SIGNAL v9: lock the page to the screen so app, clock and island share one viewport ===== */
+html,body{ position:fixed; inset:0; width:100%; height:100%; overflow:hidden; overscroll-behavior:none; }
+html:not(.uiplus-kb) #app{ position:fixed; inset:0; width:100%; top:0 !important; height:auto !important; }
+#uiplus-clock{ top:calc(env(safe-area-inset-top,0px) + var(--uiplus-clock-y,2) * 1%); left:calc(env(safe-area-inset-left,0px) + var(--uiplus-clock-x,3) * 1%); }
+</style>
 </head>
 <body>
 
