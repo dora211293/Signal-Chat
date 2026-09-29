@@ -2169,8 +2169,1743 @@
   #ingame-chat-pip #composer{ padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); gap: 6px; }
   #ingame-chat-pip #msg-input{ font-size: 13px; }
 </style>
+<style id="uiplus-builtin">
+/* セグメントを指で掴んで動かせるようにする */
+.sidebar-tabs,
+.scope-switch,
+.admin-tabs,
+.preset-row {
+  touch-action: pan-y;
+  cursor: grab;
+}
+.sidebar-tabs,
+.scope-switch,
+.admin-tabs,
+.preset-row {
+  transform-origin: center center;
+  transition: transform 0.32s cubic-bezier(.22, .7, .25, 1);
+}
+.sidebar-tabs.seg-pressed,
+.scope-switch.seg-pressed,
+.admin-tabs.seg-pressed,
+.preset-row.seg-pressed,
+.sidebar-tabs.seg-dragging,
+.scope-switch.seg-dragging,
+.admin-tabs.seg-dragging,
+.preset-row.seg-dragging {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
+  transform: scale(1.03);
+  z-index: 8;
+}
+.sidebar-tabs.seg-dragging .tab-thumb,
+.scope-switch.seg-dragging .tab-thumb,
+.admin-tabs.seg-dragging .tab-thumb,
+.preset-row.seg-dragging .tab-thumb,
+.tab-thumb.seg-dragging {
+  transition: none !important;
+  will-change: transform, width;
+  filter: brightness(1.06);
+}
+
+/* ドラッグ中はボタンの色をJS側で混ぜるので、active指定の色が邪魔しないようにする */
+.sidebar-tabs.seg-dragging > button,
+.scope-switch.seg-dragging > button,
+.admin-tabs.seg-dragging > button,
+.preset-row.seg-dragging > button {
+  transition: color 0s, font-weight 0s !important;
+}
+
+/* ドロワーを指で掴んでいる間は本体の transition を切る */
+html.seg-drawer-dragging #sidebar,
+html.seg-drawer-dragging #sidebar-scrim,
+html.seg-drawer-dragging #main {
+  transition: none !important;
+}
+
+/* ボトムシートを掴んでいる間は本体アニメを切る */
+html.seg-sheet-dragging .modal-scrim.bottom-sheet,
+html.seg-sheet-dragging .modal-scrim.bottom-sheet .modal-card {
+  animation: none !important;
+}
+html.seg-sheet-dragging .modal-scrim.bottom-sheet .modal-card {
+  transition: none !important;
+}
+.modal-scrim.bottom-sheet > .modal-card {
+  touch-action: pan-y;
+}
+
+/* ボトムシート上部の掴み領域。本体の棒(::before)の上に透明ヒットエリアを重ねる */
+.modal-scrim.bottom-sheet > .modal-card > .seg-sheet-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  z-index: 8;
+  touch-action: none;
+  pointer-events: auto;
+}
+.modal-scrim.bottom-sheet > .modal-card > .seg-sheet-handle ~ * button,
+.modal-scrim.bottom-sheet > .modal-card > .seg-sheet-handle ~ button,
+.modal-scrim.bottom-sheet > .modal-card .settings-back-btn,
+.modal-scrim.bottom-sheet > .modal-card #settings-back-btn {
+  position: relative;
+  z-index: 9;
+}
+
+html.seg-sheet-dragging,
+html.seg-sheet-dragging * {
+  touch-action: none !important;
+}
+html.seg-sheet-dragging .modal-scrim.bottom-sheet,
+html.seg-sheet-dragging .modal-scrim.bottom-sheet .modal-card {
+  animation: none !important;
+}
+html.seg-sheet-dragging .modal-scrim.bottom-sheet .modal-card {
+  transition: none !important;
+}
+
+/* シート表示中は後ろをぼかして少し小さくする */
+.modal-scrim.bottom-sheet {
+  background: rgba(6, 10, 14, 0.48) !important;
+  backdrop-filter: blur(12px) saturate(1.1) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.1) !important;
+}
+html.seg-sheet-open #sidebar,
+html.seg-sheet-open #main {
+  transform: scale(0.96);
+  filter: brightness(0.72);
+  transition: transform 0.42s cubic-bezier(.32, .72, 0, 1), filter 0.42s ease;
+}
+html.seg-sheet-open #sidebar {
+  transform-origin: 50% 30%;
+}
+html.seg-sheet-open #main {
+  transform-origin: 50% 50%;
+}
+html.seg-drawer-dragging.seg-sheet-open #sidebar,
+html.seg-drawer-dragging.seg-sheet-open #main {
+  transition: none !important;
+}
+/* 表示中の transform アニメ中は backdrop-filter が効かずカードが透けるので、
+   シート本体は最初から不透明にする */
+.modal-scrim.bottom-sheet > .modal-card {
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* セグメントの縦幅を全部同じにする */
+.sidebar-tabs,
+.scope-switch,
+.admin-tabs,
+.preset-row {
+  box-sizing: border-box;
+  height: 46px;
+  padding: 3px !important;
+  gap: 0 !important;
+  align-items: stretch;
+}
+.sidebar-tabs > button,
+.scope-switch > button,
+.admin-tabs > button,
+.preset-row > button {
+  box-sizing: border-box;
+  height: 40px;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  font-size: 13px !important;
+  line-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-tabs .tab-thumb,
+.scope-switch .tab-thumb,
+.admin-tabs .tab-thumb,
+.preset-row .tab-thumb {
+  top: 3px !important;
+  bottom: 3px !important;
+}
+
+/* 入力中は＋を隠すところまで入力バーを左へ広げる */
+.composer-plus-wrap {
+  transition: width 0.32s cubic-bezier(.32, .72, 0, 1),
+              opacity 0.24s ease,
+              margin 0.32s cubic-bezier(.32, .72, 0, 1);
+}
+#composer.uiplus-composing .composer-plus-wrap {
+  width: 0 !important;
+  min-width: 0 !important;
+  margin-right: -10px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* キーボード表示中は見える領域にアプリを固定して、上のバーが隠れないようにする */
+html.uiplus-kb,
+html.uiplus-kb body {
+  overflow: hidden !important;
+}
+html.uiplus-kb #app {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+  top: var(--uiplus-vv-top, 0px);
+  height: var(--uiplus-vv-height, 100dvh);
+}
+html.uiplus-kb #topbar {
+  flex-shrink: 0;
+}
+
+/* 上のメニューを大きくする */
+#menu-btn {
+  width: 44px !important;
+  height: 44px !important;
+  font-size: 20px;
+}
+#topbar {
+  gap: 16px;
+  padding-bottom: 16px;
+}
+#topbar .titles .freq,
+#topbar-freq {
+  font-size: 13px !important;
+}
+#topbar .titles h1,
+#topbar-name {
+  font-size: 22px !important;
+  margin-top: 2px !important;
+  max-width: 48vw !important;
+}
+#search-btn {
+  width: 44px !important;
+  height: 44px !important;
+}
+#search-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* MHz 表示を消す */
+#topbar-freq,
+#topbar .freq,
+#topbar .titles .freq {
+  display: none !important;
+}
+
+#topbar-right {
+  position: static !important;
+}
+
+#search-wrap {
+  position: absolute !important;
+  right: 16px;
+  top: var(--uiplus-search-top, 14px);
+  height: 44px !important;
+  width: 44px !important;
+  z-index: 8;
+  transition: width 0.48s cubic-bezier(.32, .72, 0, 1) !important;
+}
+#search-wrap.open {
+  width: var(--uiplus-search-w, 70vw) !important;
+  max-width: none !important;
+  z-index: 50;
+}
+#topbar:has(#search-wrap.open) .titles {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* 全体のUIサイズをトップバーに合わせて一段大きく */
+.brand-text b { font-size: 28px !important; letter-spacing: .03em; }
+.brand-text span { display: none !important; }
+
+.self-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 14px !important;
+}
+
+.admin-btn,
+.friends-btn {
+  padding: 12px 12px !important;
+  font-size: 15px !important;
+}
+
+.section-label { font-size: 12px !important; padding: 12px 18px 8px !important; }
+
+.channel-item,
+.dm-item {
+  padding: 12px 12px !important;
+  gap: 12px !important;
+  font-size: 15px;
+}
+
+.online-chip {
+  font-size: 12.5px !important;
+  padding: 5px 10px 5px 5px !important;
+}
+
+#msg-input {
+  min-height: 46px !important;
+  font-size: 16px !important;
+  padding: 12px 16px !important;
+}
+#send-btn {
+  width: 46px !important;
+  height: 46px !important;
+}
+.composer-plus-wrap,
+#composer-plus-btn {
+  width: 48px !important;
+  height: 48px !important;
+}
+.composer-plus-inner:not(.open) {
+  width: 48px;
+  height: 48px;
+}
+#composer-plus-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.bubble {
+  font-size: 15.5px !important;
+  padding: 8px 13px !important;
+}
+.msg-avatar {
+  width: 38px !important;
+  height: 38px !important;
+}
+.msg-meta { font-size: 12.5px; }
+
+.edit-name-btn { font-size: 18px; }
+
+.settings-row,
+.settings-item,
+.admin-row {
+  font-size: 15px;
+}
+
+.composer-plus-wrap {
+  overflow: visible !important;
+}
+#composer.uiplus-composing .composer-plus-wrap {
+  overflow: hidden !important;
+}
+
+/* ＋メニューを他のUIと同じ大きさに */
+#composer-menu {
+  padding: 8px 8px 4px !important;
+  gap: 4px !important;
+}
+.composer-menu-item {
+  padding: 14px 14px !important;
+  font-size: 16px !important;
+  gap: 14px !important;
+}
+.composer-menu-item .cmi-icon {
+  transform: scale(1.15);
+}
+.composer-menu-item .cmi-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* フレンド／ゲームはスライダーと同じ高さ */
+.uiplus-side-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0 14px 8px;
+  height: 46px;
+}
+.uiplus-side-actions .friends-btn {
+  margin: 0 !important;
+  height: 46px !important;
+  padding: 0 10px !important;
+  font-size: 14px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+#admin-panel-btn.uiplus-admin-hidden {
+  display: none !important;
+}
+
+/* プロフィール：ステータスを右に置いて縦を詰める */
+.self-card {
+  box-sizing: border-box !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
+  padding: 4px 10px !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+.self-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 14px !important;
+}
+.self-meta {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 8px;
+}
+.self-meta .name {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 14px !important;
+}
+.self-meta .username {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 11px !important;
+  margin-top: 0 !important;
+}
+.self-meta .status {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  margin-top: 0 !important;
+  font-size: 11px !important;
+  gap: 5px !important;
+  white-space: nowrap;
+}
+.self-meta .status .dot {
+  width: 6px !important;
+  height: 6px !important;
+}
+.edit-name-btn {
+  font-size: 15px !important;
+  padding: 4px !important;
+}
+
+#sidebar .self-card {
+  box-sizing: border-box !important;
+  height: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
+  padding: 4px 10px !important;
+  overflow: hidden !important;
+}
+
+/* ============================================================
+   全体のモーションを滑らかに揃える
+   ============================================================ */
+html:not(.reduce-motion) {
+  --ease-ios: cubic-bezier(.22, .8, .24, 1);
+  --ease-spring: cubic-bezier(.22, 1.15, .28, 1);
+  --ease-spring-soft: cubic-bezier(.22, 1.05, .28, 1);
+}
+
+html:not(.reduce-motion) .channel-item,
+html:not(.reduce-motion) .dm-item,
+html:not(.reduce-motion) .online-chip,
+html:not(.reduce-motion) .admin-btn,
+html:not(.reduce-motion) .friends-btn,
+html:not(.reduce-motion) .settings-menu-item,
+html:not(.reduce-motion) .composer-menu-item,
+html:not(.reduce-motion) .edit-name-btn,
+html:not(.reduce-motion) .edit-mode-btn,
+html:not(.reduce-motion) .add-channel-btn,
+html:not(.reduce-motion) #menu-btn,
+html:not(.reduce-motion) #send-btn,
+html:not(.reduce-motion) #composer-plus-btn,
+html:not(.reduce-motion) #search-btn,
+html:not(.reduce-motion) #search-close-btn,
+html:not(.reduce-motion) .self-card,
+html:not(.reduce-motion) .bubble {
+  transition:
+    background-color 0.32s var(--ease-ios),
+    border-color 0.32s var(--ease-ios),
+    color 0.28s ease,
+    opacity 0.32s var(--ease-ios),
+    transform 0.34s var(--ease-ios),
+    box-shadow 0.34s var(--ease-ios),
+    filter 0.32s ease;
+}
+
+html:not(.reduce-motion) .channel-item:active,
+html:not(.reduce-motion) .dm-item:active,
+html:not(.reduce-motion) .settings-menu-item:active,
+html:not(.reduce-motion) .friends-btn:active,
+html:not(.reduce-motion) .admin-btn:active,
+html:not(.reduce-motion) .composer-menu-item:active {
+  transform: scale(0.975);
+}
+
+html:not(.reduce-motion) #send-btn:active,
+html:not(.reduce-motion) #composer-plus-btn:active,
+html:not(.reduce-motion) #menu-btn:active,
+html:not(.reduce-motion) .edit-name-btn:active {
+  transform: scale(0.92);
+}
+
+html:not(.reduce-motion) #msg-input {
+  transition: border-color 0.28s var(--ease-ios), background-color 0.28s ease, min-height 0.28s var(--ease-ios);
+}
+
+html:not(.reduce-motion) #composer.uiplus-composing .composer-plus-wrap,
+html:not(.reduce-motion) .composer-plus-wrap {
+  transition:
+    width 0.38s var(--ease-ios),
+    opacity 0.28s ease,
+    margin 0.38s var(--ease-ios);
+}
+
+html:not(.reduce-motion) #topbar .titles {
+  transition: opacity 0.28s var(--ease-ios);
+}
+
+html:not(.reduce-motion) #search-wrap {
+  transition:
+    width 0.52s var(--ease-spring-soft),
+    border-color 0.28s ease,
+    background-color 0.28s ease !important;
+}
+
+html:not(.reduce-motion) .modal-scrim.bottom-sheet .modal-card {
+  transition: transform 0.42s var(--ease-ios);
+}
+
+html.reduce-motion,
+html.reduce-motion * {
+  scroll-behavior: auto !important;
+}
+
+/* ============================================================
+   まだ触っていなかったUIのCSSアニメ
+   ============================================================ */
+@keyframes uiplus-rise {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes uiplus-pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes uiplus-drop {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+html:not(.reduce-motion) .day-divider {
+  animation: uiplus-pop 0.4s var(--ease-ios) both;
+}
+html:not(.reduce-motion) .empty-state {
+  animation: uiplus-rise 0.5s var(--ease-ios) both;
+}
+
+html:not(.reduce-motion) #mention-suggest,
+html:not(.reduce-motion) #search-results {
+  animation: uiplus-rise 0.34s var(--ease-ios) both;
+}
+
+html:not(.reduce-motion) #reply-preview-strip,
+html:not(.reduce-motion) #image-preview-strip,
+html:not(.reduce-motion) #file-preview-strip {
+  animation: uiplus-rise 0.36s var(--ease-ios) both;
+}
+html:not(.reduce-motion) .reply-preview-item,
+html:not(.reduce-motion) .image-preview-item,
+html:not(.reduce-motion) .file-preview-item {
+  animation: uiplus-pop 0.34s var(--ease-ios) both;
+  transition: transform 0.28s var(--ease-ios), opacity 0.28s ease, border-color 0.28s ease;
+}
+
+html:not(.reduce-motion) #typing-indicator {
+  transition: opacity 0.28s var(--ease-ios), transform 0.28s var(--ease-ios);
+}
+
+html:not(.reduce-motion) .emoji-picker,
+html:not(.reduce-motion) .icon-picker {
+  animation: uiplus-pop 0.32s var(--ease-ios) both;
+  transform-origin: bottom left;
+}
+
+html:not(.reduce-motion) #lightbox-inner,
+html:not(.reduce-motion) #lightbox-img {
+  animation: uiplus-pop 0.42s var(--ease-spring-soft) both;
+}
+
+html:not(.reduce-motion) .friend-list-row,
+html:not(.reduce-motion) .admin-row,
+html:not(.reduce-motion) .friend-search-row {
+  animation: uiplus-rise 0.38s var(--ease-ios) both;
+  transition: background-color 0.28s ease, transform 0.28s var(--ease-ios);
+}
+html:not(.reduce-motion) .friend-list-row:active,
+html:not(.reduce-motion) .admin-row:active {
+  transform: scale(0.985);
+}
+
+html:not(.reduce-motion) .mention-suggest-item {
+  transition: background-color 0.22s ease, transform 0.22s var(--ease-ios);
+}
+html:not(.reduce-motion) .mention-suggest-item:active {
+  transform: scale(0.98);
+}
+
+html:not(.reduce-motion) .unread-dot,
+html:not(.reduce-motion) .req-dot,
+html:not(.reduce-motion) .channel-unread {
+  transition: transform 0.28s var(--ease-spring), opacity 0.22s ease;
+}
+
+html:not(.reduce-motion) .mini-btn,
+html:not(.reduce-motion) .cancel,
+html:not(.reduce-motion) button.cancel {
+  transition: transform 0.28s var(--ease-ios), background-color 0.28s ease, opacity 0.28s ease;
+}
+html:not(.reduce-motion) .mini-btn:active,
+html:not(.reduce-motion) .cancel:active {
+  transform: scale(0.97);
+}
+
+html:not(.reduce-motion) .settings-menu-item {
+  transition: background-color 0.28s var(--ease-ios), transform 0.3s var(--ease-ios) !important;
+}
+
+html:not(.reduce-motion) .modal-scrim:not(.bottom-sheet) .modal-card {
+  animation: uiplus-pop 0.42s var(--ease-spring-soft) both;
+}
+
+html:not(.reduce-motion) #onair {
+  transition: opacity 0.35s ease, transform 0.35s var(--ease-ios);
+}
+
+html:not(.reduce-motion) .char-counter,
+html:not(.reduce-motion) #config-warning {
+  animation: uiplus-drop 0.36s var(--ease-ios) both;
+}
+
+html:not(.reduce-motion) .poll-freetext-item,
+html:not(.reduce-motion) .schedule-row,
+html:not(.reduce-motion) .color-target-row {
+  transition: background-color 0.25s ease, transform 0.28s var(--ease-ios);
+}
+
+/* チャット切り替え・メッセージ入場をより滑らかに */
+html:not(.reduce-motion) #messages,
+html:not(.reduce-motion) #topbar-name,
+html:not(.reduce-motion) #topbar-freq {
+  transition: opacity 0.42s var(--ease-ios), transform 0.46s var(--ease-ios), filter 0.42s var(--ease-ios) !important;
+}
+
+html:not(.reduce-motion) #channel-section,
+html:not(.reduce-motion) #dm-section {
+  animation-duration: 0.55s !important;
+  animation-timing-function: var(--ease-ios) !important;
+}
+
+@keyframes tabPanelIn {
+  0% { opacity: 0; transform: translateY(14px) scale(0.985); filter: blur(5px); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+@keyframes msgIn {
+  0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+  70% { opacity: 1; transform: translateY(-1px) scale(1.01); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes listItemIn {
+  0% { opacity: 0; transform: translateX(-10px) scale(0.97); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes avatarPop {
+  0% { opacity: 0; transform: scale(0.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes dayIn {
+  0% { opacity: 0; transform: translateY(-6px) scale(0.96); }
+  100% { opacity: 1; transform: none; }
+}
+
+html:not(.reduce-motion) .msg-row.msg-enter {
+  animation-duration: 0.52s !important;
+  animation-timing-function: var(--ease-ios) !important;
+}
+html:not(.reduce-motion) .channel-item,
+html:not(.reduce-motion) .dm-item {
+  animation-duration: 0.42s !important;
+}
+
+/* 新バージョン向け：プロフィール全画面・ゲーム選択・トランプ */
+html:not(.reduce-motion) .modal-scrim.profile-fullscreen .modal-card.profile-card {
+  animation: uiplus-pop 0.46s var(--ease-ios) both;
+}
+html:not(.reduce-motion) .profile-full-banner {
+  animation: uiplus-drop 0.42s var(--ease-ios) both;
+}
+html:not(.reduce-motion) .profile-card-avatar {
+  animation: uiplus-pop 0.44s var(--ease-spring-soft) both;
+}
+html:not(.reduce-motion) .profile-card-actions .mini-btn {
+  transition: transform 0.3s var(--ease-ios), background-color 0.28s ease, opacity 0.28s ease;
+}
+
+html:not(.reduce-motion) #game-picker-list .tet-player-row,
+html:not(.reduce-motion) .tet-player-row,
+html:not(.reduce-motion) .tet-friend-row,
+html:not(.reduce-motion) .tet-result-row {
+  animation: uiplus-rise 0.4s var(--ease-ios) both;
+  transition: transform 0.3s var(--ease-ios), background-color 0.28s ease, border-color 0.28s ease;
+}
+html:not(.reduce-motion) #game-picker-list .tet-player-row:active,
+html:not(.reduce-motion) .tet-player-row:active,
+html:not(.reduce-motion) .tet-friend-row:active {
+  transform: scale(0.98);
+}
+
+html:not(.reduce-motion) .tet-chip,
+html:not(.reduce-motion) .tet-primary-btn,
+html:not(.reduce-motion) .tet-secondary-btn,
+html:not(.reduce-motion) .tet-ctrl-btn {
+  transition: transform 0.3s var(--ease-ios), background-color 0.28s ease, opacity 0.25s ease, box-shadow 0.3s ease;
+}
+html:not(.reduce-motion) .tet-chip:active,
+html:not(.reduce-motion) .tet-primary-btn:active,
+html:not(.reduce-motion) .tet-secondary-btn:active,
+html:not(.reduce-motion) .tet-ctrl-btn:active {
+  transform: scale(0.96);
+}
+
+html:not(.reduce-motion) .tet-view,
+html:not(.reduce-motion) .tet-card {
+  animation: uiplus-rise 0.44s var(--ease-ios) both;
+}
+
+html:not(.reduce-motion) .tr-hand-card,
+html:not(.reduce-motion) .tr-card,
+html:not(.reduce-motion) .tr-opp-card {
+  transition: transform 0.28s var(--ease-ios), box-shadow 0.28s ease, filter 0.28s ease;
+}
+html:not(.reduce-motion) .tr-hand-card.tr-clickable:active,
+html:not(.reduce-motion) .tr-card.tr-clickable:active {
+  transform: translateY(-6px) scale(1.04);
+}
+
+html:not(.reduce-motion) #channel-modal .modal-card,
+html:not(.reduce-motion) #poll-modal .modal-card,
+html:not(.reduce-motion) #poll-view-modal .modal-card,
+html:not(.reduce-motion) #schedule-modal .modal-card,
+html:not(.reduce-motion) #schedule-list-modal .modal-card,
+html:not(.reduce-motion) #channel-rename-modal .modal-card {
+  animation: uiplus-pop 0.4s var(--ease-ios) both;
+}
+
+@keyframes profileFullIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes tetCardIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes trCardEnter {
+  from { opacity: 0; transform: translateY(10px) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes trHandCardIn {
+  from { opacity: 0; transform: translateY(14px) rotate(-4deg); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   絵文字・リアクション・メンションなど細かい部品
+   ============================================================ */
+@keyframes uiplus-emoji-pop {
+  0% { opacity: 0; transform: scale(0.45) rotate(-10deg); }
+  62% { opacity: 1; transform: scale(1.16) rotate(5deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes uiplus-chip-pop {
+  0% { opacity: 0; transform: scale(0.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes uiplus-dot-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+html:not(.reduce-motion) .msg-row.msg-enter img.emoji,
+html:not(.reduce-motion) .msg-row.msg-enter .emoji {
+  animation: uiplus-emoji-pop 0.46s var(--ease-spring-soft) both;
+}
+
+html:not(.reduce-motion) .emoji-picker {
+  animation: uiplus-pop 0.34s var(--ease-ios) both;
+  transform-origin: bottom left;
+}
+html:not(.reduce-motion) .emoji-picker button {
+  transition: transform 0.26s var(--ease-spring), background-color 0.2s ease, opacity 0.2s ease;
+  border-radius: 999px;
+}
+html:not(.reduce-motion) .emoji-picker button:active {
+  transform: scale(1.28);
+}
+html:not(.reduce-motion) .emoji-picker button img.emoji {
+  transition: transform 0.26s var(--ease-spring);
+}
+
+html:not(.reduce-motion) .reaction-chip {
+  animation: uiplus-chip-pop 0.34s var(--ease-ios) both;
+  transition: transform 0.28s var(--ease-ios), background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.28s ease;
+}
+html:not(.reduce-motion) .reaction-chip:active {
+  transform: scale(1.12);
+}
+html:not(.reduce-motion) .reaction-chip.mine {
+  box-shadow: 0 0 0 1px var(--amber-dim);
+}
+
+html:not(.reduce-motion) .msg-react-btn {
+  transition: transform 0.26s var(--ease-ios), color 0.22s ease, opacity 0.22s ease;
+}
+html:not(.reduce-motion) .msg-react-btn:active {
+  transform: scale(1.18);
+}
+
+html:not(.reduce-motion) .mention {
+  transition: transform 0.24s var(--ease-ios), background-color 0.24s ease, color 0.24s ease;
+}
+html:not(.reduce-motion) .mention:active {
+  transform: scale(1.06);
+}
+
+html:not(.reduce-motion) .read-chip {
+  animation: uiplus-chip-pop 0.4s var(--ease-spring-soft) both;
+  transition: transform 0.28s var(--ease-ios), box-shadow 0.28s ease;
+}
+
+html:not(.reduce-motion) .unread-dot,
+html:not(.reduce-motion) .req-dot,
+html:not(.reduce-motion) .channel-unread {
+  animation: uiplus-chip-pop 0.36s var(--ease-spring) both;
+  transform-origin: center;
+}
+
+html:not(.reduce-motion) .msg-actions {
+  transition:
+    max-height 0.42s var(--ease-ios),
+    opacity 0.28s ease,
+    margin-top 0.42s var(--ease-ios),
+    transform 0.32s var(--ease-ios) !important;
+}
+
+html:not(.reduce-motion) .gold,
+html:not(.reduce-motion) .name.gold,
+html:not(.reduce-motion) .self-meta .name .gold {
+  transition: filter 0.4s ease, text-shadow 0.4s ease;
+}
+
+@keyframes actionPopIn {
+  0% { opacity: 0; transform: translateY(6px) scale(0.92); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes chipIn {
+  0% { opacity: 0; transform: scale(0.62); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes chipOut {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.82); }
+}
+
+#notif-banner.show {
+  transform: translate(calc(-50% + var(--uiplus-nx, 0px)), var(--uiplus-ny, 0px)) !important;
+}
+#notif-banner.uiplus-notif-drag {
+  transition: none !important;
+}
+html:not(.reduce-motion) #notif-banner.show:not(.uiplus-notif-drag) {
+  transition: transform 0.5s var(--ease-ios), opacity 0.35s var(--ease-ios) !important;
+}
+
+#notif-banner.uiplus-notif-fly {
+  transition: none !important;
+  opacity: 1 !important;
+}
+
+/* アプリ起動ロード：ロゴは静かに。インジケータは白黒の弧が回る */
+@keyframes uiplus-splash-mark {
+  0% { opacity: 0; transform: scale(0.97); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes uiplus-splash-fade {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes uiplus-spin-var {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes uiplus-arc-len {
+  0% { stroke-dasharray: 14 74; }
+  42% { stroke-dasharray: 46 42; }
+  100% { stroke-dasharray: 14 74; }
+}
+@keyframes uiplus-loader-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+html.show-splash .splash-mark {
+  animation: uiplus-splash-mark 0.55s cubic-bezier(.22, .8, .24, 1) both;
+}
+html.show-splash #splash-screen.splash-out .splash-mark {
+  animation: uiplus-splash-fade 0.4s ease both;
+}
+
+#splash-screen .splash-spinner,
+.splash-spinner {
+  width: 36px !important;
+  height: 36px !important;
+  margin-top: 18px !important;
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  -webkit-mask: none !important;
+          mask: none !important;
+  box-shadow: none !important;
+  animation: uiplus-loader-in 0.35s ease 0.28s both !important;
+  position: relative;
+}
+#splash-screen .splash-spinner::before,
+#splash-screen .splash-spinner::after,
+.splash-spinner::before,
+.splash-spinner::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+#splash-screen.splash-out .splash-spinner {
+  animation: uiplus-splash-fade 0.22s ease both !important;
+}
+
+#messages.uiplus-loading {
+  position: relative;
+}
+#messages.uiplus-loading::before,
+#messages.uiplus-loading::after {
+  content: none !important;
+  display: none !important;
+  animation: none !important;
+  background: none !important;
+  -webkit-mask: none !important;
+          mask: none !important;
+}
+
+.uiplus-loader {
+  width: 36px;
+  height: 36px;
+  position: relative;
+  background: none !important;
+  pointer-events: none;
+}
+.uiplus-loader svg {
+  display: block;
+  width: 36px;
+  height: 36px;
+  position: relative;
+  z-index: 2;
+  animation: uiplus-spin-var 1.28s cubic-bezier(.37, .18, .63, .82) infinite;
+}
+.uiplus-loader svg.uiplus-loader-trail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  opacity: 0.28;
+  animation-delay: 0.2s;
+}
+.uiplus-loader circle {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 22 66;
+  animation: uiplus-arc-len 1.28s cubic-bezier(.42, .16, .58, .84) infinite;
+}
+.uiplus-loader svg.uiplus-loader-trail circle {
+  animation-delay: 0.2s;
+}
+.uiplus-loader.uiplus-loader-light circle { stroke: #1C1C1E; }
+.uiplus-loader.uiplus-loader-dark circle { stroke: #F2F2F7; }
+
+#messages > .uiplus-loader {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  margin: -18px 0 0 -18px;
+  z-index: 5;
+}
+
+html.reduce-motion .splash-mark,
+html.reduce-motion .splash-spinner,
+html.reduce-motion .uiplus-loader svg {
+  animation: none !important;
+}
+
+#uiplus-clock {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + (var(--uiplus-clock-y, 2) * 1vh));
+  left: calc(env(safe-area-inset-left, 0px) + (var(--uiplus-clock-x, 3) * 1vw));
+  right: auto;
+  bottom: auto;
+  z-index: 80;
+  font-size: var(--uiplus-clock-size, 13px);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-family: var(--font-body), -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  color: var(--text);
+  pointer-events: none;
+  line-height: 1;
+}
+
+
+
+
+#uiplus-clock .slot {
+  position: relative;
+  display: inline-block;
+  height: 1.15em;
+  overflow: hidden;
+  min-width: 0;
+  width: auto;
+  text-align: center;
+  letter-spacing: 0;
+}
+#uiplus-clock .slot > span {
+  display: block;
+}
+#uiplus-clock .sep {
+  opacity: 1;
+  color: var(--text);
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-weight: inherit;
+  letter-spacing: 0;
+  line-height: 1;
+  transform: translateY(-0.06em);
+  position: relative;
+  top: -0.02em;
+}
+@keyframes uiplus-clock-out {
+  to { transform: translateY(-120%); opacity: 0; }
+}
+@keyframes uiplus-clock-in {
+  from { transform: translateY(120%); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+html:not(.reduce-motion) #uiplus-clock .slot > span.out {
+  animation: uiplus-clock-out 0.38s var(--ease-ios) forwards;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+html:not(.reduce-motion) #uiplus-clock .slot > span.in {
+  animation: uiplus-clock-in 0.38s var(--ease-ios) both;
+}
+
+.uiplus-clock-settings {
+  margin: 8px 0 12px;
+  padding: 12px 12px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.uiplus-clock-settings-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.uiplus-clock-settings label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 6px 0;
+}
+.uiplus-clock-settings input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--amber);
+}
+
+/* SIGNAL AI ボタン：あるときだけ検索の左に揃える。検索展開時は下に隠す */
+#sai-trigger-btn {
+  position: absolute !important;
+  top: var(--uiplus-search-top, 14px);
+  right: calc(16px + 44px + 8px);
+  width: 44px !important;
+  height: 44px !important;
+  z-index: 7;
+  transition: opacity 0.28s ease, transform 0.32s var(--ease-ios);
+}
+#sai-trigger-btn svg {
+  width: 22px;
+  height: 22px;
+}
+#topbar:has(#search-wrap.open) #sai-trigger-btn {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+}
+#search-wrap.open {
+  z-index: 50 !important;
+}
+
+.sidebar-tabs .tab-thumb,
+.scope-switch .tab-thumb,
+.admin-tabs .tab-thumb,
+.preset-row .tab-thumb {
+  left: 3px !important;
+  box-sizing: border-box !important;
+}
+
+
+/* ============================================================
+   UI+ 1.14.1  アニメーションのみ（見た目の色・影・材質は変えない）
+   ============================================================ */
+
+html:not(.reduce-motion) {
+  --ease-ios: cubic-bezier(.32, .72, 0, 1);
+  --ease-spring: cubic-bezier(.22, 1.28, .36, 1);
+  --ease-spring-soft: cubic-bezier(.22, 1.14, .32, 1);
+}
+
+@keyframes uiplus-fluid-in {
+  0% { opacity: 0; transform: translateY(14px) scale(0.97); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes uiplus-liquid-msg {
+  0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+  62% { opacity: 1; transform: translateY(-2px) scale(1.012); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes uiplus-overshoot-in {
+  0% { opacity: 0; transform: translateY(12px) scale(0.96); }
+  72% { opacity: 1; transform: translateY(-2px) scale(1.02); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes tabPanelIn {
+  0% { opacity: 0; transform: translateY(12px) scale(0.985); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes msgIn {
+  0% { opacity: 0; transform: translateY(14px) scale(0.97); }
+  68% { opacity: 1; transform: translateY(-1px) scale(1.01); }
+  100% { opacity: 1; transform: none; }
+}
+
+html:not(.reduce-motion) .msg-row.msg-enter {
+  animation: uiplus-liquid-msg 0.56s var(--ease-spring-soft) both !important;
+}
+
+html:not(.reduce-motion) .channel-item,
+html:not(.reduce-motion) .dm-item {
+  animation: uiplus-fluid-in 0.48s var(--ease-spring-soft) both;
+}
+
+html:not(.reduce-motion) .settings-menu-item,
+html:not(.reduce-motion) .friend-list-row,
+html:not(.reduce-motion) .tet-player-row,
+html:not(.reduce-motion) .tet-friend-row {
+  animation: uiplus-fluid-in 0.44s var(--ease-spring-soft) both;
+}
+
+html:not(.reduce-motion) .settings-panel {
+  animation: uiplus-overshoot-in 0.46s var(--ease-ios) both;
+}
+
+html:not(.reduce-motion) .sidebar-tabs.seg-pressed,
+html:not(.reduce-motion) .scope-switch.seg-pressed,
+html:not(.reduce-motion) .admin-tabs.seg-pressed,
+html:not(.reduce-motion) .preset-row.seg-pressed {
+  transform: scale(1.04);
+  transition: transform 0.36s var(--ease-spring);
+}
+html:not(.reduce-motion) .sidebar-tabs.seg-dragging,
+html:not(.reduce-motion) .scope-switch.seg-dragging,
+html:not(.reduce-motion) .admin-tabs.seg-dragging,
+html:not(.reduce-motion) .preset-row.seg-dragging {
+  transform: scale(1.055);
+}
+
+html:not(.reduce-motion) .channel-item,
+html:not(.reduce-motion) .dm-item,
+html:not(.reduce-motion) .settings-menu-item,
+html:not(.reduce-motion) .composer-menu-item,
+html:not(.reduce-motion) .friends-btn,
+html:not(.reduce-motion) .admin-btn,
+html:not(.reduce-motion) .bubble,
+html:not(.reduce-motion) #send-btn,
+html:not(.reduce-motion) #composer-plus-btn,
+html:not(.reduce-motion) #menu-btn,
+html:not(.reduce-motion) #search-btn {
+  transition:
+    transform 0.38s var(--ease-spring-soft),
+    opacity 0.28s var(--ease-ios),
+    background-color 0.32s var(--ease-ios),
+    border-color 0.32s var(--ease-ios),
+    color 0.28s ease,
+    box-shadow 0.34s var(--ease-ios);
+}
+
+html:not(.reduce-motion) .channel-item:active,
+html:not(.reduce-motion) .dm-item:active,
+html:not(.reduce-motion) .settings-menu-item:active,
+html:not(.reduce-motion) .composer-menu-item:active,
+html:not(.reduce-motion) .friends-btn:active,
+html:not(.reduce-motion) .admin-btn:active {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
+}
+html:not(.reduce-motion) #send-btn:active,
+html:not(.reduce-motion) #composer-plus-btn:active,
+html:not(.reduce-motion) #menu-btn:active,
+html:not(.reduce-motion) #search-btn:active {
+  transform: scale(0.88);
+  transition-duration: 0.1s;
+}
+
+html:not(.reduce-motion) #search-wrap {
+  transition:
+    width 0.56s var(--ease-spring),
+    border-color 0.28s ease,
+    background-color 0.28s ease !important;
+}
+
+html:not(.reduce-motion) #composer-menu {
+  animation: uiplus-overshoot-in 0.4s var(--ease-spring) both;
+  transform-origin: bottom left;
+}
+
+html:not(.reduce-motion) .modal-scrim.profile-fullscreen .modal-card.profile-card {
+  animation: uiplus-overshoot-in 0.54s var(--ease-spring-soft) both !important;
+}
+
+html:not(.reduce-motion) .tr-hand-card {
+  animation: trHandCardIn 0.46s var(--ease-spring-soft) both;
+}
+
+html:not(.reduce-motion) #notif-banner.show:not(.uiplus-notif-drag) {
+  transition: transform 0.58s var(--ease-spring), opacity 0.34s var(--ease-ios) !important;
+}
+
+html.seg-drawer-dragging #sidebar,
+html.seg-drawer-dragging #main,
+html.seg-sheet-dragging .modal-scrim.bottom-sheet .modal-card {
+  will-change: transform;
+}
+
+html.reduce-motion .channel-item,
+html.reduce-motion .dm-item,
+html.reduce-motion .settings-menu-item,
+html.reduce-motion .msg-row.msg-enter {
+  animation: none !important;
+}
+
+
+/* ============================================================
+   UI+ 1.15  追加モーションのみ（色・影・サイズ・材質は触らない）
+   ============================================================ */
+
+@keyframes uiplus-press-pop {
+  0% { transform: scale(0.94); }
+  62% { transform: scale(1.03); }
+  100% { transform: none; }
+}
+@keyframes uiplus-badge-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+@keyframes uiplus-slide-left {
+  0% { opacity: 0; transform: translateX(18px); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes uiplus-slide-right {
+  0% { opacity: 0; transform: translateX(-18px); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes uiplus-rise-soft {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes uiplus-img-in {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: none; }
+}
+
+html:not(.reduce-motion) #channel-section.uiplus-dir-left,
+html:not(.reduce-motion) #dm-section.uiplus-dir-left {
+  animation: uiplus-slide-left 0.5s var(--ease-spring-soft) both;
+}
+html:not(.reduce-motion) #channel-section.uiplus-dir-right,
+html:not(.reduce-motion) #dm-section.uiplus-dir-right {
+  animation: uiplus-slide-right 0.5s var(--ease-spring-soft) both;
+}
+
+html:not(.reduce-motion) .settings-panel {
+  animation: uiplus-slide-left 0.44s var(--ease-ios) both;
+}
+html.uiplus-settings-back:not(.reduce-motion) .settings-panel {
+  animation: uiplus-slide-right 0.44s var(--ease-ios) both;
+}
+
+html:not(.reduce-motion) .search-result-item {
+  animation: uiplus-rise-soft 0.36s var(--ease-ios) both;
+}
+html:not(.reduce-motion) .mention-suggest-item {
+  animation: uiplus-rise-soft 0.32s var(--ease-ios) both;
+}
+
+html:not(.reduce-motion) .msg-row.msg-enter .msg-image,
+html:not(.reduce-motion) .msg-row.msg-enter img.msg-image {
+  animation: uiplus-img-in 0.5s var(--ease-spring-soft) both;
+}
+
+html:not(.reduce-motion) .composer-plus-inner.open #composer-menu .composer-menu-item {
+  animation: uiplus-rise-soft 0.38s var(--ease-spring-soft) both;
+}
+html:not(.reduce-motion) .composer-plus-inner.open #composer-menu .composer-menu-item:nth-child(1) { animation-delay: 0.04s; }
+html:not(.reduce-motion) .composer-plus-inner.open #composer-menu .composer-menu-item:nth-child(2) { animation-delay: 0.09s; }
+html:not(.reduce-motion) .composer-plus-inner.open #composer-menu .composer-menu-item:nth-child(3) { animation-delay: 0.14s; }
+html:not(.reduce-motion) .composer-plus-inner.open #composer-menu .composer-menu-item:nth-child(4) { animation-delay: 0.19s; }
+html:not(.reduce-motion) .composer-plus-inner.open #composer-menu .composer-menu-item:nth-child(5) { animation-delay: 0.24s; }
+
+html:not(.reduce-motion) #typing-indicator {
+  transition: opacity 0.32s var(--ease-ios), transform 0.38s var(--ease-spring-soft);
+}
+html:not(.reduce-motion) #typing-indicator:not(:empty) {
+  animation: uiplus-rise-soft 0.34s var(--ease-ios) both;
+}
+
+html:not(.reduce-motion) .channel-unread.uiplus-bump,
+html:not(.reduce-motion) .req-dot.uiplus-bump,
+html:not(.reduce-motion) .unread-dot.uiplus-bump {
+  animation: uiplus-badge-bump 0.42s var(--ease-spring) both;
+}
+
+html:not(.reduce-motion) .add-channel-btn,
+html:not(.reduce-motion) .edit-mode-btn,
+html:not(.reduce-motion) .mini-btn,
+html:not(.reduce-motion) .mini-btn-outline,
+html:not(.reduce-motion) .settings-back-btn,
+html:not(.reduce-motion) .search-result-item,
+html:not(.reduce-motion) .schedule-row,
+html:not(.reduce-motion) .admin-row,
+html:not(.reduce-motion) .reaction-chip,
+html:not(.reduce-motion) .online-chip,
+html:not(.reduce-motion) .icon-btn {
+  transition: transform 0.34s var(--ease-spring-soft), opacity 0.24s ease;
+}
+html:not(.reduce-motion) .add-channel-btn:active,
+html:not(.reduce-motion) .edit-mode-btn:active,
+html:not(.reduce-motion) .mini-btn:active,
+html:not(.reduce-motion) .mini-btn-outline:active,
+html:not(.reduce-motion) .settings-back-btn:active,
+html:not(.reduce-motion) .search-result-item:active,
+html:not(.reduce-motion) .schedule-row:active,
+html:not(.reduce-motion) .admin-row:active,
+html:not(.reduce-motion) .online-chip:active,
+html:not(.reduce-motion) .icon-btn:active {
+  transform: scale(0.94);
+  transition-duration: 0.1s;
+}
+html:not(.reduce-motion) .reaction-chip:active {
+  transform: scale(1.14);
+  transition-duration: 0.1s;
+}
+
+html:not(.reduce-motion) #composer.uiplus-sent #send-btn {
+  animation: uiplus-press-pop 0.48s var(--ease-spring) both;
+}
+
+html:not(.reduce-motion) .msg-row.mine.msg-enter .bubble {
+  transform-origin: bottom right;
+}
+html:not(.reduce-motion) .msg-row:not(.mine).msg-enter .bubble {
+  transform-origin: bottom left;
+}
+
+html:not(.reduce-motion) .modal-scrim.closing {
+  animation-duration: 0.36s !important;
+  animation-timing-function: var(--ease-ios) !important;
+}
+
+html:not(.reduce-motion) .profile-card-actions .mini-btn {
+  animation: uiplus-rise-soft 0.4s var(--ease-spring-soft) both;
+}
+html:not(.reduce-motion) .profile-card-actions .mini-btn:nth-child(1) { animation-delay: 0.04s; }
+html:not(.reduce-motion) .profile-card-actions .mini-btn:nth-child(2) { animation-delay: 0.1s; }
+html:not(.reduce-motion) .profile-card-actions .mini-btn:nth-child(3) { animation-delay: 0.16s; }
+
+html:not(.reduce-motion) .reply-preview-item,
+html:not(.reduce-motion) .image-preview-item,
+html:not(.reduce-motion) .file-preview-item {
+  animation: uiplus-rise-soft 0.36s var(--ease-spring-soft) both;
+}
+
+html.reduce-motion #channel-section,
+html.reduce-motion #dm-section,
+html.reduce-motion .settings-panel,
+html.reduce-motion .search-result-item {
+  animation: none !important;
+}
+
+/* ===================== YouTube Music: ジャケット端の色を背景に ===================== */
+#media-player-stage .mp-music-wrap{
+  background-color: #0c0c0e;
+}
+#media-player-stage .mp-music-bg{
+  opacity: 0 !important;
+  filter: none !important;
+  transform: none !important;
+  animation: none !important;
+  pointer-events: none !important;
+}
+#media-player-stage .mp-music-artwrap{
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2vh;
+  transform: translateY(-17vh);
+}
+#media-player-stage .mp-music-info{
+  transform: translateY(-13vh);
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+  margin-bottom: 8vh;
+}
+#media-player-stage .mp-music-controls{
+  margin-top: 18px;
+}
+#media-player-stage .mp-music-art{
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 11%, black 82%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 11%, black 82%, transparent 100%);
+}
+#media-player-stage .mp-music-edge-bg{
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity .55s var(--ease-ios, cubic-bezier(.32,.72,0,1));
+}
+#media-player-stage .mp-music-edge-bg.is-ready{
+  opacity: 1;
+}
+#media-player-stage .mp-music-edge-bg::after{
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,.22), rgba(0,0,0,.4));
+  pointer-events: none;
+}
+#media-player-stage .mp-music-edge-slice{
+  position: absolute;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+}
+#media-player-stage .mp-music-edge-slice img{
+  position: absolute;
+  left: -20%;
+  width: 140%;
+  height: 64px;
+  object-fit: cover;
+  filter: blur(48px) saturate(1.12) brightness(.72);
+}
+#media-player-stage .mp-music-edge-slice.is-top{
+  top: 0;
+  height: var(--mp-top-h, 50%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+}
+#media-player-stage .mp-music-edge-slice.is-top img{
+  top: 0;
+  object-position: top center;
+  transform-origin: top center;
+  transform: scale(1.05, var(--mp-top-scale, 4));
+}
+#media-player-stage .mp-music-edge-slice.is-bottom{
+  bottom: 0;
+  height: var(--mp-bottom-h, 50%);
+  -webkit-mask-image: linear-gradient(to top, black 0%, black 55%, transparent 100%);
+  mask-image: linear-gradient(to top, black 0%, black 55%, transparent 100%);
+}
+#media-player-stage .mp-music-edge-slice.is-bottom img{
+  bottom: 0;
+  object-position: bottom center;
+  transform-origin: bottom center;
+  transform: scale(1.05, var(--mp-bottom-scale, 4));
+}
+html.reduce-motion #media-player-stage .mp-music-artwrap{
+  transform: none;
+  padding-bottom: 14vh;
+}
+html.reduce-motion #media-player-stage .mp-music-info{
+  transform: none;
+  margin-bottom: 12vh;
+}
+html.reduce-motion #media-player-stage .mp-music-edge-bg{
+  transition: none;
+}
+html.reduce-motion #media-player-stage .mp-music-edge-slice img{
+  filter: blur(36px) saturate(1.05) brightness(.72);
+}
+
+/* ===================== 音楽プレイヤー閉じるときの画面ずれ防止 =====================
+   本体は music-mode を width:100vw / height:100dvh の fixed にしている。
+   親 .modal-scrim には padding:20px と overflow-y:auto があるため、
+   閉じる瞬間にスクロールバー・余白・scale(.9) が重なって #app 全体が跳ぶ。 */
+#media-player-modal:has(#media-player-inner.music-mode),
+#media-player-modal.uiplus-music-modal {
+  padding: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  background: rgba(4, 6, 10, 0.38) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+#media-player-inner.music-mode {
+  position: fixed !important;
+  inset: 0 !important;
+  left: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  background: transparent !important;
+}
+#media-player-inner.music-mode #media-player-stage {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+#media-player-inner.music-mode .mp-music-wrap {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  overflow: hidden !important;
+  background-color: #0c0c0e;
+}
+
+@keyframes uiplus-music-out {
+  from { opacity: 1; transform: translate3d(0, 0, 0); }
+  to   { opacity: 0; transform: translate3d(0, 10px, 0); }
+}
+@keyframes uiplus-music-enter {
+  from { opacity: 0; transform: translate3d(0, 40px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+#media-player-stage .mp-music-wrap.uiplus-music-enter {
+  animation: uiplus-music-enter 0.46s var(--ease-ios, cubic-bezier(.32,.72,0,1)) both;
+}
+html.reduce-motion #media-player-stage .mp-music-wrap.uiplus-music-enter {
+  animation: none !important;
+}
+html:not(.reduce-motion) #media-player-modal.closing:not(.uiplus-music-swiping) #media-player-inner.music-mode {
+  animation: uiplus-music-out 0.22s var(--ease-ios, cubic-bezier(.32,.72,0,1)) forwards !important;
+}
+html.reduce-motion #media-player-modal.closing #media-player-inner.music-mode {
+  animation: none !important;
+  opacity: 0;
+}
+
+html.uiplus-music-open,
+html.uiplus-music-open body {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+html.uiplus-music-dragging,
+html.uiplus-music-dragging * {
+  touch-action: none !important;
+}
+html.uiplus-music-dragging #media-player-modal {
+  animation: none !important;
+  transition: none !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html.uiplus-music-dragging #media-player-inner.music-mode,
+html.uiplus-music-dragging #media-player-stage .mp-music-wrap {
+  animation: none !important;
+  transition: none !important;
+}
+
+#media-player-stage .mp-music-wrap.uiplus-music-follow {
+  animation: none !important;
+  transition: none !important;
+  will-change: transform;
+  z-index: 2;
+}
+#media-player-modal.uiplus-music-swiping {
+  animation: none !important;
+}
+
+.uiplus-music-hint {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 8;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  color: #ffffffd0;
+  text-shadow: 0 1px 8px #000000a0;
+  opacity: 0;
+  transition: opacity .16s ease;
+}
+.uiplus-music-hint.is-down { top: calc(18px + env(safe-area-inset-top, 0px)); }
+.uiplus-music-hint.is-up { bottom: calc(22px + env(safe-area-inset-bottom, 0px)); }
+.uiplus-music-hint.show { opacity: 1; }
+
+#uiplus-mini-player {
+  position: fixed;
+  top: calc(8px + env(safe-area-inset-top, 0px) + var(--safe-top-extra, 0px));
+  left: 12px;
+  height: 58px;
+  z-index: 89;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 8px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface-2) 94%, transparent);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-md);
+  color: var(--text);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  box-sizing: border-box;
+  transition:
+    opacity 0.24s ease,
+    left 0.42s var(--ease-ios, cubic-bezier(.32,.72,0,1)),
+    width 0.42s var(--ease-ios, cubic-bezier(.32,.72,0,1)),
+    height 0.42s var(--ease-ios, cubic-bezier(.32,.72,0,1)),
+    padding 0.42s var(--ease-ios, cubic-bezier(.32,.72,0,1)),
+    border-radius 0.42s var(--ease-ios, cubic-bezier(.32,.72,0,1));
+}
+#uiplus-mini-player.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+#uiplus-mini-player.is-icon.playing {
+  box-shadow: 0 0 0 2px var(--amber), var(--shadow-md);
+}
+#uiplus-mini-player .ump-art {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface-3);
+  flex-shrink: 0;
+}
+#uiplus-mini-player.is-icon .ump-art {
+  width: 44px;
+  height: 44px;
+}
+#uiplus-mini-player .ump-meta,
+#uiplus-mini-player .ump-btn {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+#uiplus-mini-player.is-icon .ump-meta,
+#uiplus-mini-player.is-icon .ump-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+#uiplus-mini-player .ump-meta {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+html.reduce-motion #uiplus-mini-player,
+html.reduce-motion #uiplus-mini-player .ump-art,
+html.reduce-motion #uiplus-mini-player .ump-meta,
+html.reduce-motion #uiplus-mini-player .ump-btn {
+  transition: none !important;
+}
+#uiplus-mini-player .ump-title {
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#uiplus-mini-player .ump-artist {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#uiplus-mini-player .ump-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+#uiplus-mini-player .ump-close,
+#uiplus-mini-player .ump-iconize {
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+</style>
 <style id="sx-redesign">
-/* ===== SIGNAL v2 redesign layer: layout / motion / type. DOM ids & JS untouched ===== */
+/* ===== SIGNAL v3: redesign layer on top of UI+ (built in) ===== */
 :root{
   --font-display:"Space Grotesk","Zen Kaku Gothic New",-apple-system,"Hiragino Sans",sans-serif;
   --font-body:"Zen Kaku Gothic New",-apple-system,"Hiragino Sans","Yu Gothic",sans-serif;
@@ -2178,115 +3913,59 @@
   --sx-glass:color-mix(in srgb,var(--surface-2) 78%,transparent);
 }
 body{ animation:none; }
+.brand-text b,#topbar .titles h1{ font-family:var(--font-display); font-weight:700; letter-spacing:-.02em; }
+.section-label,.day-divider,#typing-indicator,.empty-state{ font-family:var(--font-body); text-transform:none; letter-spacing:.02em; }
 
-/* ---------- Top bar: menu glyph, big title ---------- */
-#topbar{ gap:10px; padding:calc(10px + env(safe-area-inset-top) + var(--safe-top-extra)) 14px 10px; }
-#topbar .titles{ display:flex; flex-direction:column-reverse; }
-#topbar .titles h1{ font-size:22px; font-weight:700; letter-spacing:-.02em; max-width:50vw; }
-#topbar .titles .freq{ font-size:11px; letter-spacing:.02em; color:var(--text-muted); }
-#menu-btn,#search-wrap,#search-btn{ height:42px; }
-#menu-btn{ position:relative; width:42px; font-size:0; border-color:transparent; background:var(--sx-glass);
-  backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%); }
-#menu-btn::before{ content:''; position:absolute; left:13px; top:20px; width:16px; height:2px; border-radius:2px;
-  background:var(--text); box-shadow:0 -6px 0 var(--text),0 6px 0 var(--text); transition:box-shadow .4s var(--sx-out),width .4s var(--sx-out); }
-#menu-btn:active::before{ width:10px; box-shadow:0 -6px 0 var(--text),0 6px 0 var(--text); }
-#search-wrap{ width:42px; border-color:transparent; background:var(--sx-glass); }
-#search-btn{ width:42px; }
+/* top bar: glass buttons, 3-line menu glyph */
+#menu-btn,#search-wrap{ border-color:transparent; background:var(--sx-glass); backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%); }
+#menu-btn{ position:relative; font-size:0; }
+#menu-btn::before{ content:''; position:absolute; left:14px; top:21px; width:16px; height:2px; border-radius:2px; background:var(--text);
+  box-shadow:0 -6px 0 var(--text),0 6px 0 var(--text); transition:width .4s var(--sx-out); }
+#menu-btn:active::before{ width:10px; }
 
-/* ---------- Messages ---------- */
-#messages{ padding-left:14px; padding-right:14px; }
-.msg-row{ gap:8px; max-width:84%; margin-top:14px; }
-.msg-row.grouped{ margin-top:2px; }
-.msg-avatar{ width:34px; height:34px; border-radius:12px; }
-.msg-meta{ gap:6px; margin-bottom:3px; }
-.bubble{ background:var(--surface-2); border:none; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none;
-  padding:10px 14px; border-radius:6px 22px 22px 22px; font-size:15px; line-height:1.5; }
+/* messages: flat bubbles, squircle avatars, mine tinted with the accent */
+.msg-avatar,.self-avatar{ border-radius:14px; }
+.bubble{ background:var(--surface-2); border:none; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; border-radius:6px 22px 22px 22px; line-height:1.5; }
 .msg-row.chained .bubble{ border-radius:6px 22px 22px 6px; }
-.msg-row.mine .bubble{ background:color-mix(in srgb,var(--amber) 26%,var(--surface-2)); border:none;
-  box-shadow:inset 0 0 0 1px var(--amber-dim); border-radius:22px 6px 22px 22px; }
+.msg-row.mine .bubble{ background:color-mix(in srgb,var(--amber) 26%,var(--surface-2)); border:none; box-shadow:inset 0 0 0 1px var(--amber-dim); border-radius:22px 6px 22px 22px; }
 .msg-row.mine.chained .bubble{ border-radius:22px 6px 6px 22px; }
-.day-divider{ background:none; border:none; font-family:var(--font-body); font-size:12px; color:var(--text-faint); margin:20px 0 8px; }
-#typing-indicator{ padding:0 24px; font-family:var(--font-body); }
-@keyframes msgIn{
-  0%{ opacity:0; transform:translateY(22px) scale(.94); }
-  60%{ opacity:1; }
-  100%{ opacity:1; transform:none; }
-}
+.msg-row{ margin-top:14px; } .msg-row.grouped{ margin-top:2px; }
+.day-divider{ background:none; border:none; font-size:12px; margin:20px 0 8px; }
+@keyframes msgIn{ 0%{ opacity:0; transform:translateY(22px) scale(.94); } 60%{ opacity:1; } 100%{ opacity:1; transform:none; } }
 .msg-row.msg-enter{ animation:msgIn .7s var(--sx-out) both; transform-origin:bottom left; }
 .msg-row.mine.msg-enter{ transform-origin:bottom right; }
 
-/* ---------- Composer: one floating pill, send button appears when needed ---------- */
-#composer{ margin:0 12px calc(10px + env(safe-area-inset-bottom) + var(--safe-bottom-extra)); padding:5px; gap:4px;
-  border-radius:30px; border:1px solid var(--border); box-shadow:var(--shadow-md);
-  background:color-mix(in srgb,var(--surface-2) calc(94% * var(--panel-alpha)),transparent);
-  backdrop-filter:blur(22px) saturate(160%); -webkit-backdrop-filter:blur(22px) saturate(160%); transition:border-color .3s var(--sx-out); }
+/* composer: one floating pill */
+#composer{ margin:0 12px calc(10px + env(safe-area-inset-bottom) + var(--safe-bottom-extra)); padding:5px; gap:4px; border-radius:32px;
+  border:1px solid var(--border); box-shadow:var(--shadow-md); backdrop-filter:blur(22px) saturate(160%); -webkit-backdrop-filter:blur(22px) saturate(160%);
+  background:color-mix(in srgb,var(--surface-2) calc(94% * var(--panel-alpha)),transparent); transition:border-color .3s var(--sx-out); }
 #composer:focus-within{ border-color:var(--amber); }
-#msg-input{ background:transparent; border:none; backdrop-filter:none; -webkit-backdrop-filter:none; border-radius:22px; padding:11px 6px; font-size:15px; }
+#msg-input{ background:transparent; border:none; backdrop-filter:none; -webkit-backdrop-filter:none; border-radius:24px; }
 #msg-input:focus{ border:none; box-shadow:none; }
 .composer-plus-inner:not(.open){ background:var(--surface-3); border-color:transparent; }
-#send-btn{ background:var(--amber); border:none; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; overflow:hidden;
-  transition:width .45s var(--sx-out),margin .45s var(--sx-out),opacity .3s ease,transform .3s var(--ease-spring); }
-#send-btn:disabled{ width:0; margin-left:-4px; opacity:0; border:none; background:var(--amber); }
+#send-btn{ background:var(--amber); border:none; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+#send-btn:disabled{ background:var(--surface-3); }
 #ingame-chat-pip #composer{ margin:0 6px 6px; border-radius:22px; box-shadow:none; }
 
-/* ---------- Sidebar (desktop keeps a side panel) ---------- */
-#sidebar{ border-right:none; }
-.brand{ justify-content:space-between; padding:calc(18px + env(safe-area-inset-top) + var(--safe-top-extra)) 20px 8px; }
-.brand-text b{ font-size:26px; font-weight:700; letter-spacing:-.02em; }
-.brand-text span{ font-family:var(--font-body); letter-spacing:.02em; }
-#sx-close{ display:none; width:42px; height:42px; border-radius:50%; border:none; background:var(--surface-2); color:var(--text); align-items:center; justify-content:center; }
-.self-card{ margin:4px 12px 12px; padding:8px; background:none; border:none; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
-.self-avatar{ width:46px; height:46px; font-size:18px; border-radius:16px; }
-.sx-quick{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 12px 12px; flex-shrink:0; }
-.sx-quick .friends-btn{ margin:0; padding:14px 8px; border:none; border-radius:20px; background:var(--surface-2); font-size:13px; }
-.admin-btn{ margin:0 12px 10px; padding:12px; border:none; border-radius:20px; }
-.sidebar-tabs,.scope-switch{ margin-left:12px; margin-right:12px; }
-.sidebar-tabs button{ padding:10px 6px; font-size:13px; }
-.section-label{ font-family:var(--font-body); font-size:12px; letter-spacing:.02em; text-transform:none; padding:8px 20px 6px; color:var(--text-muted); }
-#channel-list,#dm-list{ padding-left:12px; padding-right:12px; }
-.channel-item,.dm-item{ padding:13px 14px; border-radius:20px; font-size:15.5px; margin-bottom:2px; }
+/* sidebar: quiet cards, signal bars on the active row */
+#sidebar{ border-right:none; border-radius:0 32px 32px 0; }
+.self-card,.uiplus-side-actions .friends-btn,.admin-btn{ border:none; box-shadow:none; }
+.uiplus-side-actions .friends-btn{ background:var(--surface-2); border-radius:20px; }
+.channel-item,.dm-item{ border-radius:20px; }
 .channel-item::before,.dm-item::before{ display:none; }
 .channel-item.active,.dm-item.active{ border-color:transparent; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
-.channel-item.active{ background:var(--amber-dim); }
-.dm-item.active{ background:var(--teal-dim); }
-/* active-row signal bars */
+.channel-item.active{ background:var(--amber-dim); --c:var(--amber); }
+.dm-item.active{ background:var(--teal-dim); --c:var(--teal); }
 .channel-item.active::after,.dm-item.active::after{ content:''; margin-left:auto; flex-shrink:0; width:15px; height:13px;
   background:linear-gradient(var(--c),var(--c)) 0 100%/3px 5px no-repeat,linear-gradient(var(--c),var(--c)) 6px 100%/3px 9px no-repeat,linear-gradient(var(--c),var(--c)) 12px 100%/3px 13px no-repeat; }
-.channel-item.active{ --c:var(--amber); } .dm-item.active{ --c:var(--teal); }
-.online-panel{ border-top:none; padding:10px 20px calc(16px + env(safe-area-inset-bottom)); }
+.online-panel{ border-top:none; }
 
-/* ---------- Mobile layout: sidebar becomes a full-screen home that main slides off ---------- */
-@media (max-width:760px){
-  #sidebar{ inset:0; width:100%; border-radius:0; background:var(--bg); box-shadow:none;
-    transform:translateX(-100%); transition:transform .6s var(--sx-out); backdrop-filter:none; -webkit-backdrop-filter:none; }
-  #sidebar.open{ transform:none; }
-  #sidebar-scrim{ display:none; }
-  #sx-close{ display:inline-flex; }
-  #main{ transition:transform .6s var(--sx-out),filter .6s var(--sx-out); transform-origin:center; }
-  #sidebar.open ~ #main{ transform:translateX(28%); filter:brightness(.55); }
-  #sidebar .self-card,#sidebar .sx-quick,#sidebar .sidebar-tabs,#sidebar .channel-item,#sidebar .dm-item,#sidebar .online-panel,#sidebar .section-label{
-    opacity:0; transform:translateY(16px); transition:opacity .5s ease,transform .6s var(--sx-out); }
-  #sidebar.open .self-card,#sidebar.open .sx-quick,#sidebar.open .sidebar-tabs,#sidebar.open .channel-item,#sidebar.open .dm-item,#sidebar.open .online-panel,#sidebar.open .section-label{ opacity:1; transform:none; }
-  #sidebar.open .self-card{ transition-delay:.06s; } #sidebar.open .sx-quick{ transition-delay:.1s; }
-  #sidebar.open .sidebar-tabs{ transition-delay:.14s; } #sidebar.open .section-label{ transition-delay:.16s; }
-  #sidebar.open .channel-item:nth-child(1),#sidebar.open .dm-item:nth-child(1){ transition-delay:.18s; }
-  #sidebar.open .channel-item:nth-child(2),#sidebar.open .dm-item:nth-child(2){ transition-delay:.22s; }
-  #sidebar.open .channel-item:nth-child(3),#sidebar.open .dm-item:nth-child(3){ transition-delay:.26s; }
-  #sidebar.open .channel-item:nth-child(4),#sidebar.open .dm-item:nth-child(4){ transition-delay:.3s; }
-  #sidebar.open .channel-item:nth-child(n+5),#sidebar.open .dm-item:nth-child(n+5){ transition-delay:.34s; }
-  #sidebar.open .online-panel{ transition-delay:.38s; }
-  #sidebar.open .channel-item:active,#sidebar.open .dm-item:active{ transform:scale(.97); transition-delay:0s; transition-duration:.12s; }
-
-  /* every dialog becomes a bottom sheet with a grabber */
-  .modal-scrim:not(.bottom-sheet):not(.profile-fullscreen):not(#lightbox-modal):not(#media-player-modal){ align-items:flex-end; padding:0; }
-  .modal-scrim:not(.bottom-sheet):not(.profile-fullscreen) .modal-card{ max-width:none; margin:0; border:none; border-radius:32px 32px 0 0;
-    padding:8px 20px calc(24px + env(safe-area-inset-bottom)); max-height:92dvh; overflow-y:auto; animation:sxSheet .6s var(--sx-out); }
-  .modal-scrim:not(.bottom-sheet):not(.profile-fullscreen) .modal-card::before{ content:''; display:block; width:40px; height:5px; border-radius:3px; background:var(--surface-4); margin:6px auto 16px; }
-  @keyframes sxSheet{ from{ transform:translateY(100%); } to{ transform:none; } }
-}
-.modal-scrim{ background:#000000b3; }
-.settings-menu-item{ border:none; border-radius:18px; padding:14px; }
-.settings-back-btn{ width:36px; height:36px; border:none; }
+/* sheets & dialogs */
+.modal-scrim:not(.bottom-sheet){ background:#000000b3; }
+.modal-scrim.bottom-sheet > .modal-card{ border:none; border-radius:32px 32px 0 0; }
+.modal-card{ border:none; }
+.settings-menu-item{ border:none; border-radius:18px; }
+.settings-back-btn{ border:none; }
 </style>
 </head>
 <body>
@@ -2363,7 +4042,6 @@ body{ animation:none; }
         <b>SIGNAL</b>
         <span>REALTIME · MULTI-CHANNEL</span>
       </div>
-      <button type="button" id="sx-close" aria-label="close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
     </div>
 
     <div class="self-card">
@@ -2380,10 +4058,8 @@ body{ animation:none; }
     </div>
 
     <button class="admin-btn" id="admin-panel-btn" data-i18n="s15">管理者パネル</button>
-  <div class="sx-quick">
     <button class="friends-btn" id="friends-panel-btn"><span data-i18n="s170">フレンド</span><span class="req-dot" id="friend-req-dot">0</span></button>
     <button class="friends-btn tet-launch-btn" id="tetris-open-btn"><span data-i18n="s171">🎮 ゲーム</span><span class="req-dot" id="tetris-invite-dot">0</span></button>
-  </div>
 
     <div class="sidebar-tabs" id="sidebar-tabs">
       <div class="tab-thumb"></div>
@@ -9541,6 +11217,2406 @@ if (isSafeModeActive()) {
 })();
 
 </script>
-<script>(function(){var b=document.getElementById("sx-close");if(!b)return;b.addEventListener("click",function(){var s=document.getElementById("sidebar"),c=document.getElementById("sidebar-scrim");s&&s.classList.remove("open");c&&c.classList.remove("show");});})();</script>
+<script>(function(){function run(){
+/**
+ * セグメントスライド MOD
+ * ピル型セグメントの選択バーを指の位置へ追従させ、
+ * 離したときは一番近いタブへ弾むようにスナップする。
+ */
+(function segmentSlideMod() {
+  const SELECTOR = '.sidebar-tabs, .scope-switch, .admin-tabs, .preset-row';
+  const DRAG_THRESHOLD = 6;
+  const HOLD_MS = 80;
+  const RUBBER = 0.28;
+  const STIFF = 210;
+  const DAMP = 26;
+  const SNAP_STIFF = 250;
+  const SNAP_DAMP = 24;
+
+  const enhanced = new WeakSet();
+
+  function reduceMotion() {
+    return document.documentElement.classList.contains('reduce-motion');
+  }
+
+  function buttonsOf(container) {
+    return [...container.children].filter((el) => el.tagName === 'BUTTON');
+  }
+
+  function metrics(container) {
+    const thumb = container.querySelector(':scope > .tab-thumb');
+    const buttons = buttonsOf(container);
+    if (!thumb || !buttons.length) return null;
+    const base = buttons[0].offsetLeft;
+    const items = buttons.map((el) => {
+      const x = el.offsetLeft - base;
+      const w = el.offsetWidth;
+      return { el, x, w, cx: x + w / 2 };
+    });
+    return { thumb, buttons, items };
+  }
+
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
+
+  function clamp(n, a, b) {
+    return Math.max(a, Math.min(b, n));
+  }
+
+  function rubber(x, min, max) {
+    if (x < min) return min - (min - x) * RUBBER;
+    if (x > max) return max + (x - max) * RUBBER;
+    return x;
+  }
+
+  function widthAtCenter(items, center) {
+    if (items.length === 1) return items[0].w;
+    if (center <= items[0].cx) return items[0].w;
+    const last = items[items.length - 1];
+    if (center >= last.cx) return last.w;
+    for (let i = 0; i < items.length - 1; i++) {
+      const a = items[i];
+      const b = items[i + 1];
+      if (center <= b.cx) {
+        const span = b.cx - a.cx || 1;
+        return lerp(a.w, b.w, (center - a.cx) / span);
+      }
+    }
+    return last.w;
+  }
+
+  function layoutAtPointer(m, clientX) {
+    const origin = m.items[0].el.getBoundingClientRect().left - m.items[0].x;
+    const pointerRel = clientX - origin;
+    const minC = m.items[0].cx;
+    const maxC = m.items[m.items.length - 1].cx;
+    const center = rubber(pointerRel, minC, maxC);
+    const w = widthAtCenter(m.items, clamp(center, minC, maxC));
+    return { x: center - w / 2, w, center };
+  }
+
+  function nearestIndex(items, center) {
+    let best = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < items.length; i++) {
+      const d = Math.abs(items[i].cx - center);
+      if (d < bestDist) {
+        bestDist = d;
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  function cancelThumbAnims(thumb) {
+    if (thumb.getAnimations) {
+      thumb.getAnimations().forEach((a) => a.cancel());
+    }
+  }
+
+  function setThumb(thumb, x, w, scaleX) {
+    thumb.style.left = '';
+    thumb.style.right = '';
+    thumb.style.width = w + 'px';
+    thumb.style.transformOrigin = '50% 50%';
+    thumb.style.transform = 'translateX(' + x + 'px) scaleX(' + (scaleX == null ? 1 : scaleX) + ')';
+    thumb.dataset.thumbX = String(x);
+  }
+
+  function paintLabels(items, center) {
+    items.forEach((it) => {
+      const reach = Math.max(it.w, 28) * 0.9;
+      const t = clamp(1 - Math.abs(it.cx - center) / reach, 0, 1);
+      it.el.style.color =
+        'color-mix(in srgb, var(--segment-active-text) ' +
+        (t * 100).toFixed(1) +
+        '%, var(--text-muted) ' +
+        ((1 - t) * 100).toFixed(1) +
+        '%)';
+    });
+  }
+
+  function clearLabels(buttons) {
+    buttons.forEach((b) => {
+      b.style.color = '';
+    });
+  }
+
+  function enhance(container) {
+    if (!container || enhanced.has(container)) return;
+    if (!metrics(container)) return;
+    enhanced.add(container);
+    container.dataset.segSlide = '1';
+
+    const state = {
+      pointerId: null,
+      startClientX: 0,
+      lastClientX: 0,
+      moved: false,
+      suppressClick: false,
+      raf: 0,
+      lastT: 0,
+      curX: 0,
+      curW: 0,
+      vx: 0,
+      vw: 0,
+      settling: false,
+      snapEl: null,
+      holdTimer: 0,
+    };
+
+    function stopRaf() {
+      if (state.raf) {
+        cancelAnimationFrame(state.raf);
+        state.raf = 0;
+      }
+    }
+
+    function stepSpring(now) {
+      const dt = Math.min(0.033, Math.max(0.008, (now - (state.lastT || now)) / 1000));
+      state.lastT = now;
+      const m = metrics(container);
+      if (!m) return false;
+
+      let targetX, targetW, stiff, damp;
+      if (state.settling && state.snapEl) {
+        targetX = state.snapEl.x;
+        targetW = state.snapEl.w;
+        stiff = SNAP_STIFF;
+        damp = SNAP_DAMP;
+      } else {
+        const layout = layoutAtPointer(m, state.lastClientX);
+        targetX = layout.x;
+        targetW = layout.w;
+        stiff = STIFF;
+        damp = DAMP;
+      }
+
+      if (reduceMotion()) {
+        state.curX = targetX;
+        state.curW = targetW;
+        state.vx = 0;
+        state.vw = 0;
+      } else {
+        state.vx += ((targetX - state.curX) * stiff - state.vx * damp) * dt;
+        state.vw += ((targetW - state.curW) * stiff - state.vw * damp) * dt;
+        state.curX += state.vx * dt;
+        state.curW += state.vw * dt;
+      }
+
+      const stretch = 1 + clamp(Math.abs(state.vx) / 1400, 0, 0.16);
+      cancelThumbAnims(m.thumb);
+      setThumb(m.thumb, state.curX, state.curW, stretch);
+      paintLabels(m.items, state.curX + state.curW / 2);
+
+      if (state.settling) {
+        const close =
+          Math.abs(state.curX - targetX) < 0.35 &&
+          Math.abs(state.curW - targetW) < 0.35 &&
+          Math.abs(state.vx) < 12 &&
+          Math.abs(state.vw) < 12;
+        if (close) {
+          setThumb(m.thumb, targetX, targetW, 1);
+          clearLabels(m.buttons);
+          state.settling = false;
+          state.snapEl = null;
+          container.classList.remove('seg-dragging');
+          m.thumb.classList.remove('seg-dragging');
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function tick(now) {
+      state.raf = 0;
+      const keep = stepSpring(now);
+      if (keep || state.pointerId != null) {
+        state.raf = requestAnimationFrame(tick);
+      }
+    }
+
+    function startFollow() {
+      if (state.moved) return;
+      if (state.pointerId == null) return;
+      state.moved = true;
+      if (state.holdTimer) {
+        clearTimeout(state.holdTimer);
+        state.holdTimer = 0;
+      }
+      container.classList.add('seg-dragging');
+      const m = metrics(container);
+      if (m) {
+        m.thumb.classList.add('seg-dragging');
+        const curX = parseFloat(m.thumb.dataset.thumbX);
+        const active = m.items.find((it) => it.el.classList.contains('active')) || m.items[0];
+        state.curX = Number.isFinite(curX) ? curX : active.x;
+        state.curW = m.thumb.offsetWidth || active.w;
+        state.vx = 0;
+        state.vw = 0;
+        state.lastT = performance.now();
+      }
+      if (!state.raf) state.raf = requestAnimationFrame(tick);
+    }
+
+    function begin(e) {
+      if (state.pointerId != null) return;
+      if (e.button != null && e.button !== 0) return;
+      if (e.target.closest('input, textarea, select, a')) return;
+      if (!metrics(container)) return;
+
+      state.pointerId = e.pointerId;
+      state.startClientX = e.clientX;
+      state.lastClientX = e.clientX;
+      state.moved = false;
+      state.settling = false;
+      state.snapEl = null;
+      container.classList.add('seg-pressed');
+      if (state.holdTimer) clearTimeout(state.holdTimer);
+      state.holdTimer = setTimeout(startFollow, HOLD_MS);
+      try {
+        container.setPointerCapture(e.pointerId);
+      } catch (_) {}
+    }
+
+    function move(e) {
+      if (state.pointerId !== e.pointerId) return;
+      state.lastClientX = e.clientX;
+      const dx = e.clientX - state.startClientX;
+      if (!state.moved && Math.abs(dx) < DRAG_THRESHOLD) return;
+      startFollow();
+    }
+
+    function end(e) {
+      if (state.pointerId == null) return;
+      if (e && e.pointerId != null && e.pointerId !== state.pointerId) return;
+
+      const moved = state.moved;
+      if (e && e.clientX != null) state.lastClientX = e.clientX;
+      if (state.holdTimer) {
+        clearTimeout(state.holdTimer);
+        state.holdTimer = 0;
+      }
+      container.classList.remove('seg-pressed');
+      state.pointerId = null;
+
+      if (moved) {
+        state.suppressClick = true;
+        setTimeout(() => {
+          state.suppressClick = false;
+        }, 450);
+      }
+
+      const m = metrics(container);
+      if (!moved || !m) {
+        container.classList.remove('seg-dragging');
+        if (m) {
+          m.thumb.classList.remove('seg-dragging');
+          clearLabels(m.buttons);
+        }
+        stopRaf();
+        return;
+      }
+
+      const layout = layoutAtPointer(m, state.lastClientX);
+      const minC = m.items[0].cx;
+      const maxC = m.items[m.items.length - 1].cx;
+      const center = clamp(layout.center, minC, maxC);
+      state.snapEl = m.items[nearestIndex(m.items, center)];
+      if (state.snapEl && !state.snapEl.el.classList.contains('active')) {
+        state.snapEl.el.click();
+      }
+      state.settling = true;
+      state.lastT = performance.now();
+      if (!state.raf) state.raf = requestAnimationFrame(tick);
+    }
+
+    container.addEventListener('pointerdown', begin);
+    container.addEventListener('pointermove', move);
+    container.addEventListener('pointerup', end);
+    container.addEventListener('pointercancel', end);
+
+    container.addEventListener(
+      'click',
+      (ev) => {
+        if (!ev.isTrusted) return;
+        if (!state.suppressClick) return;
+        state.suppressClick = false;
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+      },
+      true
+    );
+  }
+
+  function scan() {
+    document.querySelectorAll(SELECTOR).forEach(enhance);
+    document.querySelectorAll('.tab-thumb').forEach((thumb) => {
+      const parent = thumb.parentElement;
+      if (parent && buttonsOf(parent).length) enhance(parent);
+    });
+  }
+
+  scan();
+  const mo = new MutationObserver(scan);
+  mo.observe(document.documentElement, { childList: true, subtree: true });
+})();
+
+/* ------------------------------------------------------------------ */
+/* サイドバー開閉を指追従に。チャンネル/DMセグメント上の左スワイプでは閉じない */
+/* ------------------------------------------------------------------ */
+(function sidebarFingerFollow() {
+  const MQ = 760;
+  const EDGE = Math.max(160, window.innerWidth * 0.45);
+  const LOCK = 12;
+  const SNAP_MS = 430;
+  const EASE = 'cubic-bezier(.32,.72,0,1)';
+
+  const sidebar = document.getElementById('sidebar');
+  const scrim = document.getElementById('sidebar-scrim');
+  const main = document.getElementById('main');
+  const menuBtn = document.getElementById('menu-btn');
+  if (!sidebar || !scrim) return;
+
+  function isMobile() {
+    return window.innerWidth <= MQ;
+  }
+  function isOpen() {
+    return sidebar.classList.contains('open');
+  }
+  function panelW() {
+    return sidebar.offsetWidth || Math.round(window.innerWidth * 0.8);
+  }
+  function closedX() {
+    return -panelW() * 1.05;
+  }
+  function clamp(n, a, b) {
+    return Math.max(a, Math.min(b, n));
+  }
+  function onSegment(el) {
+    return !!(el && el.closest && el.closest('.sidebar-tabs, #sidebar-tabs'));
+  }
+
+  let drag = null;
+  let snapping = false;
+  let startedOnSegment = false;
+
+  function progressFromX(x) {
+    const a = closedX();
+    return clamp((x - a) / (0 - a || 1), 0, 1);
+  }
+
+  function applyVisual(x) {
+    const p = progressFromX(x);
+    document.documentElement.classList.add('seg-drawer-dragging');
+    sidebar.style.transition = 'none';
+    sidebar.style.transform = 'translateX(' + x + 'px)';
+    scrim.style.transition = 'none';
+    scrim.style.opacity = String(p);
+    scrim.style.pointerEvents = p > 0.02 ? 'auto' : 'none';
+    if (main) {
+      main.style.transition = 'none';
+      main.style.transform = 'scale(' + (1 - 0.06 * p) + ') translateX(' + (8 * p) + 'px)';
+      main.style.filter = 'brightness(' + (1 - 0.28 * p) + ') saturate(' + (1 - 0.15 * p) + ')';
+    }
+    return p;
+  }
+
+  function clearInline() {
+    document.documentElement.classList.remove('seg-drawer-dragging');
+    sidebar.style.transition = '';
+    sidebar.style.transform = '';
+    scrim.style.transition = '';
+    scrim.style.opacity = '';
+    scrim.style.pointerEvents = '';
+    if (main) {
+      main.style.transition = '';
+      main.style.transform = '';
+      main.style.filter = '';
+    }
+  }
+
+  function rubberX(x) {
+    const a = closedX();
+    const b = 0;
+    if (x > b) return b + (x - b) * 0.22;
+    if (x < a) return a + (x - a) * 0.22;
+    return x;
+  }
+
+  function snap(open) {
+    const from = drag && typeof drag.x === 'number' ? drag.x : open ? closedX() : 0;
+    const to = open ? 0 : closedX();
+    snapping = true;
+    sidebar.classList.toggle('open', open);
+    scrim.classList.toggle('show', open);
+
+    if (
+      document.documentElement.classList.contains('reduce-motion') ||
+      Math.abs(from - to) < 1.5
+    ) {
+      snapping = false;
+      clearInline();
+      return;
+    }
+
+    document.documentElement.classList.remove('seg-drawer-dragging');
+    sidebar.style.transition = 'transform ' + SNAP_MS + 'ms ' + EASE;
+    sidebar.style.transform = 'translateX(' + to + 'px)';
+    scrim.style.transition = 'opacity ' + Math.round(SNAP_MS * 0.72) + 'ms ' + EASE;
+    scrim.style.opacity = open ? '1' : '0';
+    scrim.style.pointerEvents = open ? 'auto' : 'none';
+    if (main) {
+      main.style.transition =
+        'transform ' + SNAP_MS + 'ms ' + EASE + ', filter ' + SNAP_MS + 'ms ' + EASE;
+      if (open) {
+        main.style.transform = 'scale(0.94) translateX(8px)';
+        main.style.filter = 'brightness(0.72) saturate(0.85)';
+      } else {
+        main.style.transform = 'none';
+        main.style.filter = 'none';
+      }
+    }
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      snapping = false;
+      sidebar.removeEventListener('transitionend', finish);
+      clearInline();
+    };
+    sidebar.addEventListener('transitionend', finish);
+    setTimeout(finish, SNAP_MS + 90);
+  }
+
+  function touchPoint(e) {
+    return (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || null;
+  }
+
+  function startDrag(mode, clientX, clientY) {
+    drag = {
+      mode: mode,
+      startX: clientX,
+      startY: clientY,
+      lastX: clientX,
+      lastT: performance.now(),
+      vx: 0,
+      locked: false,
+      x: mode === 'open' ? closedX() : 0,
+    };
+  }
+
+  function moveDrag(clientX, clientY, event) {
+    if (!drag) return false;
+    const dx = clientX - drag.startX;
+    const dy = clientY - drag.startY;
+    const now = performance.now();
+    const dt = Math.max(1, now - drag.lastT);
+    drag.vx = (clientX - drag.lastX) / dt;
+    drag.lastX = clientX;
+    drag.lastT = now;
+
+    if (!drag.locked) {
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > LOCK) {
+        drag = null;
+        return false;
+      }
+      if (Math.abs(dx) < LOCK) return false;
+      if (drag.mode === 'open' && dx < 0) return false;
+      if (drag.mode === 'close' && dx > 0 && dx < LOCK * 2) return false;
+      drag.locked = true;
+    }
+
+    if (event) {
+      event.stopPropagation();
+      if (event.cancelable) event.preventDefault();
+    }
+
+    const base = drag.mode === 'open' ? closedX() : 0;
+    drag.x = rubberX(base + dx);
+    applyVisual(drag.x);
+    return true;
+  }
+
+  function endDrag() {
+    if (!drag) return;
+    if (!drag.locked) {
+      drag = null;
+      return;
+    }
+    const p = progressFromX(drag.x);
+    const flickOpen = drag.vx > 0.45;
+    const flickClose = drag.vx < -0.45;
+    const open = flickOpen ? true : flickClose ? false : p >= 0.5;
+    const current = drag;
+    drag = null;
+    snap(open);
+    current.x = current.x;
+  }
+
+  document.addEventListener(
+    'touchstart',
+    (e) => {
+      if (!isMobile()) return;
+      const t = touchPoint(e);
+      if (!t) return;
+      if (isOpen()) return;
+      if (t.clientX > EDGE) return;
+      startDrag('open', t.clientX, t.clientY);
+    },
+    { capture: true, passive: true }
+  );
+
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!drag || drag.mode !== 'open') return;
+      const t = touchPoint(e);
+      if (!t) return;
+      moveDrag(t.clientX, t.clientY, e);
+    },
+    { capture: true, passive: false }
+  );
+
+  document.addEventListener(
+    'touchend',
+    () => {
+      if (drag && drag.mode === 'open') endDrag();
+    },
+    { capture: true }
+  );
+  document.addEventListener(
+    'touchcancel',
+    () => {
+      if (drag && drag.mode === 'open') endDrag();
+    },
+    { capture: true }
+  );
+
+  sidebar.addEventListener(
+    'touchstart',
+    (e) => {
+      startedOnSegment = onSegment(e.target);
+      if (!isMobile() || !isOpen()) return;
+      if (startedOnSegment) return;
+      const t = touchPoint(e);
+      if (!t) return;
+      startDrag('close', t.clientX, t.clientY);
+    },
+    { capture: true, passive: true }
+  );
+
+  sidebar.addEventListener(
+    'touchmove',
+    (e) => {
+      if (startedOnSegment) {
+        e.stopPropagation();
+        return;
+      }
+      if (!drag || drag.mode !== 'close') return;
+      const t = touchPoint(e);
+      if (!t) return;
+      moveDrag(t.clientX, t.clientY, e);
+    },
+    { capture: true, passive: false }
+  );
+
+  sidebar.addEventListener(
+    'touchend',
+    (e) => {
+      if (startedOnSegment) {
+        e.stopPropagation();
+        startedOnSegment = false;
+        return;
+      }
+      if (drag && drag.mode === 'close') endDrag();
+    },
+    { capture: true }
+  );
+  sidebar.addEventListener(
+    'touchcancel',
+    () => {
+      startedOnSegment = false;
+      if (drag && drag.mode === 'close') endDrag();
+    },
+    { capture: true }
+  );
+
+  if (menuBtn) {
+    menuBtn.addEventListener('click', () => {
+      drag = null;
+      snapping = false;
+      clearInline();
+    });
+  }
+  scrim.addEventListener('click', () => {
+    drag = null;
+    snapping = false;
+    clearInline();
+  });
+
+  window.addEventListener('resize', () => {
+    if (!isMobile()) {
+      drag = null;
+      snapping = false;
+      clearInline();
+    }
+  });
+})();
+
+
+/* ------------------------------------------------------------------ */
+/* ボトムシート（設定・フレンド・管理者など）を上の棒付近から指追従で閉じる */
+/* ------------------------------------------------------------------ */
+(function bottomSheetFingerClose() {
+  const HANDLE_H = 44;
+  const LOCK = 6;
+  const SNAP_MS = 340;
+  const EASE = 'cubic-bezier(.32,.72,0,1)';
+
+  const enhanced = new WeakSet();
+  let active = null;
+
+  function clamp(n, a, b) {
+    return Math.max(a, Math.min(b, n));
+  }
+
+  function anySheetOpen() {
+    return [...document.querySelectorAll('.modal-scrim.bottom-sheet')].some((s) => {
+      if (s.style.display === 'none') return false;
+      const d = window.getComputedStyle(s).display;
+      return d !== 'none';
+    });
+  }
+
+  function syncOpenClass() {
+    document.documentElement.classList.toggle('seg-sheet-open', anySheetOpen());
+  }
+
+  function hideScrimNow(scrim) {
+    if (!scrim) return;
+    scrim.style.transition = 'none';
+    scrim.style.opacity = '0';
+    scrim.style.pointerEvents = 'none';
+    scrim.style.display = 'none';
+    scrim.classList.remove('closing');
+    syncOpenClass();
+  }
+
+  function closeSheet(scrim) {
+    // 表示を戻さずに消す。flex に戻すと背景が一瞬出る。
+    hideScrimNow(scrim);
+    const btn = scrim.querySelector(
+      '#friends-close, #admin-close, #settings-close, #game-picker-close, button.cancel, .cancel'
+    );
+    if (!btn) return;
+    const hadReduce = document.documentElement.classList.contains('reduce-motion');
+    document.documentElement.classList.add('reduce-motion');
+    btn.click();
+    hideScrimNow(scrim);
+    if (!hadReduce) document.documentElement.classList.remove('reduce-motion');
+  }
+
+  function clearVisual(card, scrim, keepHidden) {
+    document.documentElement.classList.remove('seg-sheet-dragging');
+    if (card) {
+      card.style.transition = '';
+      card.style.transform = '';
+      card.style.overflow = '';
+      card.style.animation = '';
+    }
+    if (scrim) {
+      scrim.style.transition = '';
+      scrim.style.filter = '';
+      scrim.style.background = '';
+      if (keepHidden) {
+        scrim.style.opacity = '';
+        scrim.style.visibility = '';
+        scrim.style.pointerEvents = '';
+        scrim.style.display = 'none';
+      } else {
+        scrim.style.opacity = '';
+        scrim.style.visibility = '';
+        scrim.style.pointerEvents = '';
+      }
+    }
+  }
+
+  function applyY(card, scrim, y) {
+    document.documentElement.classList.add('seg-sheet-dragging');
+    card.style.animation = 'none';
+    card.style.transition = 'none';
+    card.style.transform = 'translateY(' + y + 'px)';
+    card.style.overflow = 'hidden';
+  }
+
+  function inHandle(card, clientY, target) {
+    if (!card || card.getBoundingClientRect().height < 10) return false;
+    if (target && target.closest && target.closest('input, textarea, select, button, a, [contenteditable]')) {
+      return false;
+    }
+    const r = card.getBoundingClientRect();
+    return clientY >= r.top - 8 && clientY <= r.top + HANDLE_H;
+  }
+
+  function begin(scrim, card, clientY) {
+    active = {
+      scrim: scrim,
+      card: card,
+      startY: clientY,
+      lastY: clientY,
+      lastT: performance.now(),
+      vy: 0,
+      y: 0,
+      locked: false,
+    };
+  }
+
+  function move(clientY, event) {
+    if (!active) return;
+    const now = performance.now();
+    const dt = Math.max(1, now - active.lastT);
+    active.vy = (clientY - active.lastY) / dt;
+    active.lastY = clientY;
+    active.lastT = now;
+
+    const dy = clientY - active.startY;
+    if (!active.locked) {
+      if (Math.abs(dy) < LOCK) return;
+      if (dy < -LOCK) {
+        active = null;
+        return;
+      }
+      active.locked = true;
+    }
+
+    if (event) {
+      if (event.cancelable) event.preventDefault();
+      event.stopPropagation();
+    }
+
+    active.y = dy < 0 ? dy * 0.2 : dy;
+    applyY(active.card, active.scrim, active.y);
+  }
+
+  function finish() {
+    if (!active) return;
+    const job = active;
+    active = null;
+    if (!job.locked) return;
+
+    const card = job.card;
+    const scrim = job.scrim;
+    const h = Math.max(card.offsetHeight, 1);
+    const far = job.y > Math.min(110, h * 0.18);
+    const flick = job.vy > 0.45;
+
+    if (far || flick) {
+      document.documentElement.classList.remove('seg-sheet-dragging');
+      document.documentElement.classList.remove('seg-sheet-open');
+      const to = Math.max(h, window.innerHeight * 0.5);
+      card.style.transition = 'transform ' + SNAP_MS + 'ms ' + EASE;
+      card.style.transform = 'translateY(' + to + 'px)';
+      let closed = false;
+      const done = () => {
+        if (closed) return;
+        closed = true;
+        card.removeEventListener('transitionend', done);
+        closeSheet(scrim);
+        clearVisual(card, scrim, true);
+      };
+      card.addEventListener('transitionend', done);
+      setTimeout(done, SNAP_MS + 40);
+    } else {
+      document.documentElement.classList.remove('seg-sheet-dragging');
+      card.style.transition = 'transform ' + SNAP_MS + 'ms ' + EASE;
+      card.style.transform = 'translateY(0)';
+      scrim.style.transition = 'opacity ' + SNAP_MS + 'ms ' + EASE;
+      scrim.style.opacity = '1';
+      const done = () => {
+        card.removeEventListener('transitionend', done);
+        clearVisual(card, scrim);
+      };
+      card.addEventListener('transitionend', done);
+      setTimeout(done, SNAP_MS + 60);
+    }
+  }
+
+  function enhance(scrim) {
+    if (!scrim || enhanced.has(scrim)) return;
+    const card = scrim.querySelector(':scope > .modal-card');
+    if (!card) return;
+    enhanced.add(scrim);
+    if (getComputedStyle(card).position === 'static') {
+      card.style.position = 'relative';
+    }
+
+    let handle = card.querySelector(':scope > .seg-sheet-handle');
+    if (!handle) {
+      handle = document.createElement('div');
+      handle.className = 'seg-sheet-handle';
+      handle.setAttribute('aria-hidden', 'true');
+      card.insertBefore(handle, card.firstChild);
+    }
+
+    const startFromEvent = (clientY, target, event) => {
+      if (scrim.style.display === 'none') return;
+      if (!inHandle(card, clientY, target)) return;
+      begin(scrim, card, clientY);
+      if (event && event.cancelable) event.preventDefault();
+    };
+
+    handle.addEventListener(
+      'touchstart',
+      (e) => {
+        if (!e.touches || !e.touches[0]) return;
+        startFromEvent(e.touches[0].clientY, e.target, e);
+      },
+      { passive: false }
+    );
+    handle.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch') return;
+      if (e.button != null && e.button !== 0) return;
+      startFromEvent(e.clientY, e.target, null);
+    });
+
+    if (!scrim.dataset.segBackdropClose) {
+      scrim.dataset.segBackdropClose = '1';
+      let tap = null;
+      const isBlank = (el) => {
+        if (!el) return false;
+        if (el === scrim) return true;
+        if (el === handle) return true;
+        if (el === card) return true;
+        return false;
+      };
+      scrim.addEventListener('pointerdown', (e) => {
+        if (e.button != null && e.button !== 0) return;
+        if (!isBlank(e.target)) {
+          tap = null;
+          return;
+        }
+        tap = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      });
+      const endTap = (e) => {
+        if (!tap || tap.id !== e.pointerId) return;
+        const dx = e.clientX - tap.x;
+        const dy = e.clientY - tap.y;
+        tap = null;
+        if (active && active.locked) return;
+        if (Math.hypot(dx, dy) > 12) return;
+        if (scrim.style.display === 'none') return;
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+        // 先に消すと、同じタップの click が下のボタンに貫通する。
+        // click を飲み込んでから閉じる。
+        const swallow = (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          ev.stopImmediatePropagation();
+        };
+        document.addEventListener('click', swallow, true);
+        document.addEventListener('pointerup', swallow, true);
+        setTimeout(() => {
+          document.removeEventListener('click', swallow, true);
+          document.removeEventListener('pointerup', swallow, true);
+          closeSheet(scrim);
+          const c = scrim.querySelector(':scope > .modal-card');
+          clearVisual(c, scrim, true);
+        }, 50);
+      };
+      scrim.addEventListener('pointerup', endTap);
+      scrim.addEventListener('pointercancel', () => { tap = null; });
+    }
+  }
+
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (!active) return;
+      if (!e.touches || !e.touches[0]) return;
+      move(e.touches[0].clientY, e);
+    },
+    { capture: true, passive: false }
+  );
+  document.addEventListener(
+    'touchend',
+    () => {
+      if (active) finish();
+    },
+    { capture: true }
+  );
+  document.addEventListener(
+    'touchcancel',
+    (e) => {
+      // スクロール奪取での cancel は無視して、指が残っていれば追従を続ける
+      if (!active) return;
+      if (e.touches && e.touches.length) return;
+      finish();
+    },
+    { capture: true }
+  );
+
+  document.addEventListener(
+    'pointermove',
+    (e) => {
+      if (!active) return;
+      if (e.pointerType === 'touch') return;
+      move(e.clientY, e);
+    },
+    { capture: true }
+  );
+  document.addEventListener(
+    'pointerup',
+    (e) => {
+      if (!active) return;
+      if (e.pointerType === 'touch') return;
+      finish();
+    },
+    { capture: true }
+  );
+
+  function scan() {
+    document.querySelectorAll('.modal-scrim.bottom-sheet').forEach(enhance);
+  }
+  scan();
+  syncOpenClass();
+  new MutationObserver(function () {
+    scan();
+    syncOpenClass();
+  }).observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['style', 'class'],
+  });
+})();
+
+/* ------------------------------------------------------------------ */
+/* 入力中はコンポーザーを左へ広げて + を隠す */
+/* ------------------------------------------------------------------ */
+(function composerExpandLeft() {
+  function sync() {
+    const input = document.getElementById('msg-input');
+    const composer = document.getElementById('composer');
+    if (!input || !composer) return;
+    const plusOpen = !!document.querySelector('.composer-plus-inner.open');
+    const typing = document.activeElement === input;
+    composer.classList.toggle('uiplus-composing', typing && !plusOpen);
+  }
+
+  function bind() {
+    const input = document.getElementById('msg-input');
+    if (!input || input.dataset.uiplusBound) return;
+    input.dataset.uiplusBound = '1';
+    input.addEventListener('focus', sync);
+    input.addEventListener('input', sync);
+    input.addEventListener('blur', () => setTimeout(sync, 80));
+    document.addEventListener('click', sync);
+    sync();
+  }
+
+  bind();
+  new MutationObserver(bind).observe(document.documentElement, { childList: true, subtree: true });
+})();
+
+/* ------------------------------------------------------------------ */
+/* キーボードで画面が上にずれて #topbar が隠れないようにする */
+/* ------------------------------------------------------------------ */
+(function keepTopbarVisible() {
+  const root = document.documentElement;
+
+  function apply() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const occluded = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    const open = occluded > 60;
+    root.classList.toggle('uiplus-kb', open);
+    if (open) {
+      root.style.setProperty('--uiplus-vv-top', Math.max(0, vv.offsetTop) + 'px');
+      root.style.setProperty('--uiplus-vv-height', Math.max(0, vv.height) + 'px');
+      window.scrollTo(0, 0);
+    } else {
+      root.style.removeProperty('--uiplus-vv-top');
+      root.style.removeProperty('--uiplus-vv-height');
+    }
+  }
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', apply);
+    window.visualViewport.addEventListener('scroll', apply);
+  }
+  window.addEventListener('resize', apply);
+  window.addEventListener('focusin', () => setTimeout(apply, 50));
+  window.addEventListener('focusout', () => setTimeout(apply, 80));
+  apply();
+})();
+
+
+/* ------------------------------------------------------------------ */
+/* 検索バーをメニューボタンの横まで伸ばす */
+/* ------------------------------------------------------------------ */
+(function searchStretchToMenu() {
+  function layout() {
+    const wrap = document.getElementById('search-wrap');
+    const topbar = document.getElementById('topbar');
+    const menu = document.getElementById('menu-btn');
+    if (!wrap || !topbar) return;
+
+    const tb = topbar.getBoundingClientRect();
+    const menuVisible = !!(menu && getComputedStyle(menu).display !== 'none' && menu.offsetWidth > 0);
+    let topPx = 14;
+    let heightPx = 44;
+    if (menuVisible) {
+      const mr = menu.getBoundingClientRect();
+      topPx = Math.max(0, mr.top - tb.top);
+      heightPx = Math.max(36, mr.height);
+    } else {
+      const sr = wrap.getBoundingClientRect();
+      topPx = Math.max(0, (tb.height - heightPx) / 2);
+    }
+    wrap.style.setProperty('--uiplus-search-top', topPx + 'px');
+    wrap.style.height = heightPx + 'px';
+
+    const leftEdge = menuVisible
+      ? menu.getBoundingClientRect().right + 8
+      : tb.left + 16;
+    const rightEdge = tb.right - 16;
+    const w = Math.max(44, rightEdge - leftEdge);
+    wrap.style.setProperty('--uiplus-search-w', w + 'px');
+
+    const ai = document.getElementById('sai-trigger-btn');
+    if (ai) {
+      ai.style.top = topPx + 'px';
+      ai.style.height = heightPx + 'px';
+      ai.style.width = heightPx + 'px';
+      ai.style.right = (16 + heightPx + 8) + 'px';
+    }
+  }
+
+  const wrap = document.getElementById('search-wrap');
+  if (wrap) {
+    new MutationObserver(layout).observe(wrap, { attributes: true, attributeFilter: ['class'] });
+  }
+  window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', layout);
+  layout();
+  setTimeout(layout, 300);
+  setTimeout(layout, 800);
+  new MutationObserver(() => {
+    if (document.getElementById('sai-trigger-btn')) layout();
+  }).observe(document.getElementById('topbar') || document.documentElement, { childList: true, subtree: true });
+})();
+
+(function plusClosedSize() {
+  function apply() {
+    const inner = document.querySelector('.composer-plus-inner');
+    if (!inner) return;
+    if (inner.classList.contains('open')) return;
+    if (inner.style.width === '42px') {
+      inner.style.width = '48px';
+      inner.style.height = '48px';
+    }
+  }
+  const inner = document.querySelector('.composer-plus-inner');
+  if (inner) {
+    new MutationObserver(apply).observe(inner, { attributes: true, attributeFilter: ['class', 'style'] });
+  }
+  setInterval(apply, 400);
+})();
+
+(function sidebarActionLayout() {
+  const admin = document.getElementById('admin-panel-btn');
+  const friends = document.getElementById('friends-panel-btn');
+  const game = document.getElementById('tetris-open-btn');
+  if (friends && game && !friends.parentElement.classList.contains('uiplus-side-actions')) {
+    const row = document.createElement('div');
+    row.className = 'uiplus-side-actions';
+    friends.parentNode.insertBefore(row, friends);
+    row.appendChild(friends);
+    row.appendChild(game);
+  }
+  if (admin) {
+    admin.classList.add('uiplus-admin-hidden');
+    admin.classList.remove('uiplus-admin-icon');
+  }
+  const list = document.querySelector('#settings-menu-view .settings-menu-list');
+  if (list && admin && !document.getElementById('uiplus-admin-settings-item')) {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'settings-menu-item';
+    item.id = 'uiplus-admin-settings-item';
+    item.innerHTML = '<span class="smi-icon">🛡</span><span class="smi-text"><span class="smi-label">管理者パネル</span><span class="smi-sub">ロール・BAN・お知らせ</span></span><span class="smi-chev">›</span>';
+    item.addEventListener('click', () => {
+      const closeBtn = document.getElementById('settings-close');
+      if (closeBtn) closeBtn.click();
+      setTimeout(() => admin.click(), 40);
+    });
+    const mods = list.querySelector('[data-panel="mods"]');
+    if (mods) list.insertBefore(item, mods);
+    else list.appendChild(item);
+  }
+})();
+
+(function lockProfileHeight() {
+  const card = document.querySelector('#sidebar .self-card');
+  if (!card) return;
+  card.style.setProperty('height', '46px', 'important');
+  card.style.setProperty('max-height', '46px', 'important');
+  card.style.setProperty('padding', '4px 10px', 'important');
+  card.style.setProperty('box-sizing', 'border-box', 'important');
+})();
+
+(function polishCrossFade() {
+  if (typeof crossFade !== 'function' || crossFade.__uiplus) return;
+  const ease = 'cubic-bezier(.22,.8,.24,1)';
+  const orig = crossFade;
+  function patched(elOrList, update, delayMs) {
+    const nodes = Array.isArray(elOrList) ? elOrList : [elOrList];
+    nodes.forEach((el) => {
+      if (!el) return;
+      el.style.transition = 'opacity .42s ' + ease + ', transform .46s ' + ease + ', filter .4s ' + ease;
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(10px)';
+      el.style.filter = 'blur(3px)';
+    });
+    if (typeof update === 'function') update();
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        nodes.forEach((el) => {
+          if (!el) return;
+          el.style.opacity = '1';
+          el.style.transform = 'none';
+          el.style.filter = 'none';
+        });
+      }, delayMs || 180);
+    });
+  }
+  patched.__uiplus = true;
+  crossFade = patched;
+})();
+
+(function flowerVerifyBadge() {
+  const FLOWER =
+    'M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91c-1.31.67-2.19 1.91-2.19 3.34s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z';
+
+  function convert(svg) {
+    if (!svg || svg.dataset.uiplusFlower === '1') return;
+    const circle = svg.querySelector('circle');
+    if (!circle) return;
+    svg.dataset.uiplusFlower = '1';
+    svg.setAttribute('viewBox', '0 0 24 24');
+    const flower = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    flower.setAttribute('d', FLOWER);
+    flower.setAttribute('fill', circle.getAttribute('fill') || 'url(#vbBlueGrad)');
+    circle.replaceWith(flower);
+    const mark = svg.querySelector('path[stroke]');
+    if (mark) mark.setAttribute('transform', 'translate(2.2 2.2) scale(1.18)');
+  }
+
+  function scan(root) {
+    (root || document).querySelectorAll('svg.verify-badge').forEach(convert);
+  }
+
+  scan(document);
+  new MutationObserver((muts) => {
+    muts.forEach((m) => {
+      m.addedNodes.forEach((n) => {
+        if (n.nodeType !== 1) return;
+        if (n.matches && n.matches('svg.verify-badge')) convert(n);
+        if (n.querySelectorAll) scan(n);
+      });
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+})();
+
+(function notifFollow() {
+  const banner = document.getElementById('notif-banner');
+  if (!banner) return;
+
+  let cx = 0, cy = 0, tx = 0, ty = 0;
+  let vx = 0, vy = 0;
+  let grabbing = false;
+  let sx = 0, sy = 0, scx = 0, scy = 0;
+  let lastX = 0, lastY = 0, lastT = 0;
+  let raf = 0;
+  let dismissing = false;
+
+  function shown() {
+    return banner.classList.contains('show');
+  }
+
+  function apply() {
+    banner.style.setProperty('--uiplus-nx', cx.toFixed(2) + 'px');
+    banner.style.setProperty('--uiplus-ny', cy.toFixed(2) + 'px');
+  }
+
+  function hideNative() {
+    if (typeof hideNotifBanner === 'function') hideNotifBanner();
+    else banner.classList.remove('show');
+  }
+
+  function tick() {
+    if (dismissing) {
+      cx += vx;
+      cy += vy;
+      vx *= 0.995;
+      vy *= 0.995;
+      apply();
+      banner.style.opacity = '1';
+      if (Math.hypot(cx, cy) > 560) {
+        dismissing = false;
+        cx = cy = tx = ty = vx = vy = 0;
+        banner.style.opacity = '';
+        banner.classList.remove('uiplus-notif-fly');
+        apply();
+        hideNative();
+        raf = 0;
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+      return;
+    }
+
+    const dist = Math.hypot(tx, ty);
+    const follow = 0.72 / (1 + dist / 280);
+    cx += (tx - cx) * follow;
+    cy += (ty - cy) * follow;
+    apply();
+    if (!grabbing && Math.hypot(cx - tx, cy - ty) < 0.2 && Math.hypot(tx, ty) < 0.2) {
+      cx = cy = tx = ty = 0;
+      apply();
+      raf = 0;
+      return;
+    }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function kick() {
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  banner.addEventListener('pointerdown', (e) => {
+    if (!shown() || dismissing) return;
+    grabbing = true;
+    banner.classList.add('uiplus-notif-drag');
+    sx = lastX = e.clientX;
+    sy = lastY = e.clientY;
+    lastT = performance.now();
+    scx = cx;
+    scy = cy;
+    vx = vy = 0;
+    try { banner.setPointerCapture(e.pointerId); } catch (_) {}
+    kick();
+  });
+
+  banner.addEventListener('pointermove', (e) => {
+    if (!grabbing) return;
+    const now = performance.now();
+    const dt = Math.max(8, now - lastT);
+    vx = (e.clientX - lastX) / dt * 16;
+    vy = (e.clientY - lastY) / dt * 16;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    lastT = now;
+    const rawX = scx + (e.clientX - sx);
+    const rawY = scy + (e.clientY - sy);
+    const d = Math.hypot(rawX, rawY);
+    const compress = 1 / (1 + d / 420);
+    tx = rawX * compress;
+    ty = rawY * compress;
+  });
+
+  function endGrab() {
+    if (!grabbing) return;
+    grabbing = false;
+    banner.classList.remove('uiplus-notif-drag');
+    const speed = Math.hypot(vx, vy);
+    const flickUp = vy < -0.85 && Math.abs(vy) > Math.abs(vx) * 0.7;
+    const flickSide = Math.abs(vx) > 0.85 && Math.abs(vx) > Math.abs(vy) * 0.7;
+    const farUp = ty < -70;
+    const farSide = Math.abs(tx) > 90;
+    if (flickUp || flickSide || farUp || farSide) {
+      dismissing = true;
+      banner.classList.add('uiplus-notif-fly');
+      if (flickUp || farUp) {
+        vx = vx * 0.3;
+        vy = Math.min(vy, -28);
+      } else {
+        vx = (vx >= 0 ? 1 : -1) * Math.max(Math.abs(vx), 26);
+        vy = vy * 0.3;
+      }
+      kick();
+      return;
+    }
+    tx = 0;
+    ty = 0;
+    kick();
+  }
+  banner.addEventListener('pointerup', endGrab);
+  banner.addEventListener('pointercancel', endGrab);
+
+  document.addEventListener('pointermove', (e) => {
+    if (grabbing || dismissing || !shown()) return;
+    const r = banner.getBoundingClientRect();
+    const hx = r.left + r.width / 2;
+    const hy = r.top + r.height / 2;
+    const dx = e.clientX - hx;
+    const dy = e.clientY - hy;
+    const d = Math.hypot(dx, dy) || 1;
+    const falloff = 1 / (1 + d / 180);
+    tx = (dx / d) * Math.min(14, d * 0.06) * falloff * 8;
+    ty = (dy / d) * Math.min(14, d * 0.06) * falloff * 8;
+    kick();
+  }, { passive: true });
+})();
+
+(function loadingAnim() {
+  const msgs = document.getElementById('messages');
+  const name = document.getElementById('topbar-name');
+  if (!msgs) return;
+
+  function sync() {
+    const hasRows = !!msgs.querySelector('.msg-row');
+    const hasEmpty = !!msgs.querySelector('.empty-state');
+    const waiting = !hasRows && !hasEmpty;
+    msgs.classList.toggle('uiplus-loading', waiting);
+    if (name) {
+      const txt = (name.textContent || '').trim();
+      name.classList.toggle('uiplus-loading-text', txt === '読み込み中…' || waiting);
+    }
+  }
+
+  new MutationObserver(sync).observe(msgs, { childList: true, subtree: true });
+  if (name) new MutationObserver(sync).observe(name, { childList: true, characterData: true, subtree: true });
+
+  const origFlash = window.flashConversationSwitch;
+  document.addEventListener('click', () => {
+    const onItem = document.activeElement;
+    setTimeout(sync, 0);
+  }, true);
+
+  if (typeof selectChannel === 'function') {
+    const sc = selectChannel;
+    window.selectChannel = function() {
+      msgs.classList.add('uiplus-loading');
+      return sc.apply(this, arguments);
+    };
+  }
+  if (typeof selectDm === 'function') {
+    const sd = selectDm;
+    window.selectDm = function() {
+      msgs.classList.add('uiplus-loading');
+      return sd.apply(this, arguments);
+    };
+  }
+  sync();
+})();
+
+(function topLeftClock() {
+  const KEY = 'uiplus-clock-layout';
+  const defaults = { x: 3, y: 2, size: 13 };
+  function load() {
+    try { return { ...defaults, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; }
+    catch (_) { return { ...defaults }; }
+  }
+  function save(v) { localStorage.setItem(KEY, JSON.stringify(v)); }
+  function apply(el, v) {
+    if (!el) return;
+    el.style.setProperty('--uiplus-clock-x', v.x);
+    el.style.setProperty('--uiplus-clock-y', v.y);
+    el.style.setProperty('--uiplus-clock-size', v.size + 'px');
+  }
+
+  let root = document.getElementById('uiplus-clock');
+  if (!root) {
+    root = document.createElement('div');
+    root.id = 'uiplus-clock';
+    root.innerHTML = '<span class="slot" data-part="h"></span><span class="sep">\u003A</span><span class="slot" data-part="m"></span>';
+    document.body.appendChild(root);
+  } else {
+    const sep = root.querySelector('.sep');
+    if (sep) sep.textContent = '\u003A';
+  }
+  apply(root, load());
+
+  function fill(slot, val) {
+    const cur = slot.querySelector('span:not(.out)');
+    if (cur && cur.textContent === val) return;
+    if (cur) {
+      cur.classList.remove('in');
+      cur.classList.add('out');
+      setTimeout(() => cur.remove(), 400);
+    }
+    const next = document.createElement('span');
+    next.className = cur ? 'in' : '';
+    next.textContent = val;
+    slot.appendChild(next);
+  }
+  function tick() {
+    const now = new Date();
+    fill(root.querySelector('[data-part="h"]'), String(now.getHours()).padStart(2, '0'));
+    fill(root.querySelector('[data-part="m"]'), String(now.getMinutes()).padStart(2, '0'));
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  function ensurePanel() {
+    const body = document.getElementById('settings-body');
+    if (!body || document.getElementById('settings-panel-uiplus-clock')) return;
+    const panel = document.createElement('div');
+    panel.id = 'settings-panel-uiplus-clock';
+    panel.className = 'settings-panel';
+    panel.style.display = 'none';
+    const v = load();
+    panel.innerHTML =
+      '<div class="settings-group">' +
+      '<div class="settings-group-title">位置と大きさ</div>' +
+      '<p class="settings-hint">左右・上下を細かく動かして、好きな場所に置けます。</p>' +
+      '<div class="settings-group-title" style="margin-top:12px;">左右</div>' +
+      '<div class="settings-slider-row"><input type="range" min="0" max="92" step="1" data-k="x" value="' + v.x + '"><span class="settings-slider-val" data-v="x">' + v.x + '</span></div>' +
+      '<div class="settings-group-title" style="margin-top:12px;">上下</div>' +
+      '<div class="settings-slider-row"><input type="range" min="0" max="92" step="1" data-k="y" value="' + v.y + '"><span class="settings-slider-val" data-v="y">' + v.y + '</span></div>' +
+      '<div class="settings-group-title" style="margin-top:12px;">大きさ</div>' +
+      '<div class="settings-slider-row"><input type="range" min="10" max="36" step="1" data-k="size" value="' + v.size + '"><span class="settings-slider-val" data-v="size">' + v.size + 'px</span></div>' +
+      '</div>';
+    panel.addEventListener('input', (e) => {
+      const input = e.target.closest('input[data-k]');
+      if (!input) return;
+      const next = load();
+      next[input.dataset.k] = Number(input.value);
+      save(next);
+      apply(document.getElementById('uiplus-clock'), next);
+      const lab = panel.querySelector('[data-v="' + input.dataset.k + '"]');
+      if (lab) lab.textContent = input.dataset.k === 'size' ? next.size + 'px' : String(next[input.dataset.k]);
+    });
+    body.appendChild(panel);
+    try { if (typeof SETTINGS_PANEL_TITLES === 'object') SETTINGS_PANEL_TITLES['uiplus-clock'] = '時計'; } catch (_) {}
+  }
+
+  function addMenu() {
+    const list = document.querySelector('#settings-menu-view .settings-menu-list');
+    if (!list || document.getElementById('uiplus-clock-settings-item')) return;
+    ensurePanel();
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'settings-menu-item';
+    item.id = 'uiplus-clock-settings-item';
+    item.dataset.panel = 'uiplus-clock';
+    item.innerHTML = '<span class="smi-icon">🕒</span><span class="smi-text"><span class="smi-label">時計</span><span class="smi-sub">位置と大きさ</span></span><span class="smi-chev">›</span>';
+    const safe = list.querySelector('[data-panel="safearea"]');
+    if (safe && safe.nextSibling) list.insertBefore(item, safe.nextSibling);
+    else list.appendChild(item);
+  }
+  addMenu();
+  new MutationObserver(addMenu).observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest || !e.target.closest('#uiplus-clock-settings-item')) return;
+    setTimeout(() => {
+      const title = document.getElementById('settings-title');
+      if (title) title.textContent = '時計';
+    }, 0);
+  });
+})();
+
+
+(function syncNativeThumb() {
+  if (typeof positionTabThumb !== 'function' || positionTabThumb.__uiplus) return;
+  const orig = positionTabThumb;
+  function wrapped(container) {
+    if (!container) return;
+    const thumb = container.querySelector(':scope > .tab-thumb');
+    const buttons = [...container.children].filter((el) => el.tagName === 'BUTTON');
+    if (!thumb || !buttons.length) return orig(container);
+    if (container.classList.contains('seg-dragging')) return;
+    const base = buttons[0].offsetLeft;
+    const active = buttons.find((b) => b.classList.contains('active')) || buttons[0];
+    const x = active.offsetLeft - base;
+    const w = active.offsetWidth;
+    thumb.style.left = '';
+    thumb.style.width = w + 'px';
+    thumb.style.transform = 'translateX(' + x + 'px) scaleX(1)';
+    thumb.dataset.thumbX = String(x);
+  }
+  wrapped.__uiplus = true;
+  positionTabThumb = wrapped;
+})();
+
+
+/* ------------------------------------------------------------------ */
+/* アニメーションのみ：入場のタイミングをずらす（見た目は変えない） */
+/* ------------------------------------------------------------------ */
+(function staggerLists() {
+  const SEL = '.channel-item, .dm-item, .settings-menu-item, .friend-list-row, .tet-player-row';
+  function apply(root) {
+    const nodes = (root && root.querySelectorAll) ? root.querySelectorAll(SEL) : [];
+    nodes.forEach((el, i) => {
+      if (el.dataset.uiplusStagger === '1') return;
+      el.dataset.uiplusStagger = '1';
+      el.style.animationDelay = Math.min(i * 28, 280) + 'ms';
+    });
+  }
+  apply(document);
+  new MutationObserver((muts) => {
+    muts.forEach((m) => {
+      m.addedNodes.forEach((n) => {
+        if (n.nodeType === 1) apply(n);
+      });
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+})();
+
+/* ------------------------------------------------------------------ */
+/* タイトル切替だけ弾ませる（色や形は触らない） */
+/* ------------------------------------------------------------------ */
+(function titleSettle() {
+  const name = document.getElementById('topbar-name');
+  if (!name) return;
+  let prev = name.textContent;
+  new MutationObserver(() => {
+    if (document.documentElement.classList.contains('reduce-motion')) return;
+    const next = name.textContent;
+    if (next === prev) return;
+    prev = next;
+    try {
+      name.animate(
+        [
+          { transform: 'translateY(7px)', opacity: 0.4 },
+          { transform: 'translateY(-1px)', opacity: 1, offset: 0.68 },
+          { transform: 'none', opacity: 1 }
+        ],
+        { duration: 440, easing: 'cubic-bezier(.22, 1.14, .32, 1)' }
+      );
+    } catch (_) {}
+  }).observe(name, { childList: true, characterData: true, subtree: true });
+})();
+
+/* ------------------------------------------------------------------ */
+/* シート操作中だけ縮小（離したら元の見た目に戻す） */
+/* ------------------------------------------------------------------ */
+(function sheetDragScale() {
+  let cardObs = null;
+  function attach() {
+    const card = document.querySelector('.modal-scrim.bottom-sheet .modal-card');
+    if (!card || card.dataset.uiplusScale === '1') return;
+    card.dataset.uiplusScale = '1';
+    if (cardObs) cardObs.disconnect();
+    cardObs = new MutationObserver(() => {
+      if (!document.documentElement.classList.contains('seg-sheet-dragging')) {
+        return;
+      }
+      const tr = card.style.transform || '';
+      const m = tr.match(/translateY\(([-\d.]+)px\)/);
+      if (!m) return;
+      const y = parseFloat(m[1]) || 0;
+      if (y <= 0) return;
+      if (/scale\(/.test(tr)) return;
+      const h = Math.max(card.offsetHeight, 1);
+      const p = Math.max(0, Math.min(1, y / Math.min(h, window.innerHeight * 0.7)));
+      card.style.transform = 'translateY(' + y + 'px) scale(' + (1 - p * 0.04).toFixed(4) + ')';
+    });
+    cardObs.observe(card, { attributes: true, attributeFilter: ['style'] });
+  }
+  attach();
+  new MutationObserver(attach).observe(document.documentElement, { childList: true, subtree: true });
+})();
+
+
+/* ------------------------------------------------------------------ */
+/* チャンネル / DM セクションを左右に滑らせる */
+/* ------------------------------------------------------------------ */
+(function sidebarTabDirection() {
+  if (typeof setSidebarTab !== 'function' || setSidebarTab.__uiplusDir) return;
+  const orig = setSidebarTab;
+  function wrapped(tab) {
+    const prev = window.sidebarTab;
+    orig.apply(this, arguments);
+    if (document.documentElement.classList.contains('reduce-motion')) return;
+    const ch = document.getElementById('channel-section');
+    const dm = document.getElementById('dm-section');
+    const shown = tab === 'dms' ? dm : ch;
+    if (!shown) return;
+    const dir = tab === 'dms' ? 'uiplus-dir-left' : 'uiplus-dir-right';
+    shown.classList.remove('uiplus-dir-left', 'uiplus-dir-right');
+    void shown.offsetWidth;
+    shown.classList.add(dir);
+    shown.querySelectorAll('.channel-item, .dm-item').forEach((el) => {
+      el.dataset.uiplusStagger = '';
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+  }
+  wrapped.__uiplusDir = true;
+  setSidebarTab = wrapped;
+})();
+
+/* ------------------------------------------------------------------ */
+/* 設定の進む / 戻るでスライド方向を変える */
+/* ------------------------------------------------------------------ */
+(function settingsDirection() {
+  document.addEventListener('click', (e) => {
+    const back = e.target.closest && e.target.closest('#settings-back-btn, .settings-back-btn');
+    if (back) {
+      document.documentElement.classList.add('uiplus-settings-back');
+      return;
+    }
+    if (e.target.closest && e.target.closest('.settings-menu-item')) {
+      document.documentElement.classList.remove('uiplus-settings-back');
+    }
+  }, true);
+})();
+
+/* ------------------------------------------------------------------ */
+/* 送信時にボタンだけ弾ませる */
+/* ------------------------------------------------------------------ */
+(function sendPop() {
+  if (typeof sendMessage !== 'function' || sendMessage.__uiplusPop) return;
+  const orig = sendMessage;
+  async function wrapped() {
+    const composer = document.getElementById('composer');
+    if (composer && !document.documentElement.classList.contains('reduce-motion')) {
+      composer.classList.remove('uiplus-sent');
+      void composer.offsetWidth;
+      composer.classList.add('uiplus-sent');
+      setTimeout(() => composer.classList.remove('uiplus-sent'), 520);
+    }
+    return orig.apply(this, arguments);
+  }
+  wrapped.__uiplusPop = true;
+  sendMessage = wrapped;
+})();
+
+/* ------------------------------------------------------------------ */
+/* 未読バッジの数字が変わったときだけ弾ませる */
+/* ------------------------------------------------------------------ */
+(function badgeBump() {
+  function watch(el) {
+    if (!el || el.dataset.uiplusBumpWatch) return;
+    el.dataset.uiplusBumpWatch = '1';
+    let prev = (el.textContent || '').trim();
+    new MutationObserver(() => {
+      const next = (el.textContent || '').trim();
+      if (next === prev) return;
+      prev = next;
+      if (document.documentElement.classList.contains('reduce-motion')) return;
+      el.classList.remove('uiplus-bump');
+      void el.offsetWidth;
+      el.classList.add('uiplus-bump');
+    }).observe(el, { childList: true, characterData: true, subtree: true });
+  }
+  function scan(root) {
+    (root.querySelectorAll ? root : document).querySelectorAll('.channel-unread, .req-dot, .unread-dot').forEach(watch);
+  }
+  scan(document);
+  new MutationObserver((muts) => {
+    muts.forEach((m) => {
+      m.addedNodes.forEach((n) => {
+        if (n.nodeType !== 1) return;
+        if (n.matches && n.matches('.channel-unread, .req-dot, .unread-dot')) watch(n);
+        if (n.querySelectorAll) scan(n);
+      });
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+})();
+
+/* ------------------------------------------------------------------ */
+/* 押して離したとき、対象を少しだけスプリングで戻す */
+/* ------------------------------------------------------------------ */
+(function pressSpring() {
+  const SEL = [
+    'button', '.channel-item', '.dm-item', '.settings-menu-item',
+    '.composer-menu-item', '.search-result-item', '.friend-list-row',
+    '.schedule-row', '.admin-row', '.online-chip', '.reaction-chip'
+  ].join(',');
+
+  function reduce() {
+    return document.documentElement.classList.contains('reduce-motion');
+  }
+
+  document.addEventListener('pointerup', (e) => {
+    if (reduce()) return;
+    const el = e.target.closest && e.target.closest(SEL);
+    if (!el) return;
+    if (el.closest && el.closest('.sidebar-tabs, .scope-switch, .admin-tabs, .preset-row')) return;
+    if (el.closest && el.closest('#tr-hand, .tr-hand-card')) return;
+    try {
+      el.animate(
+        [
+          { transform: 'scale(0.96)' },
+          { transform: 'scale(1.025)', offset: 0.55 },
+          { transform: 'none' }
+        ],
+        { duration: 420, easing: 'cubic-bezier(.22, 1.28, .36, 1)' }
+      );
+    } catch (_) {}
+  }, true);
+})();
+
+/* ------------------------------------------------------------------ */
+/* 検索結果が出たときに順番に遅らせる */
+/* ------------------------------------------------------------------ */
+(function searchStagger() {
+  const box = document.getElementById('search-results');
+  if (!box) return;
+  new MutationObserver(() => {
+    box.querySelectorAll('.search-result-item').forEach((el, i) => {
+      el.style.animationDelay = Math.min(i * 24, 240) + 'ms';
+    });
+  }).observe(box, { childList: true });
+})();
+
+
+
+
+/* ------------------------------------------------------------------ */
+/* アプリ起動：白画面はフェードだけ。中身を跳ねさせない */
+/* ------------------------------------------------------------------ */
+(function splashExit() {
+  const splash = document.getElementById('splash-screen');
+  const app = document.getElementById('app');
+  if (!splash) return;
+  new MutationObserver(() => {
+    if (!splash.classList.contains('splash-out')) return;
+    if (document.documentElement.classList.contains('reduce-motion')) return;
+    if (!app) return;
+    try {
+      app.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        { duration: 420, easing: 'cubic-bezier(.22, .8, .24, 1)' }
+      );
+    } catch (_) {}
+  }).observe(splash, { attributes: true, attributeFilter: ['class'] });
+})();
+
+/* ------------------------------------------------------------------ */
+/* 白黒の弧がそのまま回る */
+/* ------------------------------------------------------------------ */
+(function appLoader() {
+  const CIRC = '<circle cx="18" cy="18" r="14"></circle>';
+  function make(tone) {
+    const el = document.createElement('div');
+    el.className = 'uiplus-loader uiplus-loader-' + tone;
+    el.innerHTML =
+      '<svg class="uiplus-loader-trail" viewBox="0 0 36 36" aria-hidden="true">' + CIRC + '</svg>' +
+      '<svg viewBox="0 0 36 36" aria-hidden="true">' + CIRC + '</svg>';
+    return el;
+  }
+
+  function toneFor(el) {
+    if (!el) return 'light';
+    const bg = getComputedStyle(el).backgroundColor || '';
+    const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (!m) return 'light';
+    const lum = (Number(m[1]) + Number(m[2]) + Number(m[3])) / 3;
+    return lum < 80 ? 'dark' : 'light';
+  }
+
+  const splash = document.getElementById('splash-screen');
+  const splashSpin = document.querySelector('#splash-screen .splash-spinner');
+  if (splashSpin) {
+    splashSpin.innerHTML = '';
+    splashSpin.appendChild(make(toneFor(splash)));
+    const syncSplashTone = () => {
+      const loader = splashSpin.querySelector('.uiplus-loader');
+      if (!loader) return;
+      const tone = toneFor(splash);
+      loader.classList.toggle('uiplus-loader-light', tone === 'light');
+      loader.classList.toggle('uiplus-loader-dark', tone === 'dark');
+    };
+    syncSplashTone();
+    setTimeout(syncSplashTone, 50);
+    setTimeout(syncSplashTone, 300);
+    if (splash) new MutationObserver(syncSplashTone).observe(splash, { attributes: true, attributeFilter: ['class', 'style'] });
+  }
+
+  const msgs = document.getElementById('messages');
+  if (!msgs) return;
+  function sync() {
+    let loader = msgs.querySelector(':scope > .uiplus-loader');
+    const on = msgs.classList.contains('uiplus-loading');
+    if (on && !loader) {
+      loader = make('dark');
+      msgs.appendChild(loader);
+    }
+    if (loader) loader.style.display = on ? '' : 'none';
+  }
+  sync();
+  new MutationObserver(sync).observe(msgs, { attributes: true, attributeFilter: ['class'] });
+})();
+
+
+/* ===================== YouTube Music: ジャケット上下端の色を背景グラデーションにする =====================
+   ・端の色だけを正しく拾うため、帯の中の画像は固定の薄いストライプ(SAMPLE_PX)だけを
+     object-position: top/bottom で切り出してから縦方向に引き伸ばす。
+   ・.mp-music-artwrap 等の transform で実際のジャケットの表示位置がズレるため、
+     art要素の実際の画面上の位置を測定し、その位置に合わせて上下の帯の高さを決める。 */
+(function musicPlayerEdgeBackdrop() {
+  const enhanced = new WeakSet();
+  const SAMPLE_PX = 64; // 端から切り出すサンプリング帯の実ピクセル厚み
+
+  function enhance(wrap) {
+    if (!wrap || enhanced.has(wrap)) return;
+    const art = wrap.querySelector('#mp-music-art, img.mp-music-art');
+    if (!art) return;
+    enhanced.add(wrap);
+
+    let layer = wrap.querySelector(':scope > .mp-music-edge-bg');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'mp-music-edge-bg';
+      layer.setAttribute('aria-hidden', 'true');
+      layer.innerHTML = `
+        <div class="mp-music-edge-slice is-top"><img alt=""></div>
+        <div class="mp-music-edge-slice is-bottom"><img alt=""></div>`;
+      wrap.insertBefore(layer, wrap.firstChild);
+    }
+    const slices = layer.querySelectorAll('img');
+
+    const applySrc = () => {
+      if (!art.src) return;
+      slices.forEach((img) => {
+        if (img.src !== art.src) img.src = art.src;
+      });
+      if (art.complete && art.naturalWidth) layer.classList.add('is-ready');
+    };
+
+    const measure = () => {
+      const wrapRect = wrap.getBoundingClientRect();
+      const artRect = art.getBoundingClientRect();
+      if (!wrapRect.height || !artRect.height) return;
+      const midY = artRect.top + artRect.height / 2;
+      const topH = Math.max(24, midY - wrapRect.top);
+      const bottomH = Math.max(24, wrapRect.bottom - midY);
+      layer.style.setProperty('--mp-top-h', topH.toFixed(1) + 'px');
+      layer.style.setProperty('--mp-bottom-h', bottomH.toFixed(1) + 'px');
+      layer.style.setProperty('--mp-top-scale', Math.max(1, topH / SAMPLE_PX).toFixed(2));
+      layer.style.setProperty('--mp-bottom-scale', Math.max(1, bottomH / SAMPLE_PX).toFixed(2));
+    };
+
+    slices.forEach((img) => img.addEventListener('load', () => {
+      layer.classList.add('is-ready');
+      measure();
+    }));
+    if (art.complete && art.naturalWidth) applySrc();
+    art.addEventListener('load', () => { applySrc(); measure(); });
+
+    measure();
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(measure);
+      ro.observe(wrap);
+      ro.observe(art);
+    }
+    window.addEventListener('resize', measure);
+    // transform遷移(展開/縮小アニメーション)が落ち着いた後にも再測定しておく
+    ['transitionend', 'animationend'].forEach((ev) => wrap.addEventListener(ev, measure));
+  }
+
+  function scan(node) {
+    if (!node || node.nodeType !== 1) return;
+    if (node.classList && node.classList.contains('mp-music-wrap')) enhance(node);
+    if (node.querySelectorAll) node.querySelectorAll('.mp-music-wrap').forEach(enhance);
+  }
+
+  const stage = document.getElementById('media-player-stage');
+  if (!stage) return;
+  scan(stage);
+  new MutationObserver((records) => {
+    for (const rec of records) rec.addedNodes.forEach(scan);
+  }).observe(stage, { childList: true, subtree: true });
+})();
+
+/* ===================== 音楽プレイヤー：指追従で閉じる ===================== */
+(function musicPlayerGestures() {
+  const modal = document.getElementById('media-player-modal');
+  const inner = document.getElementById('media-player-inner');
+  const stage = document.getElementById('media-player-stage');
+  if (!modal || !inner) return;
+
+  const root = document.documentElement;
+  const EASE = 'cubic-bezier(.32,.72,0,1)';
+  const LOCK = 4;
+  const DIST = 80;
+  const FLICK = 0.38;
+  let pageLocked = false;
+  let bgAlive = false;
+  let dragging = false;
+  let drag = null;
+  let hintDown = null;
+  let hintUp = null;
+  let dock = null;
+  let miniTimer = 0;
+  let boundWrap = null;
+  let morphing = false;
+
+  function reduce() {
+    return root.classList.contains('reduce-motion');
+  }
+  function modalVisible() {
+    if (modal.style.display === 'none') return false;
+    return window.getComputedStyle(modal).display !== 'none';
+  }
+  function isMusicShown() {
+    return modalVisible() && inner.classList.contains('music-mode');
+  }
+  function wrapEl() {
+    return inner.querySelector('.mp-music-wrap');
+  }
+  function ytm() {
+    return window.ytmPlayer || null;
+  }
+
+  function lockPage() {
+    pageLocked = true;
+    root.classList.add('uiplus-music-open');
+    modal.classList.add('uiplus-music-modal');
+    modal.style.padding = '0';
+    modal.style.overflow = 'hidden';
+    try { window.scrollTo(0, 0); } catch (_) {}
+    root.classList.remove('uiplus-kb');
+    root.style.removeProperty('--uiplus-vv-top');
+    root.style.removeProperty('--uiplus-vv-height');
+  }
+  function unlockPage() {
+    pageLocked = false;
+    dragging = false;
+    root.classList.remove('uiplus-music-open');
+    root.classList.remove('uiplus-music-dragging');
+    modal.classList.remove('uiplus-music-modal');
+    modal.classList.remove('uiplus-music-swiping');
+    modal.style.padding = '';
+    modal.style.overflow = '';
+    modal.style.background = '';
+    modal.style.backdropFilter = '';
+    modal.style.webkitBackdropFilter = '';
+    const w = wrapEl();
+    if (w) {
+      w.classList.remove('uiplus-music-follow');
+      w.style.transform = '';
+      w.style.transition = '';
+      w.style.opacity = '';
+    }
+    try { window.scrollTo(0, 0); } catch (_) {}
+  }
+
+  function ensureHints(wrap) {
+    if (!wrap) return;
+    hintDown = wrap.querySelector('.uiplus-music-hint.is-down');
+    hintUp = wrap.querySelector('.uiplus-music-hint.is-up');
+    if (!hintDown) {
+      hintDown = document.createElement('div');
+      hintDown.className = 'uiplus-music-hint is-down';
+      hintDown.textContent = '離すとバックグラウンド';
+      wrap.appendChild(hintDown);
+    }
+  }
+  function setHints(show) {
+    if (hintDown) hintDown.classList.toggle('show', !!show);
+  }
+
+  function ensureChrome() {
+    if (dock) return dock;
+    dock = document.createElement('div');
+    dock.id = 'uiplus-mini-player';
+    dock.innerHTML =
+      '<img class="ump-art" alt="">' +
+      '<div class="ump-meta"><div class="ump-title"></div><div class="ump-artist"></div></div>' +
+      '<button type="button" class="ump-btn ump-play" aria-label="再生">❚❚</button>' +
+      '<button type="button" class="ump-btn ump-iconize" aria-label="アイコンに戻す">●</button>' +
+      '<button type="button" class="ump-btn ump-close" aria-label="終了">✕</button>';
+    document.body.appendChild(dock);
+    dock.addEventListener('click', (e) => {
+      if (e.target.closest('.ump-btn')) return;
+      if (dock.classList.contains('is-icon')) setDockMode('mini');
+      else expandFromMini();
+    });
+    dock.querySelector('.ump-play').addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePlay();
+    });
+    dock.querySelector('.ump-iconize').addEventListener('click', (e) => {
+      e.stopPropagation();
+      setDockMode('icon');
+    });
+    dock.querySelector('.ump-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      hideBgUi();
+      hardStop();
+    });
+    return dock;
+  }
+  function readMeta() {
+    const titleEl = document.getElementById('mp-music-title');
+    const artistEl = document.getElementById('mp-music-artist');
+    const artEl = document.getElementById('mp-music-art');
+    return {
+      title: (titleEl && titleEl.textContent) || '再生中',
+      artist: (artistEl && artistEl.textContent) || 'YouTube Music',
+      art: (artEl && artEl.src) || '',
+    };
+  }
+  function isPlaying() {
+    try {
+      const p = ytm();
+      return !!(p && p.getPlayerState && window.YT && p.getPlayerState() === YT.PlayerState.PLAYING);
+    } catch (_) {
+      return false;
+    }
+  }
+  function paintMini() {
+    if (!dock) return;
+    const meta = readMeta();
+    const art = dock.querySelector('.ump-art');
+    const title = dock.querySelector('.ump-title');
+    const artist = dock.querySelector('.ump-artist');
+    const play = dock.querySelector('.ump-play');
+    if (art && meta.art && art.src !== meta.art) art.src = meta.art;
+    if (title) title.textContent = meta.title;
+    if (artist) artist.textContent = meta.artist;
+    if (play) play.textContent = isPlaying() ? '❚❚' : '▶';
+    dock.classList.toggle('playing', isPlaying());
+  }
+  function playOpenAnim() {
+    const w = wrapEl();
+    if (!w || reduce()) return;
+    w.classList.remove('uiplus-music-enter');
+    void w.offsetWidth;
+    w.classList.add('uiplus-music-enter');
+  }
+  function startPaintLoop() {
+    if (miniTimer) clearInterval(miniTimer);
+    miniTimer = setInterval(paintMini, 800);
+  }
+  function layoutDock(iconMode, animate) {
+    const wIcon = 44;
+    const wMini = Math.max(180, window.innerWidth - 24);
+    const leftIcon = Math.round((window.innerWidth - wIcon) / 2);
+    dock.style.right = 'auto';
+    dock.style.transition = animate && !reduce() ? '' : 'none';
+    dock.style.width = (iconMode ? wIcon : wMini) + 'px';
+    dock.style.left = (iconMode ? leftIcon : 12) + 'px';
+    dock.style.height = (iconMode ? 44 : 58) + 'px';
+    dock.style.padding = iconMode ? '0px' : '8px';
+    dock.style.borderRadius = iconMode ? '50%' : '999px';
+    if (!animate) void dock.offsetWidth;
+  }
+  function setDockMode(mode) {
+    ensureChrome();
+    paintMini();
+    bgAlive = true;
+    startPaintLoop();
+    const iconMode = mode === 'icon';
+    const wasShown = dock.classList.contains('show');
+    const same = wasShown && dock.classList.contains(iconMode ? 'is-icon' : 'is-mini');
+    if (!wasShown) layoutDock(iconMode, false);
+    dock.classList.add('show');
+    dock.classList.toggle('is-icon', iconMode);
+    dock.classList.toggle('is-mini', !iconMode);
+    if (wasShown && !same) layoutDock(iconMode, true);
+  }
+  function hideBgUi() {
+    bgAlive = false;
+    if (miniTimer) { clearInterval(miniTimer); miniTimer = 0; }
+    if (dock) {
+      dock.classList.remove('show', 'is-icon', 'is-mini');
+      dock.style.width = '';
+      dock.style.left = '';
+      dock.style.height = '';
+      dock.style.padding = '';
+      dock.style.borderRadius = '';
+      dock.style.transition = '';
+    }
+  }
+  function togglePlay() {
+    const p = ytm();
+    if (!p || !p.getPlayerState) return;
+    try {
+      if (p.getPlayerState() === YT.PlayerState.PLAYING) p.pauseVideo();
+      else p.playVideo();
+    } catch (_) {}
+    setTimeout(paintMini, 80);
+  }
+
+  function hideModalNow() {
+    modal.classList.remove('closing');
+    modal.classList.remove('uiplus-music-swiping');
+    modal.style.display = 'none';
+    modal.style.background = '';
+    modal.style.backdropFilter = '';
+    modal.style.webkitBackdropFilter = '';
+    modal.style.pointerEvents = 'none';
+    const w = wrapEl();
+    if (w) {
+      w.style.transform = '';
+      w.style.transition = '';
+      w.style.opacity = '';
+      w.classList.remove('uiplus-music-follow');
+    }
+  }
+  function forceStopYtm() {
+    try {
+      if (typeof window.stopYtmPlayback === 'function') window.stopYtmPlayback();
+    } catch (_) {}
+    const p = ytm();
+    if (p) {
+      try { if (p.stopVideo) p.stopVideo(); } catch (_) {}
+      try { if (p.pauseVideo) p.pauseVideo(); } catch (_) {}
+    }
+    try {
+      const host = document.getElementById('ytm-player-host');
+      const iframe = host && host.querySelector && host.querySelector('iframe');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'stopVideo', args: [] }), '*');
+        iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+      }
+    } catch (_) {}
+  }
+  function hardStop() {
+    forceStopYtm();
+    hideBgUi();
+    if (stage) stage.innerHTML = '';
+    boundWrap = null;
+    inner.classList.remove('music-mode');
+    unlockPage();
+    modal.style.pointerEvents = '';
+  }
+  function closeAndStop() {
+    hideBgUi();
+    hideModalNow();
+    hardStop();
+  }
+  function sendToBackground() {
+    const wrap = wrapEl();
+    if (wrap) delete wrap.dataset.uiplusEntered;
+    dragging = false;
+    morphing = true;
+    root.classList.remove('uiplus-music-dragging');
+    setDockMode('icon');
+    if (wrap && !reduce()) {
+      wrap.style.transition = 'opacity .32s ease';
+      wrap.style.opacity = '0';
+    }
+    modal.style.transition = 'background .32s ease';
+    modal.style.background = 'transparent';
+    const finish = () => {
+      hideModalNow();
+      unlockPage();
+      inner.classList.add('music-mode');
+      modal.style.pointerEvents = '';
+    };
+    if (reduce()) { finish(); morphing = false; }
+    else setTimeout(() => { finish(); morphing = false; }, 320);
+  }
+  function expandFromMini() {
+    morphing = true;
+    inner.classList.add('music-mode');
+    modal.classList.remove('closing');
+    modal.style.display = 'flex';
+    modal.style.pointerEvents = '';
+    lockPage();
+    const wrap = wrapEl();
+    if (wrap) wrap.dataset.uiplusEntered = '1';
+    if (wrap) {
+      wrap.classList.remove('uiplus-music-enter');
+      wrap.style.opacity = '0';
+    }
+    requestAnimationFrame(() => {
+      if (wrap) {
+        wrap.style.transition = 'opacity .32s ease';
+        wrap.style.opacity = '1';
+      }
+      setTimeout(() => {
+        hideBgUi();
+        morphing = false;
+        if (wrap) wrap.style.transition = '';
+      }, 300);
+    });
+  }
+
+  function sheet() {
+    return wrapEl() || inner;
+  }
+  function animateAway(dir, done) {
+    const el = sheet();
+    const h = Math.max(window.innerHeight, 1);
+    const to = dir === 'up' ? -(h + 48) : (h + 48);
+    dragging = false;
+    root.classList.remove('uiplus-music-dragging');
+    if (reduce()) { done(); return; }
+    el.style.transition = 'transform .3s ' + EASE + ', opacity .22s ease';
+    el.style.transform = 'translate3d(0,' + to + 'px,0)';
+    el.style.opacity = '0';
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      el.removeEventListener('transitionend', finish);
+      done();
+    };
+    el.addEventListener('transitionend', finish);
+    setTimeout(finish, 340);
+  }
+
+  function applyDrag(y) {
+    const el = sheet();
+    if (!el.classList.contains('uiplus-music-follow')) el.classList.add('uiplus-music-follow');
+    if (!root.classList.contains('uiplus-music-dragging')) root.classList.add('uiplus-music-dragging');
+    if (!modal.classList.contains('uiplus-music-swiping')) modal.classList.add('uiplus-music-swiping');
+    el.style.transition = 'none';
+    if (y < 0) y = y * 0.22;
+    el.style.transform = 'translate3d(0,' + y + 'px,0)';
+    const fade = Math.min(1, Math.abs(y) / (window.innerHeight * 0.7));
+    modal.style.background = 'rgba(4,6,10,' + (0.38 * (1 - fade)).toFixed(3) + ')';
+    modal.style.backdropFilter = 'none';
+    modal.style.webkitBackdropFilter = 'none';
+    setHints(y > 20);
+  }
+
+  function ignoreTarget(t) {
+    return !!(t && t.closest && t.closest('input, textarea, button, a, [contenteditable]'));
+  }
+  function onDown(e) {
+    if (!isMusicShown()) return;
+    if (dragging || morphing) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (ignoreTarget(e.target)) return;
+    drag = {
+      id: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      lastY: e.clientY,
+      lastT: performance.now(),
+      vy: 0,
+      locked: false,
+      dy: 0,
+    };
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+  function onMove(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const now = performance.now();
+    const dt = Math.max(1, now - drag.lastT);
+    drag.vy = (e.clientY - drag.lastY) / dt;
+    drag.lastY = e.clientY;
+    drag.lastT = now;
+    const dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    if (!drag.locked) {
+      if (Math.abs(dy) < LOCK && Math.abs(dx) < LOCK) return;
+      if (Math.abs(dx) > Math.abs(dy) + 2) { drag = null; return; }
+      drag.locked = true;
+      dragging = true;
+    }
+    if (e.cancelable) e.preventDefault();
+    e.stopPropagation();
+    drag.dy = dy;
+    applyDrag(dy);
+  }
+  function snapBack() {
+    const el = sheet();
+    dragging = false;
+    root.classList.remove('uiplus-music-dragging');
+    el.classList.remove('uiplus-music-follow');
+    el.style.transition = 'transform .3s ' + EASE;
+    el.style.transform = 'translate3d(0,0,0)';
+    modal.style.background = '';
+    modal.style.backdropFilter = '';
+    modal.style.webkitBackdropFilter = '';
+    setHints('');
+    setTimeout(() => {
+      el.style.transition = '';
+      el.style.transform = '';
+      modal.classList.remove('uiplus-music-swiping');
+    }, 320);
+  }
+  function onUp(e) {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    const job = drag;
+    drag = null;
+    if (!job.locked) {
+      dragging = false;
+      setHints('');
+      return;
+    }
+    if (job.dy > DIST || (job.vy > FLICK && job.dy > 16)) {
+      sendToBackground();
+      return;
+    }
+    snapBack();
+  }
+
+  function bindWrap(wrap) {
+    if (!wrap || wrap === boundWrap) return;
+    boundWrap = wrap;
+    wrap.style.touchAction = 'none';
+    wrap.addEventListener('pointerdown', onDown);
+    wrap.addEventListener('pointermove', onMove);
+    wrap.addEventListener('pointerup', onUp);
+    wrap.addEventListener('pointercancel', onUp);
+  }
+
+  function hookChrome() {
+    const wrap = wrapEl();
+    if (wrap) {
+      ensureHints(wrap);
+      bindWrap(wrap);
+      if (isMusicShown() && !dragging && !wrap.dataset.uiplusEntered) {
+        wrap.dataset.uiplusEntered = '1';
+        playOpenAnim();
+      }
+    }
+    const collapse = document.getElementById('mp-music-collapse');
+    if (collapse && !collapse.dataset.uiplusCloseFix) {
+      collapse.dataset.uiplusCloseFix = '1';
+      collapse.addEventListener('click', (e) => {
+        e.stopImmediatePropagation();
+        sendToBackground();
+      }, true);
+    }
+  }
+
+  function sync() {
+    if (dragging || morphing) return;
+    if (isMusicShown()) {
+      if (bgAlive && !morphing) hideBgUi();
+      if (!pageLocked) lockPage();
+      hookChrome();
+    } else if (modalVisible()) {
+      if (bgAlive && !morphing) hideBgUi();
+      if (pageLocked) unlockPage();
+    } else if (pageLocked && !bgAlive) {
+      unlockPage();
+    }
+  }
+
+  hookChrome();
+  sync();
+  new MutationObserver(() => {
+    if (dragging || morphing) return;
+    hookChrome();
+    sync();
+  }).observe(modal, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+
+  const blockKbWhileMusic = () => {
+    if (!isMusicShown()) return;
+    if (root.classList.contains('uiplus-kb')) {
+      root.classList.remove('uiplus-kb');
+      root.style.removeProperty('--uiplus-vv-top');
+      root.style.removeProperty('--uiplus-vv-height');
+    }
+  };
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', blockKbWhileMusic);
+    window.visualViewport.addEventListener('scroll', blockKbWhileMusic);
+  }
+})();
+
+}
+try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[UI+ builtin]",e); } }); }catch(e){ console.error("[UI+ builtin]",e); }})();</script>
 </body>
 </html>
