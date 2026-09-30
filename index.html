@@ -4191,6 +4191,28 @@ html.reduce-motion #sx-island,html.reduce-motion #sx-ic.in *{ animation:none !im
 .tetris-invite-chip .tic-body{ flex:1 1 96px; }
 .bubble:has(.tetris-invite-chip){ min-width:min(260px,72vw); }
 </style>
+<style id="sx-music">
+/* ===== SIGNAL v14: music player UI + island seek ===== */
+.sxi-seek{ padding:10px 0; margin:2px 0 -8px; cursor:pointer; touch-action:none; }
+.sxi-seek .sxi-track{ margin:0; height:5px; transition:height .25s var(--sx-spring); }
+#sx-island.seeking .sxi-track{ height:11px; } #sx-island.seeking .sxi-track b{ transition:none; }
+.sxi-ctl{ gap:12px; }
+#media-player-stage .mp-music-controls{ align-items:center; justify-content:center; gap:14px; }
+#media-player-stage .mp-music-play{ width:76px; height:76px; box-shadow:0 10px 30px #0006; }
+.sx-mbtn{ width:48px; height:48px; border:0; border-radius:50%; background:#ffffff1f; color:#fff; display:grid; place-items:center; cursor:pointer;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); transition:transform .25s var(--sx-spring),background .2s,color .2s; }
+.sx-mbtn:active{ transform:scale(.86); } .sx-mbtn.on{ background:#fff; color:#000; }
+.sx-speed{ font-size:13px; font-weight:700; }
+#media-player-stage .mp-music-seek{ height:6px; border-radius:3px; }
+#media-player-stage .mp-music-seek::-webkit-slider-thumb{ width:16px; height:16px; transition:transform .2s var(--sx-spring); }
+#media-player-stage .mp-music-seek:active::-webkit-slider-thumb{ transform:scale(1.35); }
+.sx-vol{ display:flex; align-items:center; gap:12px; margin-top:22px; color:#ffffffb0; }
+.sx-vol input{ flex:1; -webkit-appearance:none; appearance:none; height:5px; border-radius:3px; outline:none; margin:0;
+  background:linear-gradient(to right,#fff var(--v,100%),#ffffff40 var(--v,100%)); }
+.sx-vol input::-webkit-slider-thumb{ -webkit-appearance:none; width:0; height:0; }
+#media-player-stage .mp-music-art{ transition:transform .7s var(--sx-spring); }
+#media-player-stage .mp-music-wrap:has(.mp-music-play:not(.playing)) .mp-music-art{ transform:scale(.88); }
+</style>
 </head>
 <body>
 
@@ -6442,7 +6464,7 @@ function updateYtmSeekFill(seekEl, value, max){
 function ensureYtmPlayer(){
   if (ytmPlayerReadyPromise) return ytmPlayerReadyPromise;
   ytmPlayerReadyPromise = loadYoutubeIframeApi().then(() => new Promise((resolve) => {
-    ytmPlayer = new YT.Player('ytm-player-host', {
+    window.ytmPlayer = ytmPlayer = new YT.Player('ytm-player-host', {
       playerVars: { playsinline: 1, controls: 0, rel: 0 },
       events: { onReady: () => resolve(ytmPlayer), onStateChange: onYtmStateChange }
     });
@@ -13853,6 +13875,8 @@ function reduce(){return document.documentElement.classList.contains('reduce-mot
 var IC={
  pause:'<svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M6.5 4.5h3.8v15H6.5zM13.7 4.5h3.8v15h-3.8z"/></svg>',
  play:'<svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M7 4.5v15L19.5 12z"/></svg>',
+ back:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9L4 8.5"/><path d="M4 4v4.5h4.5"/><text x="12" y="15.5" font-size="7.5" font-weight="700" fill="#fff" stroke="none" text-anchor="middle">10</text></svg>',
+ fwd:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9L20 8.5"/><path d="M20 4v4.5h-4.5"/><text x="12" y="15.5" font-size="7.5" font-weight="700" fill="#fff" stroke="none" text-anchor="middle">10</text></svg>',
  stop:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
  out:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>'
 };
@@ -13868,8 +13892,8 @@ var ST={
   s:function(d){return'<div class="sxi-sm">'+av(d.t,24)+'<span class="sxi-t2 sxi-ell">'+esc(d.b)+'</span></div>'},
   b:function(d){return'<div class="sxi-bg"><div class="sxi-row">'+av(d.t,44)+'<div class="sxi-grow"><div class="sxi-t1 sxi-ell">'+esc(d.t)+'</div><div class="sxi-t2 sxi-clamp">'+esc(d.b)+'</div></div></div><div class="sxi-chips">'+chip('open','開く')+chip('close','閉じる')+'</div></div>'}},
  music:{w:224,h:37,W:372,H:180,
-  s:function(d){return'<div class="sxi-sm">'+art(d.art,24)+bars(d.playing)+'</div>'},
-  b:function(d){return'<div class="sxi-bg" style="padding:16px 20px 8px">'+(d.art?'<img class="sxi-glow" src="'+esc(d.art)+'" alt="">':'')+'<div class="sxi-row">'+art(d.art,60)+'<div class="sxi-grow"><div class="sxi-t1 sxi-ell">'+esc(d.title)+'</div><div class="sxi-t2 sxi-ell">'+esc(d.artist)+'</div></div>'+bars(d.playing)+'</div><div class="sxi-track"><b id="sxi-pg" style="width:'+pc(d)+'%"></b></div><div class="sxi-tl"><span id="sxi-ps">'+fmt(d.pos)+'</span><span id="sxi-pr">'+(d.len?'-'+fmt(d.len-d.pos):'')+'</span></div><div class="sxi-ctl">'+btn('expand',IC.out)+btn('pp',d.playing?IC.pause:IC.play)+btn('stop',IC.stop)+'</div></div>'}},
+  s:function(d){return'<div class="sxi-sm">'+art(d.art,24)+'<span class="sxi-t2 sxi-ell" style="color:#fffc">'+esc(d.title)+'</span>'+bars(d.playing)+'</div>'},
+  b:function(d){return'<div class="sxi-bg" style="padding:16px 20px 8px">'+(d.art?'<img class="sxi-glow" src="'+esc(d.art)+'" alt="">':'')+'<div class="sxi-row">'+art(d.art,60)+'<div class="sxi-grow"><div class="sxi-t1 sxi-ell">'+esc(d.title)+'</div><div class="sxi-t2 sxi-ell">'+esc(d.artist)+'</div></div>'+bars(d.playing)+'</div><div class="sxi-seek" data-a="seek"><div class="sxi-track"><b id="sxi-pg" style="width:'+pc(d)+'%"></b></div></div><div class="sxi-tl"><span id="sxi-ps">'+fmt(d.pos)+'</span><span id="sxi-pr">'+(d.len?'-'+fmt(d.len-d.pos):'')+'</span></div><div class="sxi-ctl">'+btn('expand',IC.out)+btn('back',IC.back)+btn('pp',d.playing?IC.pause:IC.play)+btn('fwd',IC.fwd)+btn('stop',IC.stop)+'</div></div>'}},
  typing:{w:236,h:37,
   s:function(d){return'<div class="sxi-sm">'+bars(true)+'<span class="sxi-t2 sxi-ell" style="text-align:right">'+esc(d.text)+'</span></div>'}},
  notice:{w:220,h:37,W:340,H:122,
@@ -13912,7 +13936,7 @@ function tick(){
  if(s2!==sig){sig=s2;render(false)}
  if(p.k==='music'&&isBig()){
   var g=document.getElementById('sxi-pg'),a=document.getElementById('sxi-ps'),r=document.getElementById('sxi-pr');
-  if(g)g.style.width=pc(d)+'%';if(a)a.textContent=fmt(d.pos);if(r)r.textContent=d.len?'-'+fmt(d.len-d.pos):'';
+  if(!sk){if(g)g.style.width=pc(d)+'%';if(a)a.textContent=fmt(d.pos);if(r)r.textContent=d.len?'-'+fmt(d.len-d.pos):''}
  }
 }
 function endTrans(){trans=null;open=false;clearTimeout(tt);tick()}
@@ -13924,6 +13948,7 @@ function act(a){
  if(a==='close')return endTrans();
  if(a==='open'){var nb=$('#notif-banner');endTrans();if(nb)nb.click();return}
  if(a==='go'){var t=document.getElementById(cur.d.target);endTrans();if(t)t.click();return}
+ if(a==='back'||a==='fwd'){var q=window.ytmPlayer;try{q.seekTo(Math.max(0,q.getCurrentTime()+(a==='fwd'?10:-10)),true)}catch(e){}setTimeout(tick,120);return}
  if(a==='pp'){var pb=dk&&dk.querySelector('.ump-play');if(pb)pb.click();setTimeout(tick,160);return}
  if(a==='stop'){var cb=dk&&dk.querySelector('.ump-close');if(cb)cb.click();open=false;setTimeout(tick,220);return}
  if(a==='expand'){if(dk){if(dk.classList.contains('is-icon'))dk.click();dk.click()}open=false;render()}
@@ -13943,6 +13968,15 @@ isl.addEventListener('pointermove',function(e){if(!g)return;var dy=e.clientY-g.y
 function endDrag(e){if(!g)return;var dy=e.clientY-g.y;g=null;isl.style.transition='';isl.style.translate='';
  if(moved){if(dy<-26&&(cur.k==='msg'||cur.k==='notice'))act('close');else if(dy>22&&!open&&ST[cur.k].b){open=true;render()}else if(dy<-22&&open){open=false;render()}}}
 isl.addEventListener('pointerup',endDrag);isl.addEventListener('pointercancel',endDrag);
+var sk=null;
+function seekAt(e,commit){var t=isl.querySelector('.sxi-track');if(!t||!sk)return;var r=t.getBoundingClientRect(),p=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),len=sk.len;
+ var g=document.getElementById('sxi-pg'),a=document.getElementById('sxi-ps'),rr=document.getElementById('sxi-pr');
+ if(g)g.style.width=p*100+'%';if(a)a.textContent=fmt(p*len);if(rr)rr.textContent='-'+fmt(len-p*len);
+ if(commit){try{window.ytmPlayer.seekTo(p*len,true)}catch(x){}}}
+isl.addEventListener('pointerdown',function(e){var s=e.target.closest('.sxi-seek');if(!s)return;var m=music();if(!m||!m.len)return;sk={len:m.len};isl.classList.add('seeking');try{s.setPointerCapture(e.pointerId)}catch(x){}seekAt(e,false)});
+isl.addEventListener('pointermove',function(e){if(sk)seekAt(e,false)});
+function endSeek(e){if(!sk)return;seekAt(e,true);sk=null;isl.classList.remove('seeking')}
+isl.addEventListener('pointerup',endSeek);isl.addEventListener('pointercancel',endSeek);
 /* ---- SIGNAL hooks ---- */
 var nb=$('#notif-banner'),dt=0;
 if(nb)new MutationObserver(function(){clearTimeout(dt);dt=setTimeout(function(){
@@ -14011,5 +14045,58 @@ var sw=document.getElementById('search-wrap');
 if(sw)new MutationObserver(burst).observe(sw,{attributes:true,attributeFilter:['class']});
 })();
 }try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[SIGNAL vpfix]",e); } }); }catch(e){ console.error("[SIGNAL vpfix]",e); }})();</script>
+<script>(function(){function run(){
+(function(){
+var stage=document.getElementById('media-player-stage');if(!stage)return;
+var loop=false,rates=[1,1.25,1.5,2,0.75],ri=0,hooked=false,msKey='';
+function P(){return window.ytmPlayer||null}
+function cur(){try{return P().getCurrentTime()||0}catch(e){return 0}}
+function svg(p){return'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>'}
+var IC={
+ loop:svg('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>'),
+ back:svg('<path d="M4 12a8 8 0 1 0 2.6-5.9L4 8.5"/><path d="M4 4v4.5h4.5"/><text x="12" y="15.5" font-size="7.5" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">10</text>'),
+ fwd:svg('<path d="M20 12a8 8 0 1 1-2.6-5.9L20 8.5"/><path d="M20 4v4.5h-4.5"/><text x="12" y="15.5" font-size="7.5" font-weight="700" fill="currentColor" stroke="none" text-anchor="middle">10</text>'),
+ vol:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>'
+};
+function mk(cls,html,fn,label){var b=document.createElement('button');b.type='button';b.className='sx-mbtn '+cls;b.innerHTML=html;b.setAttribute('aria-label',label);b.addEventListener('click',fn);return b}
+function build(){
+ var ctl=stage.querySelector('.mp-music-controls');if(!ctl||ctl.getAttribute('data-sx'))return;ctl.setAttribute('data-sx','1');
+ var play=ctl.querySelector('.mp-music-play');ri=0;
+ var bl=mk('',IC.loop,function(){loop=!loop;bl.classList.toggle('on',loop)},'repeat');bl.classList.toggle('on',loop);
+ var bb=mk('',IC.back,function(){var p=P();if(p)p.seekTo(Math.max(0,cur()-10),true)},'-10s');
+ var bf=mk('',IC.fwd,function(){var p=P();if(p)p.seekTo(cur()+10,true)},'+10s');
+ var bs=mk('sx-speed','1\u00d7',function(){ri=(ri+1)%rates.length;var p=P();try{p.setPlaybackRate(rates[ri])}catch(e){}bs.textContent=rates[ri]+'\u00d7'},'speed');
+ ctl.insertBefore(bl,play);ctl.insertBefore(bb,play);ctl.appendChild(bf);ctl.appendChild(bs);
+ try{P().setPlaybackRate(1)}catch(e){}
+ var v=document.createElement('div');v.className='sx-vol';v.innerHTML=IC.vol+'<input type="range" min="0" max="100" step="1" aria-label="volume">';
+ var r=v.querySelector('input');try{r.value=P().getVolume()}catch(e){r.value=100}r.style.setProperty('--v',r.value+'%');
+ r.addEventListener('input',function(){var p=P();try{if(p.isMuted&&p.isMuted()&&+r.value>0)p.unMute();p.setVolume(+r.value)}catch(e){}r.style.setProperty('--v',r.value+'%')});
+ ctl.parentNode.appendChild(v);
+}
+new MutationObserver(build).observe(stage,{childList:true});
+/* repeat: the YT player fires state 0 at the end */
+var ht=setInterval(function(){var p=P();if(hooked){clearInterval(ht);return}if(!p||!p.addEventListener)return;
+ try{p.addEventListener('onStateChange',function(e){if(e.data===0&&loop){try{p.seekTo(0,true);p.playVideo()}catch(x){}}});hooked=true}catch(x){}},600);
+/* lock screen / notification controls */
+if('mediaSession' in navigator&&window.MediaMetadata){
+ var set=function(a,f){try{navigator.mediaSession.setActionHandler(a,f)}catch(e){}};
+ set('play',function(){var p=P();if(p)p.playVideo()});set('pause',function(){var p=P();if(p)p.pauseVideo()});
+ set('seekbackward',function(){var p=P();if(p)p.seekTo(Math.max(0,cur()-10),true)});
+ set('seekforward',function(){var p=P();if(p)p.seekTo(cur()+10,true)});
+ set('seekto',function(d){var p=P();if(p&&d.seekTime!=null)p.seekTo(d.seekTime,true)});
+ set('stop',function(){var c=document.querySelector('#uiplus-mini-player .ump-close');if(c)c.click();else{var p=P();if(p)p.pauseVideo()}});
+ setInterval(function(){
+  var dk=document.getElementById('uiplus-mini-player'),t=document.getElementById('mp-music-title'),a=document.getElementById('mp-music-artist'),im=document.getElementById('mp-music-art');
+  var title=t&&t.textContent,artist=a&&a.textContent,src=im&&im.src;
+  if((!title||title==='\u8aad\u307f\u8fbc\u307f\u4e2d\u2026')&&dk&&dk.classList.contains('show')){var q=function(s){return dk.querySelector(s)};title=(q('.ump-title')||{}).textContent;artist=(q('.ump-artist')||{}).textContent;src=(q('.ump-art')||{}).src}
+  if(!title)return;
+  var k=title+'|'+artist+'|'+src;
+  if(k!==msKey){msKey=k;navigator.mediaSession.metadata=new MediaMetadata({title:title,artist:artist||'',artwork:src?[{src:src,sizes:'512x512'}]:[]})}
+  var p=P();if(!p||!p.getDuration)return;
+  try{var d=p.getDuration();if(d>0)navigator.mediaSession.setPositionState({duration:d,position:Math.min(d,cur()),playbackRate:rates[ri]});navigator.mediaSession.playbackState=p.getPlayerState()===1?'playing':'paused'}catch(e){}
+ },1000);
+}
+})();
+}try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[SIGNAL music]",e); } }); }catch(e){ console.error("[SIGNAL music]",e); }})();</script>
 </body>
 </html>
