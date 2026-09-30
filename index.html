@@ -4180,6 +4180,17 @@ html.sx-searching #search-results{ max-height:calc(var(--uiplus-vv-height,100dvh
 #sx-island.sx-morph:is([data-k="msg"],[data-k="notice"]){ animation:sxiMorph .75s var(--sx-out),sxiRing 1.1s ease-out; }
 html.reduce-motion #sx-island,html.reduce-motion #sx-ic.in *{ animation:none !important; }
 </style>
+<style id="sx-fix">
+/* ===== SIGNAL v13: island stays black (color only fades in from below), home header lines up with the top bar ===== */
+.sxi-glow{ opacity:.42; -webkit-mask-image:linear-gradient(to bottom,transparent 0,transparent 40%,#000 100%); mask-image:linear-gradient(to bottom,transparent 0,transparent 40%,#000 100%); }
+@keyframes sxiRing{ 0%{ box-shadow:0 12px 40px #0006,0 0 0 0 #ffffff33; } 100%{ box-shadow:0 12px 40px #0006,0 0 0 18px transparent; } }
+.brand{ justify-content:flex-start; gap:12px; padding:calc(max(env(safe-area-inset-top,0px),47px) + 8px + var(--safe-top-extra,0px)) 20px 10px; }
+#sx-close{ order:-1; }
+.brand-text b{ font-size:28px !important; line-height:44px; }
+.tetris-invite-chip{ flex-wrap:wrap; }
+.tetris-invite-chip .tic-body{ flex:1 1 96px; }
+.bubble:has(.tetris-invite-chip){ min-width:min(260px,72vw); }
+</style>
 </head>
 <body>
 
