@@ -4221,6 +4221,15 @@ html.reduce-motion #sx-island,html.reduce-motion #sx-ic.in *{ animation:none !im
 .sx-row2 .sx-mbtn{ width:42px; height:42px; flex:none; }
 .sx-row2 .sx-mbtn svg{ width:22px; height:22px; }
 </style>
+<style id="sx-island5">
+/* ===== SIGNAL v16: keep the camera area clear; drop the music player's collapse arrow and swipe hints ===== */
+.sxi-bg{ padding-top:54px !important; }
+.sxi-badge{ min-width:22px; height:22px; padding:0 7px; border-radius:11px; background:var(--amber); color:#fff; font-size:13px; font-weight:700; display:grid; place-items:center; }
+.sxi-search{ height:92px; box-sizing:border-box; padding:40px 9px 0 18px; }
+#search-wrap.open{ height:92px !important; }
+html.sx-searching #search-results{ max-height:calc(var(--uiplus-vv-height,100dvh) - 136px); }
+#media-player-stage .mp-music-topbar,#media-player-stage .mp-music-collapse,.uiplus-music-hint{ display:none !important; }
+</style>
 </head>
 <body>
 
@@ -13885,6 +13894,7 @@ var IC={
  play:'<svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M7 4.5v15L19.5 12z"/></svg>',
  back:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9L4 8.5"/><path d="M4 4v4.5h4.5"/><text x="12" y="15.5" font-size="7.5" font-weight="700" fill="#fff" stroke="none" text-anchor="middle">10</text></svg>',
  fwd:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9L20 8.5"/><path d="M20 4v4.5h-4.5"/><text x="12" y="15.5" font-size="7.5" font-weight="700" fill="#fff" stroke="none" text-anchor="middle">10</text></svg>',
+ chat:'<svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffffd9"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>',
  stop:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
  out:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>'
 };
@@ -13896,19 +13906,19 @@ function chip(a,t){return'<span class="sxi-chip" data-a="'+a+'" role="button" ta
 function pc(d){return d.len?Math.min(100,d.pos/d.len*100):0}
 var ST={
  idle:{w:112,h:37,s:function(){return''}},
- msg:{w:262,h:37,W:372,H:136,
-  s:function(d){return'<div class="sxi-sm">'+av(d.t,24)+'<span class="sxi-t2 sxi-ell">'+esc(d.b)+'</span></div>'},
+ msg:{w:224,h:37,W:372,H:172,
+  s:function(d){return'<div class="sxi-sm">'+av(d.t,24)+IC.chat+'</div>'},
   b:function(d){return'<div class="sxi-bg"><div class="sxi-row">'+av(d.t,44)+'<div class="sxi-grow"><div class="sxi-t1 sxi-ell">'+esc(d.t)+'</div><div class="sxi-t2 sxi-clamp">'+esc(d.b)+'</div></div></div><div class="sxi-chips">'+chip('open','開く')+chip('close','閉じる')+'</div></div>'}},
- music:{w:224,h:37,W:372,H:180,
+ music:{w:224,h:37,W:372,H:214,
   s:function(d){return'<div class="sxi-sm">'+art(d.art,24)+bars(d.playing)+'</div>'},
   b:function(d){return'<div class="sxi-bg" style="padding:16px 20px 8px">'+(d.art?'<img class="sxi-glow" src="'+esc(d.art)+'" alt="">':'')+'<div class="sxi-row">'+art(d.art,60)+'<div class="sxi-grow"><div class="sxi-t1 sxi-ell">'+esc(d.title)+'</div><div class="sxi-t2 sxi-ell">'+esc(d.artist)+'</div></div>'+bars(d.playing)+'</div><div class="sxi-seek" data-a="seek"><div class="sxi-track"><b id="sxi-pg" style="width:'+pc(d)+'%"></b></div></div><div class="sxi-tl"><span id="sxi-ps">'+fmt(d.pos)+'</span><span id="sxi-pr">'+(d.len?'-'+fmt(d.len-d.pos):'')+'</span></div><div class="sxi-ctl">'+btn('expand',IC.out)+btn('back',IC.back)+btn('pp',d.playing?IC.pause:IC.play)+btn('fwd',IC.fwd)+btn('stop',IC.stop)+'</div></div>'}},
- typing:{w:236,h:37,
-  s:function(d){return'<div class="sxi-sm">'+bars(true)+'<span class="sxi-t2 sxi-ell" style="text-align:right">'+esc(d.text)+'</span></div>'}},
- notice:{w:220,h:37,W:340,H:122,
-  s:function(d){return'<div class="sxi-sm"><span style="font-size:15px">'+d.icon+'</span><span class="sxi-t1 sxi-ell" style="text-align:right;font-size:13px">'+esc(d.text)+'</span></div>'},
+ typing:{w:224,h:37,
+  s:function(d){return'<div class="sxi-sm">'+bars(true)+av(d.text,22)+'</div>'}},
+ notice:{w:224,h:37,W:340,H:158,
+  s:function(d){return'<div class="sxi-sm"><span style="font-size:15px">'+d.icon+'</span><span class="sxi-badge">'+esc((d.text.match(/\d+/)||['!'])[0])+'</span></div>'},
   b:function(d){return'<div class="sxi-bg"><div class="sxi-row"><div class="sxi-av" style="width:44px;height:44px;font-size:22px">'+d.icon+'</div><div class="sxi-grow"><div class="sxi-t1">'+esc(d.text)+'</div></div></div><div class="sxi-chips">'+chip('go','確認')+chip('close','閉じる')+'</div></div>'}}
 };
-ST.search={w:372,h:52,s:function(){return'<div class="sxi-search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffffb0" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="sxi-q" type="text" placeholder="キーワード" autocomplete="off"><button type="button" class="sxi-x" data-a="sclose"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'}};
+ST.search={w:372,h:92,s:function(){return'<div class="sxi-search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffffb0" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="sxi-q" type="text" placeholder="キーワード" autocomplete="off"><button type="button" class="sxi-x" data-a="sclose"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'}};
 function searchOn(){var w=$('#search-wrap');return !!(w&&w.classList.contains('open'))}
 var sigS='';
 function st(d){return d.title+'\u0001'+d.artist+'\u0001'+d.art}
