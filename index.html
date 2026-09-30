@@ -4140,6 +4140,12 @@ html,body{ position:fixed; inset:0; width:100%; height:100%; overflow:hidden; ov
 html:not(.uiplus-kb) #app{ position:fixed; inset:0; width:100%; top:0 !important; height:auto !important; }
 #uiplus-clock{ top:calc(env(safe-area-inset-top,0px) + var(--uiplus-clock-y,2) * 1%); left:calc(env(safe-area-inset-left,0px) + var(--uiplus-clock-x,3) * 1%); }
 </style>
+<style id="sx-search">
+/* ===== SIGNAL v10: no layout jump while searching (keyboard only overlays, hidden input never steals focus) ===== */
+html.sx-searching #app{ position:fixed; inset:0; width:100%; top:0 !important; height:auto !important; }
+html.sx-searching #search-results{ max-height:calc(var(--uiplus-vv-height,100dvh) - 96px); }
+#search-wrap.open{ overflow:visible !important; }
+</style>
 </head>
 <body>
 
@@ -13896,8 +13902,10 @@ if(nb)new MutationObserver(function(){clearTimeout(dt);dt=setTimeout(function(){
  new MutationObserver(function(){var n=el.classList.contains('show')?(parseInt(el.textContent,10)||0):0;if(n>last)push('notice',{icon:w[3],text:w[1]+' '+n+'件',target:w[2]},6000);last=n})
  .observe(el,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
 });
-var sw=$('#search-wrap');
-if(sw)new MutationObserver(function(){tick();if(searchOn())setTimeout(function(){var q=document.getElementById('sxi-q');if(q)q.focus()},380)}).observe(sw,{attributes:true,attributeFilter:['class']});
+var sw=$('#search-wrap'),si=$('#search-input');
+if(si)si.focus=function(){};
+function focusQ(n){var q=document.getElementById('sxi-q');if(q){q.focus({preventScroll:true});return}if(n>0)setTimeout(function(){focusQ(n-1)},60)}
+if(sw)new MutationObserver(function(){var on=searchOn();document.documentElement.classList.toggle('sx-searching',on);tick();if(on)focusQ(12)}).observe(sw,{attributes:true,attributeFilter:['class']});
 render(false);setInterval(tick,500);
 window.SignalIsland={push:push,close:endTrans};
 })();
