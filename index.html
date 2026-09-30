@@ -13945,5 +13945,18 @@ new MutationObserver(function(){
 }).observe(stage,{childList:true});
 })();
 }try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[SIGNAL ambient]",e); } }); }catch(e){ console.error("[SIGNAL ambient]",e); }})();</script>
+<script>(function(){function run(){
+(function(){
+var vv=window.visualViewport,tm=[];
+function reset(){try{window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0}catch(e){}}
+function burst(){tm.forEach(clearTimeout);tm=[0,60,140,280,500,900].map(function(t){return setTimeout(reset,t)})}
+if(vv){vv.addEventListener('resize',burst);vv.addEventListener('scroll',function(){if(vv.offsetTop||vv.pageTop)reset()})}
+document.addEventListener('focusin',function(){setTimeout(reset,30)},true);
+document.addEventListener('focusout',function(){setTimeout(burst,50)},true);
+window.addEventListener('scroll',reset,{passive:true});
+var sw=document.getElementById('search-wrap');
+if(sw)new MutationObserver(burst).observe(sw,{attributes:true,attributeFilter:['class']});
+})();
+}try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[SIGNAL vpfix]",e); } }); }catch(e){ console.error("[SIGNAL vpfix]",e); }})();</script>
 </body>
 </html>
