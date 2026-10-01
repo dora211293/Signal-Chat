@@ -4252,32 +4252,13 @@ html.sx-searching #search-results{ max-height:calc(var(--uiplus-vv-height,100dvh
 #sxi-q{ font-size:17px; }
 .sxi-x{ width:30px; height:30px; }
 </style>
-<style id="sx-tr">
-/* ===== SIGNAL v19: clock / music player positions + translation ===== */
+<style id="sx-pos">
+/* ===== SIGNAL v20: clock/music-player positions + title room for the translate star ===== */
 #uiplus-clock{ left:calc(env(safe-area-inset-left,0px) + 20px) !important; top:9px !important; height:34px; z-index:99980 !important; text-shadow:0 1px 6px #0009; }
 #media-player-stage .mp-music-artwrap{ transform:translateY(-10vh); }
 #media-player-stage .mp-music-info{ transform:none; margin-bottom:0; padding-bottom:calc(22px + env(safe-area-inset-bottom,0px)) !important; }
 #media-player-stage .mp-music-wrap::after{ content:''; position:absolute; left:0; right:0; top:0; height:96px; background:linear-gradient(to bottom,#000c,transparent); z-index:6; pointer-events:none; }
-.msg-del-btn, .msg-tr-btn, .msg-react-btn{background:none; border:none; font-family: var(--font-mono); font-size: 9.5px;
-    color: var(--text-faint); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; padding: 2px 3px; opacity:.7;
-    transition: color 0.188s var(--ease-ios), opacity 0.188s var(--ease-ios), transform 0.25s var(--ease-spring);}
-.msg-tr-btn:hover, .msg-react-btn:hover{color: var(--amber); opacity:1; transform: translateY(-1px);}
-const replyBtn = e.target.closest('.msg-tr-btn');
-  if (replyBtn){const docSnap = (lastDocsSnapshot || []).find((d) => d.id === replyBtn.dataset.id);
-    if (docSnap) setReplyTarget(docSnap.id, docSnap.data());
-    return;}
-.sx-tr{ display:grid; grid-template-rows:0fr; opacity:0; margin-top:6px; max-width:100%; transition:grid-template-rows .55s var(--sx-out),opacity .4s ease; }
-.sx-tr.on{ grid-template-rows:1fr; opacity:1; }
-.sx-tr-in{ overflow:hidden; min-height:0; }
-.sx-tr-card{ padding:9px 12px; border-radius:16px; background:var(--surface-3); border:.5px solid var(--border); font-size:14px; line-height:1.5; color:var(--text); text-align:left; }
-.sx-tr-head{ display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:11px; color:var(--text-muted); }
-.sx-tr-head b{ font-weight:600; color:var(--text); } .sx-tr-head .sp{ flex:1; }
-.sx-tr-head button{ border:0; background:#ffffff14; color:var(--text-muted); border-radius:10px; padding:3px 9px; font-size:11px; cursor:pointer; }
-.sx-tr-load i{ display:block; height:9px; border-radius:5px; background:#ffffff1f; margin:7px 0; animation:sxShim 1.1s ease-in-out infinite alternate; }
-.sx-tr-load i:last-child{ width:58%; }
-@keyframes sxShim{ from{ opacity:.35; } to{ opacity:.9; } }
-.sx-tr-err{ color:#ff8a80; }
-html.reduce-motion .sx-tr-load i{ animation:none; }
+#topbar .titles{ margin-right:112px; }
 </style>
 </head>
 <body>
@@ -7631,7 +7612,6 @@ function renderMessages(docs){
       actions.innerHTML = `
         <button type="button" class="msg-reply-btn" data-id="${d.id}">${twemojiHtml('↩')} 返信</button>
         <button type="button" class="msg-react-btn" data-id="${d.id}">${twemojiHtml('😊')} リアクション</button>
-        ${hasText ? `<button type="button" class="msg-tr-btn" data-id="${d.id}">${twemojiHtml('🌐')} 翻訳</button>` : ''}
         ${canDelete ? `<button type="button" class="msg-del-btn" data-id="${d.id}">${mine ? '取り消し' : '削除(管理者)'} ${twemojiHtml('🗑')}</button>` : ''}
       `;
       body.appendChild(actions);
@@ -14170,61 +14150,528 @@ if('mediaSession' in navigator&&window.MediaMetadata){
 })();
 }try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[SIGNAL music]",e); } }); }catch(e){ console.error("[SIGNAL music]",e); }})();</script>
 <script>(function(){function run(){
-(function(){
-var msgs=document.getElementById('messages');if(!msgs)return;
-var LANGS=[['ja','日本語'],['en','English'],['zh-CN','中文'],['ko','한국어'],['es','Español'],['fr','Français']];
-var st=new Map(),cache={},raf=0;
-function lang(){var l=localStorage.getItem('sx-tr-lang')||'ja';return LANGS.some(function(x){return x[0]===l})?l:'ja'}
-function lname(l){for(var i=0;i<LANGS.length;i++)if(LANGS[i][0]===l)return LANGS[i][1];return l}
-function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
-function same(a,b){return a&&b&&String(a).split('-')[0]===String(b).split('-')[0]}
-async function translate(text,tl){
- var key=localStorage.getItem('sx-ai-key');
- if(key){
-  var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-   body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1024,system:'You are a translation engine. Translate the user message into '+lname(tl)+' ('+tl+'). Output only the translation. Keep emoji, URLs, @mentions and line breaks unchanged. If the message is already in that language, output it unchanged.',messages:[{role:'user',content:text}]})});
-  var j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||r.status);
-  return{text:j.content.map(function(c){return c.text||''}).join('').trim(),via:'Claude'};
- }
- if('Translator' in self&&'LanguageDetector' in self){
-  try{var det=await LanguageDetector.create(),res=await det.detect(text),sl=res&&res[0]&&res[0].detectedLanguage;
-   if(sl&&sl!=='und'){if(same(sl,tl))return{text:text,same:true,via:'Chrome'};var tr=await Translator.create({sourceLanguage:sl,targetLanguage:tl});return{text:await tr.translate(text),via:'Chrome'}}}catch(e){}
- }
- try{var g=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='+encodeURIComponent(tl)+'&dt=t&q='+encodeURIComponent(text)),gj=await g.json();
-  var out=gj[0].map(function(x){return x[0]}).join('');if(out)return{text:out,same:same(gj[2],tl),via:'Google'}}catch(e){}
- var m=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text.slice(0,450))+'&langpair=autodetect|'+encodeURIComponent(tl)),mj=await m.json();
- if(mj&&mj.responseData&&mj.responseData.translatedText)return{text:mj.responseData.translatedText,via:'MyMemory'};
- throw new Error('翻訳サービスに接続できませんでした');
-}
-function idOf(row){var b=row.querySelector('[data-id]');return b&&b.getAttribute('data-id')}
-function paint(row){
- var id=idOf(row);if(!id||!st.has(id))return;var s=st.get(id),body=row.querySelector('.msg-body'),bub=row.querySelector('.bubble');if(!body||!bub)return;
- var el=row.querySelector('.sx-tr'),fresh=false;
- if(!el){el=document.createElement('div');el.className='sx-tr';bub.insertAdjacentElement('afterend',el);fresh=true}
- var inner=s.status==='load'?'<div class="sx-tr-load"><i></i><i></i></div>':s.status==='err'?'<div class="sx-tr-err">'+esc(s.err)+'</div>':s.same?'<div style="opacity:.7">すでに'+esc(lname(s.tl))+'です</div>':'<div>'+esc(s.text).replace(/\n/g,'<br>')+'</div>';
- el.innerHTML='<div class="sx-tr-in"><div class="sx-tr-card"><div class="sx-tr-head"><b>🌐 '+esc(lname(s.tl))+'</b><span>'+(s.via?esc(s.via):'')+'</span><span class="sp"></span><button type="button" data-sx="lang">言語</button><button type="button" data-sx="key">AI</button><button type="button" data-sx="close">✕</button></div>'+inner+'</div></div>';
- if(fresh)requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('on')})});else el.classList.add('on');
-}
-async function run(row,id,tl){
- var te=row.querySelector('.msg-text');if(!te)return;var text=te.innerText.trim();if(!text)return;
- tl=tl||lang();st.set(id,{status:'load',tl:tl});paint(row);
- var k=tl+'\u0001'+(localStorage.getItem('sx-ai-key')?'c':'f')+'\u0001'+text;
- try{var r=cache[k]||(cache[k]=await translate(text,tl));st.set(id,{status:'ok',tl:tl,text:r.text,same:r.same,via:r.via})}
- catch(e){delete cache[k];st.set(id,{status:'err',tl:tl,err:'翻訳に失敗しました：'+(e&&e.message||e)})}
- var r2=document.querySelector('.msg-row [data-id="'+id+'"]');r2=r2&&r2.closest('.msg-row');if(r2)paint(r2);
-}
-msgs.addEventListener('click',function(e){
- var tb=e.target.closest('.msg-tr-btn');
- if(tb){e.stopPropagation();var row=tb.closest('.msg-row'),id=tb.getAttribute('data-id');if(st.has(id)&&st.get(id).status!=='err'){var ex=row.querySelector('.sx-tr');if(ex){ex.classList.remove('on');setTimeout(function(){ex.remove();st.delete(id)},500);return}}run(row,id);return}
- var b=e.target.closest('.sx-tr-head button');if(!b)return;e.stopPropagation();
- var row2=b.closest('.msg-row'),id2=idOf(row2),k=b.getAttribute('data-sx');
- if(k==='close'){var el=b.closest('.sx-tr');el.classList.remove('on');setTimeout(function(){el.remove();st.delete(id2)},500)}
- else if(k==='lang'){var i=0;for(;i<LANGS.length;i++)if(LANGS[i][0]===st.get(id2).tl)break;var nl=LANGS[(i+1)%LANGS.length][0];localStorage.setItem('sx-tr-lang',nl);run(row2,id2,nl)}
- else if(k==='key'){var v=prompt('Anthropic APIキー（任意）\n入れるとClaudeで翻訳します。空欄で無料の翻訳サービスを使います。\n※キーはこの端末にだけ保存されます。',localStorage.getItem('sx-ai-key')||'');if(v!==null){v=v.trim();if(v)localStorage.setItem('sx-ai-key',v);else localStorage.removeItem('sx-ai-key');run(row2,id2,st.get(id2).tl)}}
-},true);
-new MutationObserver(function(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;msgs.querySelectorAll('.msg-row').forEach(function(r){if(!r.querySelector('.sx-tr')){var id=idOf(r);if(id&&st.has(id))paint(r)}})})}).observe(msgs,{childList:true,subtree:true});
+/* SIGNAL AI 4.7.0 — 回転をつないだ星 / 訳文のみ */
+(function () {
+  'use strict';
+
+  var LS_ON = 'sig_tr_on';
+  var LS_TO = 'sig_tr_to';
+  var langs = [
+    { id: 'off', label: 'オフ' },
+    { id: 'ja', label: '日本語' },
+    { id: 'en', label: 'English' },
+    { id: 'ko', label: '한국어' },
+    { id: 'zh-CN', label: '简体中文' },
+    { id: 'zh-TW', label: '繁體中文' }
+  ];
+
+  var open = false;
+  var menu = null;
+  var cache = new Map();
+  var busy = new WeakSet();
+  var done = new WeakMap();
+  var pending = 0;
+  var gen = 0;
+  var busyUntil = 0;
+  var busyTimer = null;
+  var MIN_BUSY_MS = 2200;
+  var MAX_INFLIGHT = 3;
+  var queue = [];
+  var inflight = 0;
+  var scanTimer = null;
+
+  var spinAng = 0;
+  var spinSpd = 16;
+  var spinTgt = 16;
+  var starScl = 1;
+  var starSclTgt = 1;
+  var lastSpin = 0;
+  var reduceMotion = false;
+
+  function on() { return localStorage.getItem(LS_ON) === '1'; }
+  function to() { return localStorage.getItem(LS_TO) || 'ja'; }
+  function setOn(v) { localStorage.setItem(LS_ON, v ? '1' : '0'); }
+  function setTo(v) { localStorage.setItem(LS_TO, v); }
+
+  function visuallyBusy() {
+    return pending > 0 || inflight > 0 || queue.length > 0 || Date.now() < busyUntil;
+  }
+
+  function syncStarState() {
+    var b = starBtn();
+    if (!b) return;
+    var vis = on() && visuallyBusy();
+    b.classList.toggle('on', on());
+    b.classList.toggle('busy', vis);
+    b.classList.toggle('open', open);
+    b.setAttribute('data-state', vis ? 'busy' : (on() ? 'on' : 'idle'));
+    b.title = vis ? '翻訳中…' : (on() ? '翻訳 ON' : '翻訳');
+  }
+
+  function holdBusy(ms) {
+    var until = Date.now() + (ms || MIN_BUSY_MS);
+    if (until > busyUntil) busyUntil = until;
+    if (busyTimer) clearTimeout(busyTimer);
+    busyTimer = setTimeout(function () {
+      busyTimer = null;
+      syncStarState();
+    }, Math.max(16, busyUntil - Date.now()));
+    syncStarState();
+  }
+
+  function bumpBusy(delta) {
+    pending = Math.max(0, pending + delta);
+    if (delta > 0) holdBusy(MIN_BUSY_MS);
+    else {
+      syncStarState();
+      if (!visuallyBusy() && Date.now() < busyUntil) holdBusy(Math.max(0, busyUntil - Date.now()));
+      else syncStarState();
+    }
+  }
+
+  function spinTargets() {
+    if (reduceMotion || document.documentElement.classList.contains('reduce-motion')) { spinTgt = 0; starSclTgt = open ? 1.28 : 1; return; }
+    var b = starBtn();
+    var hover = !!(b && b.matches(':hover') && !open);
+    if (open) {
+      spinTgt = 90;
+      starSclTgt = 1.42;
+    } else if (on() && visuallyBusy()) {
+      spinTgt = 170;
+      starSclTgt = 1.12;
+    } else if (on()) {
+      spinTgt = 36;
+      starSclTgt = hover ? 1.08 : 1;
+    } else {
+      spinTgt = 18;
+      starSclTgt = hover ? 1.08 : 1;
+    }
+  }
+
+  function spinTick(now) {
+    if (!lastSpin) lastSpin = now;
+    var dt = Math.min(0.05, (now - lastSpin) / 1000);
+    lastSpin = now;
+    spinTargets();
+    var k = 1 - Math.exp(-dt * 4.2);
+    spinSpd += (spinTgt - spinSpd) * k;
+    starScl += (starSclTgt - starScl) * k;
+    spinAng = (spinAng + spinSpd * dt) % 360;
+    var b = starBtn();
+    if (b) {
+      b.style.transform = 'scale(' + starScl + ')';
+      var p1 = b.querySelector('.sai-p1');
+      if (p1) p1.style.transform = 'rotate(' + spinAng.toFixed(2) + 'deg)';
+    }
+    requestAnimationFrame(spinTick);
+  }
+
+  var CSS = ''
+    + '#sai-trigger-btn{width:44px;height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#e6c57a;padding:0;position:relative;border-radius:50%;cursor:pointer;z-index:97;transform:translateZ(0);will-change:transform,filter,color;background:color-mix(in srgb,#787880 24%,transparent)!important;border:.5px solid #ffffff24!important;backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%);top:calc(max(env(safe-area-inset-top,0px),47px) + 8px + var(--safe-top-extra,0px))!important;right:68px!important}'
+    + '#sai-trigger-btn svg{display:block;overflow:visible;filter:drop-shadow(0 0 3px currentColor)}'
+    + '#sai-trigger-btn .sai-p1{transform-origin:12px 10.5px}'
+    + '#sai-trigger-btn .sai-p2{transform-origin:19px 18px}'
+    + '#sai-trigger-btn .sai-p3,#sai-trigger-btn .sai-p4{transform-origin:center;opacity:0;transition:opacity .7s ease}'
+    + '#sai-trigger-btn::after,#sai-trigger-btn::before{content:"";position:absolute;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .7s ease}'
+    + '#sai-trigger-btn::after{inset:3px;border:1px solid currentColor}'
+    + '#sai-trigger-btn::before{inset:6px;background:radial-gradient(circle,currentColor 0%,transparent 72%);filter:blur(3px)}'
+    + '#sai-trigger-btn:not(.on):not(.open){color:#d7b56a;animation:saiIdleGlow 7.5s ease-in-out infinite}'
+    + '#sai-trigger-btn:not(.on):not(.open)::before{opacity:.18;animation:saiHaloBreathe 7.5s ease-in-out infinite}'
+    + '#sai-trigger-btn:not(.on):not(.open)::after{opacity:.2;animation:saiSoftRing 6.8s ease-in-out infinite}'
+    + '#sai-trigger-btn:not(.on):not(.open) .sai-p2{animation:saiTwinkle 4.8s ease-in-out infinite}'
+    + '#sai-trigger-btn.on:not(.open){animation:saiAura 16s linear infinite}'
+    + '#sai-trigger-btn.on:not(.open)::before{opacity:.28;animation:saiHaloBreathe 5.6s ease-in-out infinite}'
+    + '#sai-trigger-btn.on:not(.open)::after{opacity:.35;animation:saiBloomRing 4.6s cubic-bezier(.16,1,.3,1) infinite}'
+    + '#sai-trigger-btn.on:not(.open) .sai-p2{animation:saiOrbitSpark 5.4s ease-in-out infinite}'
+    + '#sai-trigger-btn.busy::before{opacity:.5}'
+    + '#sai-trigger-btn.busy::after{opacity:.64}'
+    + '#sai-trigger-btn.busy .sai-p3,#sai-trigger-btn.busy .sai-p4{opacity:.95}'
+    + '#sai-trigger-btn.busy .sai-p3{animation:saiDust 2.4s ease-out infinite}'
+    + '#sai-trigger-btn.busy .sai-p4{animation:saiDust 2.4s ease-out infinite .7s}'
+    + '#sai-trigger-btn.open{animation:saiAura 10s linear infinite}'
+    + '#sai-trigger-btn.open::before{opacity:.34;animation:saiHaloBreathe 4.2s ease-in-out infinite}'
+    + '#sai-trigger-btn.open::after{opacity:.4;animation:saiBloomRing 3.2s cubic-bezier(.16,1,.3,1) infinite}'
+    + '#sai-trigger-btn.open .sai-p2{animation:saiOrbitSpark 2.8s ease-in-out infinite}'
+    + '@keyframes saiIdleGlow{0%,100%{color:#c9a65c;filter:drop-shadow(0 0 2px #c9a65c55)}50%{color:#f0d08a;filter:drop-shadow(0 0 7px #f0d08a99)}}'
+    + '@keyframes saiTwinkle{0%,100%{opacity:.28;transform:scale(.82)}50%{opacity:.95;transform:scale(1.08)}}'
+    + '@keyframes saiSoftRing{0%,100%{transform:scale(.94);opacity:.1}50%{transform:scale(1.08);opacity:.28}}'
+    + '@keyframes saiHaloBreathe{0%,100%{opacity:.12;transform:scale(.92)}50%{opacity:.36;transform:scale(1.08)}}'
+    + '@keyframes saiAura{0%{color:#ffd56f;filter:drop-shadow(0 0 4px #ffd56f88)}18%{color:#ff9a62;filter:drop-shadow(0 0 5px #ff9a6288)}36%{color:#f176b0;filter:drop-shadow(0 0 5px #f176b088)}54%{color:#9b86ff;filter:drop-shadow(0 0 5px #9b86ff88)}72%{color:#62c8ff;filter:drop-shadow(0 0 5px #62c8ff88)}86%{color:#5ee0bf;filter:drop-shadow(0 0 5px #5ee0bf88)}100%{color:#ffd56f;filter:drop-shadow(0 0 4px #ffd56f88)}}'
+    + '@keyframes saiOrbitSpark{0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1.18)}}'
+    + '@keyframes saiBloomRing{0%{transform:scale(.88);opacity:.42}100%{transform:scale(1.28);opacity:0}}'
+    + '@keyframes saiDust{0%{opacity:0;transform:translate(0,0) scale(.35)}30%{opacity:.9;transform:translate(var(--dx,5px),var(--dy,-7px)) scale(1)}100%{opacity:0;transform:translate(calc(var(--dx,5px)*1.8),calc(var(--dy,-7px)*1.8)) scale(.15)}}'
+    + '#sai-left-icon,#sai-tr-btn,#sai-panel,#sai-modal,#sigai-frame,#sig-ai-strip{display:none!important}'
+    + '#sig-tr-menu{position:fixed;z-index:99970;display:none;flex-direction:column;gap:2px;width:176px;padding:8px;border-radius:26px;background:color-mix(in srgb,var(--surface-2,#17171c) 80%,transparent);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);border:.5px solid #ffffff1f;box-shadow:0 18px 50px #0007;transform-origin:top right;pointer-events:none}'
+    + '#sig-tr-menu.show,#sig-tr-menu.hide{display:flex}'
+    + '#sig-tr-menu.show{pointer-events:auto;animation:sigMenuIn .5s cubic-bezier(.16,1,.3,1) both}'
+    + '#sig-tr-menu.hide{animation:sigMenuOut .28s cubic-bezier(.4,0,.2,1) both}'
+    + '#sig-tr-menu button{border:0;background:none;color:var(--text,#fff);font-size:15px;font-weight:500;padding:11px 14px;border-radius:18px;text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;opacity:0;transition:background .2s ease}'
+    + '#sig-tr-menu.show button{animation:sigItemIn .48s cubic-bezier(.16,1,.3,1) both}'
+    + '#sig-tr-menu.hide button{animation:sigItemOut .22s ease both}'
+    + '#sig-tr-menu button:active{background:#ffffff1a}'
+    + '#sig-tr-menu button.now{background:var(--amber-dim,#0a84ff36)}'
+    + '#sig-tr-menu button.now::after{content:"";width:7px;height:12px;border:solid var(--amber,#0a84ff);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-2px,-2px)}'
+    + '@keyframes sigMenuIn{from{opacity:0;filter:blur(8px);transform:translate(8px,-8px) scale(.92)}to{opacity:1;filter:blur(0);transform:none}}'
+    + '@keyframes sigMenuOut{from{opacity:1;filter:blur(0);transform:none}to{opacity:0;filter:blur(6px);transform:translate(6px,-6px) scale(.94)}}'
+    + '@keyframes sigItemIn{from{opacity:0;transform:translateX(14px) scale(.96)}to{opacity:1;transform:none}}'
+    + '@keyframes sigItemOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(10px) scale(.96)}}'
+    + '.sig-tr{margin:0;font-size:inherit;line-height:inherit;color:var(--text);white-space:pre-wrap;opacity:0}'
+    + '.sig-tr.in{animation:sigFadeIn .38s cubic-bezier(.22,.7,.2,1) both}'
+    + '.sig-tr-body{font-size:inherit;line-height:inherit}'
+    + '@keyframes sigFadeIn{from{opacity:0;filter:blur(2px)}to{opacity:1;filter:blur(0)}}'
+    + 'body.sig-tr-on .msg-row.sig-replaced .msg-text{display:none!important}'
+    + 'body:not(.sig-tr-on) .sig-tr{display:none!important}'
+    + '.msg-text{transition:opacity .25s ease}'
+    + 'body.sig-tr-on .msg-text:not([data-sig-done]){opacity:0}'
+    + '.sig-tr-src{display:inline-block;margin-top:4px;border:0;background:#ffffff1a;color:var(--text-muted,#ebebf599);font-size:10.5px;padding:2px 9px;border-radius:9px;cursor:pointer}'
+    + '.msg-row.mine .sig-tr-src{background:#0000002e;color:#ffffffcc}'
+    + 'body.sig-tr-on .msg-row.sig-replaced.sig-show-src .msg-text{display:block!important}'
+    + '.msg-row.sig-show-src .sig-tr-body{display:none}'
+    + 'html.reduce-motion #sai-trigger-btn,html.reduce-motion #sai-trigger-btn::before,html.reduce-motion #sai-trigger-btn::after,html.reduce-motion #sig-tr-menu.show{animation:none!important}'
+    + '@media (prefers-reduced-motion:reduce){#sai-trigger-btn,#sai-trigger-btn svg,#sai-trigger-btn::before,#sai-trigger-btn::after,#sai-trigger-btn .sai-p2,#sai-trigger-btn .sai-p3,#sai-trigger-btn .sai-p4,.sig-tr.in,#sig-tr-menu.show{animation:none!important}.sig-tr.in{opacity:1}}';
+
+  var SVG = ''
+    + '<svg width="19" height="19" viewBox="0 0 24 24" fill="none">'
+    + '<path class="sai-p1" d="M12 3l1.9 5.3L19 10l-5.1 1.7L12 17l-1.9-5.3L5 10l5.1-1.7L12 3z" fill="currentColor" stroke="currentColor" stroke-width=".6" stroke-linejoin="round"/>'
+    + '<path class="sai-p2" d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z" fill="currentColor"/>'
+    + '<path class="sai-p3" style="--dx:7px;--dy:-8px" d="M5 5l.55 1.25L7 6.9l-1.45.5L5 8.7l-.55-1.3L3 6.9l1.45-.65L5 5z" fill="currentColor"/>'
+    + '<path class="sai-p4" style="--dx:-6px;--dy:5px" d="M7 18l.45 1.05L8.6 19.6l-1.15.4L7 21.1l-.45-1.1L5.4 19.6l1.15-.55L7 18z" fill="currentColor"/>'
+    + '</svg>';
+
+  function css() {
+    var old = document.getElementById('sig-ai-css');
+    if (old) old.remove();
+    var s = document.createElement('style');
+    s.id = 'sig-ai-css';
+    s.textContent = CSS;
+    document.head.appendChild(s);
+  }
+
+  function starBtn() { return document.getElementById('sai-trigger-btn'); }
+
+  function place(n) {
+    var host = document.getElementById('topbar-right');
+    if (!host) {
+      if ((n || 0) < 40) setTimeout(function () { place((n || 0) + 1); }, 250);
+      return;
+    }
+    if (starBtn()) return;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.id = 'sai-trigger-btn';
+    b.title = '翻訳';
+    b.innerHTML = SVG;
+    var search = document.getElementById('search-wrap');
+    if (search) host.insertBefore(b, search);
+    else host.appendChild(b);
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (open) hideMenu();
+      else showMenu();
+    });
+    syncStarState();
+  }
+
+  function buildMenu() {
+    if (menu) return;
+    menu = document.createElement('div');
+    menu.id = 'sig-tr-menu';
+    langs.forEach(function (L) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.id = L.id;
+      b.textContent = L.label;
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        pick(L.id);
+      });
+      menu.appendChild(b);
+    });
+    document.body.appendChild(menu);
+    document.addEventListener('click', function (e) {
+      if (!open) return;
+      if (e.target.closest('#sai-trigger-btn') || (menu && menu.contains(e.target))) return;
+      hideMenu();
+    });
+  }
+
+  function paintMenu() {
+    if (!menu) return;
+    var cur = on() ? to() : 'off';
+    Array.prototype.forEach.call(menu.querySelectorAll('button'), function (b) {
+      b.classList.toggle('now', b.dataset.id === cur);
+    });
+  }
+
+  function showMenu() {
+    buildMenu();
+    paintMenu();
+    var st = starBtn();
+    if (st) {
+      st.classList.add('open');
+      var r = st.getBoundingClientRect();
+      menu.style.top = Math.round(r.bottom + 10) + 'px';
+      menu.style.right = Math.round(window.innerWidth - r.right) + 'px';
+    }
+    Array.prototype.forEach.call(menu.querySelectorAll('button'), function (b, i) {
+      b.style.animationDelay = (40 + i * 55) + 'ms';
+    });
+    menu.classList.remove('hide');
+    menu.classList.add('show');
+    open = true;
+    syncStarState();
+  }
+
+  function hideMenu() {
+    open = false;
+    var st = starBtn();
+    if (st) st.classList.remove('open');
+    if (menu) {
+      menu.classList.remove('show');
+      menu.classList.add('hide');
+      Array.prototype.forEach.call(menu.querySelectorAll('button'), function (b, i) {
+        b.style.animationDelay = (i * 18) + 'ms';
+      });
+      setTimeout(function () {
+        if (!open && menu) menu.classList.remove('hide');
+      }, 300);
+    }
+    syncStarState();
+  }
+
+  function pick(id) {
+    if (id === 'off') setOn(false);
+    else {
+      setOn(true);
+      setTo(id);
+    }
+    paintMenu();
+    apply(true);
+    hideMenu();
+  }
+
+  function guess(text) {
+    var t = String(text || '');
+    if (/[ぁ-んァ-ン]/.test(t)) return 'ja';
+    if (/[가-힣]/.test(t)) return 'ko';
+    if (/[\u3400-\u9FFF]/.test(t)) return 'zh';
+    if (/[A-Za-z]/.test(t)) return 'en';
+    return '';
+  }
+
+  function need(text, target) {
+    var t = (text || '').trim();
+    if (t.length < 2 || t.length > 900) return false;
+    var g = guess(t);
+    if (!g) return false;
+    if (target === 'ja' && g === 'ja') return false;
+    if (target === 'en' && g === 'en') return false;
+    if ((target === 'zh-CN' || target === 'zh-TW') && g === 'zh') return false;
+    if (target === 'ko' && g === 'ko') return false;
+    return true;
+  }
+
+  async function translate(text, target) {
+    var key = target + '\t' + text;
+    if (cache.has(key)) return cache.get(key);
+    var out = null;
+    try {
+      var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='
+        + encodeURIComponent(target) + '&dt=t&q=' + encodeURIComponent(text);
+      var r = await fetch(url);
+      var j = await r.json();
+      out = ((j && j[0]) || []).map(function (x) { return x[0]; }).join('');
+    } catch (e1) {}
+    if (!out) {
+      try {
+        var url2 = 'https://api.mymemory.translated.net/get?q='
+          + encodeURIComponent(text.slice(0, 500))
+          + '&langpair=autodetect|' + encodeURIComponent(target);
+        var r2 = await fetch(url2);
+        var j2 = await r2.json();
+        out = j2 && j2.responseData && j2.responseData.translatedText;
+      } catch (e2) {}
+    }
+    if (out && String(out).trim()) {
+      out = String(out).trim();
+      cache.set(key, out);
+      return out;
+    }
+    return null;
+  }
+
+  function rowOf(textEl) {
+    return textEl.closest('.msg-row') || textEl.parentElement;
+  }
+
+  function clearBox(textEl) {
+    var row = rowOf(textEl);
+    if (!row) return;
+    var box = row.querySelector('.sig-tr');
+    if (box) box.remove();
+    row.classList.remove('sig-replaced', 'sig-src');
+  }
+
+  function boxFor(textEl) {
+    var row = rowOf(textEl);
+    var box = row && row.querySelector('.sig-tr');
+    if (box) return box;
+    box = document.createElement('div');
+    box.className = 'sig-tr';
+    var body = document.createElement('div');
+    body.className = 'sig-tr-body';
+    box.appendChild(body);
+    textEl.insertAdjacentElement('afterend', box);
+    return box;
+  }
+
+  function paintTranslation(textEl, out) {
+    var box = boxFor(textEl);
+    var body = box.querySelector('.sig-tr-body');
+    if (!box.querySelector('.sig-tr-src')) { var tg = document.createElement('button'); tg.type = 'button'; tg.className = 'sig-tr-src'; tg.textContent = '原文'; box.appendChild(tg); }
+    if (body.textContent === out && box.classList.contains('in')) {
+      var rowKeep = rowOf(textEl);
+      if (rowKeep) rowKeep.classList.add('sig-replaced');
+      return;
+    }
+    body.textContent = out;
+    box.classList.remove('in');
+    void box.offsetWidth;
+    box.classList.add('in');
+    var row = rowOf(textEl);
+    if (row) row.classList.add('sig-replaced');
+  }
+
+  function markDone(textEl, target, text, status) {
+    done.set(textEl, { target: target, text: text, status: status });
+    try { textEl.setAttribute('data-sig-done', '1'); } catch (e) {}
+  }
+
+  function enqueue(textEl) {
+    if (!on() || !textEl || busy.has(textEl)) return;
+    var text = (textEl.textContent || '').trim();
+    var target = to();
+    var prev = done.get(textEl);
+    if (prev && prev.target === target && prev.text === text && (prev.status === 'ok' || prev.status === 'skip')) return;
+
+    if (!need(text, target)) {
+      clearBox(textEl);
+      markDone(textEl, target, text, 'skip');
+      return;
+    }
+
+    busy.add(textEl);
+    queue.push(textEl);
+    holdBusy(MIN_BUSY_MS);
+    pump();
+  }
+
+  function pump() {
+    while (inflight < MAX_INFLIGHT && queue.length) {
+      var el = queue.shift();
+      inflight += 1;
+      bumpBusy(1);
+      runOne(el).then(function () {}, function () {}).then(function () {
+        inflight = Math.max(0, inflight - 1);
+        busy.delete(el);
+        bumpBusy(-1);
+        pump();
+      });
+    }
+    syncStarState();
+  }
+
+  async function runOne(textEl) {
+    if (!on() || !textEl) return;
+    var text = (textEl.textContent || '').trim();
+    var target = to();
+    var myGen = gen;
+    if (!need(text, target)) {
+      clearBox(textEl);
+      markDone(textEl, target, text, 'skip');
+      return;
+    }
+    var out = await translate(text, target);
+    if (myGen !== gen || !on() || to() !== target) return;
+    if ((textEl.textContent || '').trim() !== text) return;
+    if (out) {
+      paintTranslation(textEl, out);
+      markDone(textEl, target, text, 'ok');
+    } else {
+      clearBox(textEl);
+      markDone(textEl, target, text, 'fail');
+    }
+  }
+
+  function scan() {
+    if (!on()) return;
+    document.querySelectorAll('.msg-text').forEach(function (el) { enqueue(el); });
+  }
+
+  function scanSoon() {
+    if (scanTimer) return;
+    scanTimer = setTimeout(function () {
+      scanTimer = null;
+      scan();
+    }, 60);
+  }
+
+  function apply(force) {
+    gen += 1;
+    queue = [];
+    document.body.classList.toggle('sig-tr-on', on());
+    if (!on()) {
+      pending = 0;
+      busyUntil = 0;
+      if (busyTimer) { clearTimeout(busyTimer); busyTimer = null; }
+      syncStarState();
+      return;
+    }
+    if (force) {
+      document.querySelectorAll('.msg-text').forEach(function (el) {
+        var rec = done.get(el);
+        if (!rec || rec.target !== to()) done.delete(el);
+      });
+      holdBusy(MIN_BUSY_MS);
+    }
+    syncStarState();
+    scan();
+  }
+
+  function watch() {
+    apply(false);
+    var obs = new MutationObserver(function () { if (on()) scanSoon(); });
+    obs.observe(document.getElementById('messages') || document.body, { childList: true, subtree: true });
+  }
+
+  function scrub() {
+    ['sai-left-icon', 'sai-tr-btn', 'sai-panel', 'sai-modal', 'sigai-frame', 'sig-ai-strip'].forEach(function (id) {
+      var n = document.getElementById(id);
+      if (n) n.remove();
+    });
+  }
+
+  try { reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch (e) {}
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest && e.target.closest('.sig-tr-src');
+    if (!t) return;
+    e.stopPropagation();
+    var row = t.closest('.msg-row');
+    if (!row) return;
+    t.textContent = row.classList.toggle('sig-show-src') ? '訳文' : '原文';
+  }, true);
+  css();
+  place(0);
+  requestAnimationFrame(spinTick);
+  setTimeout(watch, 400);
+  setInterval(function () {
+    var host = document.getElementById('topbar-right');
+    if (host && !starBtn()) place(0);
+    scrub();
+    syncStarState();
+  }, 1600);
 })();
 
-}try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[SIGNAL translate]",e); } }); }catch(e){ console.error("[SIGNAL translate]",e); }})();</script>
+}try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[SIGNAL AI]",e); } }); }catch(e){ console.error("[SIGNAL AI]",e); }})();</script>
 </body>
 </html>
