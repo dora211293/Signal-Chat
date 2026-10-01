@@ -4252,6 +4252,33 @@ html.sx-searching #search-results{ max-height:calc(var(--uiplus-vv-height,100dvh
 #sxi-q{ font-size:17px; }
 .sxi-x{ width:30px; height:30px; }
 </style>
+<style id="sx-tr">
+/* ===== SIGNAL v19: clock / music player positions + translation ===== */
+#uiplus-clock{ left:calc(env(safe-area-inset-left,0px) + 20px) !important; top:9px !important; height:34px; z-index:99980 !important; text-shadow:0 1px 6px #0009; }
+#media-player-stage .mp-music-artwrap{ transform:translateY(-10vh); }
+#media-player-stage .mp-music-info{ transform:none; margin-bottom:0; padding-bottom:calc(22px + env(safe-area-inset-bottom,0px)) !important; }
+#media-player-stage .mp-music-wrap::after{ content:''; position:absolute; left:0; right:0; top:0; height:96px; background:linear-gradient(to bottom,#000c,transparent); z-index:6; pointer-events:none; }
+.msg-del-btn, .msg-tr-btn, .msg-react-btn{background:none; border:none; font-family: var(--font-mono); font-size: 9.5px;
+    color: var(--text-faint); cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Ccircle cx='15' cy='15' r='11' fill='%23F0A93F' fill-opacity='0.16' stroke='%23F0A93F' stroke-width='2'/%3E%3Ccircle cx='15' cy='15' r='3' fill='%23F0A93F'/%3E%3C/svg%3E") 15 15, pointer; padding: 2px 3px; opacity:.7;
+    transition: color 0.188s var(--ease-ios), opacity 0.188s var(--ease-ios), transform 0.25s var(--ease-spring);}
+.msg-tr-btn:hover, .msg-react-btn:hover{color: var(--amber); opacity:1; transform: translateY(-1px);}
+const replyBtn = e.target.closest('.msg-tr-btn');
+  if (replyBtn){const docSnap = (lastDocsSnapshot || []).find((d) => d.id === replyBtn.dataset.id);
+    if (docSnap) setReplyTarget(docSnap.id, docSnap.data());
+    return;}
+.sx-tr{ display:grid; grid-template-rows:0fr; opacity:0; margin-top:6px; max-width:100%; transition:grid-template-rows .55s var(--sx-out),opacity .4s ease; }
+.sx-tr.on{ grid-template-rows:1fr; opacity:1; }
+.sx-tr-in{ overflow:hidden; min-height:0; }
+.sx-tr-card{ padding:9px 12px; border-radius:16px; background:var(--surface-3); border:.5px solid var(--border); font-size:14px; line-height:1.5; color:var(--text); text-align:left; }
+.sx-tr-head{ display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:11px; color:var(--text-muted); }
+.sx-tr-head b{ font-weight:600; color:var(--text); } .sx-tr-head .sp{ flex:1; }
+.sx-tr-head button{ border:0; background:#ffffff14; color:var(--text-muted); border-radius:10px; padding:3px 9px; font-size:11px; cursor:pointer; }
+.sx-tr-load i{ display:block; height:9px; border-radius:5px; background:#ffffff1f; margin:7px 0; animation:sxShim 1.1s ease-in-out infinite alternate; }
+.sx-tr-load i:last-child{ width:58%; }
+@keyframes sxShim{ from{ opacity:.35; } to{ opacity:.9; } }
+.sx-tr-err{ color:#ff8a80; }
+html.reduce-motion .sx-tr-load i{ animation:none; }
+</style>
 </head>
 <body>
 
@@ -7604,6 +7631,7 @@ function renderMessages(docs){
       actions.innerHTML = `
         <button type="button" class="msg-reply-btn" data-id="${d.id}">${twemojiHtml('↩')} 返信</button>
         <button type="button" class="msg-react-btn" data-id="${d.id}">${twemojiHtml('😊')} リアクション</button>
+        ${hasText ? `<button type="button" class="msg-tr-btn" data-id="${d.id}">${twemojiHtml('🌐')} 翻訳</button>` : ''}
         ${canDelete ? `<button type="button" class="msg-del-btn" data-id="${d.id}">${mine ? '取り消し' : '削除(管理者)'} ${twemojiHtml('🗑')}</button>` : ''}
       `;
       body.appendChild(actions);
@@ -14141,5 +14169,62 @@ if('mediaSession' in navigator&&window.MediaMetadata){
 }
 })();
 }try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[SIGNAL music]",e); } }); }catch(e){ console.error("[SIGNAL music]",e); }})();</script>
+<script>(function(){function run(){
+(function(){
+var msgs=document.getElementById('messages');if(!msgs)return;
+var LANGS=[['ja','日本語'],['en','English'],['zh-CN','中文'],['ko','한국어'],['es','Español'],['fr','Français']];
+var st=new Map(),cache={},raf=0;
+function lang(){var l=localStorage.getItem('sx-tr-lang')||'ja';return LANGS.some(function(x){return x[0]===l})?l:'ja'}
+function lname(l){for(var i=0;i<LANGS.length;i++)if(LANGS[i][0]===l)return LANGS[i][1];return l}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
+function same(a,b){return a&&b&&String(a).split('-')[0]===String(b).split('-')[0]}
+async function translate(text,tl){
+ var key=localStorage.getItem('sx-ai-key');
+ if(key){
+  var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+   body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1024,system:'You are a translation engine. Translate the user message into '+lname(tl)+' ('+tl+'). Output only the translation. Keep emoji, URLs, @mentions and line breaks unchanged. If the message is already in that language, output it unchanged.',messages:[{role:'user',content:text}]})});
+  var j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||r.status);
+  return{text:j.content.map(function(c){return c.text||''}).join('').trim(),via:'Claude'};
+ }
+ if('Translator' in self&&'LanguageDetector' in self){
+  try{var det=await LanguageDetector.create(),res=await det.detect(text),sl=res&&res[0]&&res[0].detectedLanguage;
+   if(sl&&sl!=='und'){if(same(sl,tl))return{text:text,same:true,via:'Chrome'};var tr=await Translator.create({sourceLanguage:sl,targetLanguage:tl});return{text:await tr.translate(text),via:'Chrome'}}}catch(e){}
+ }
+ try{var g=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='+encodeURIComponent(tl)+'&dt=t&q='+encodeURIComponent(text)),gj=await g.json();
+  var out=gj[0].map(function(x){return x[0]}).join('');if(out)return{text:out,same:same(gj[2],tl),via:'Google'}}catch(e){}
+ var m=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text.slice(0,450))+'&langpair=autodetect|'+encodeURIComponent(tl)),mj=await m.json();
+ if(mj&&mj.responseData&&mj.responseData.translatedText)return{text:mj.responseData.translatedText,via:'MyMemory'};
+ throw new Error('翻訳サービスに接続できませんでした');
+}
+function idOf(row){var b=row.querySelector('[data-id]');return b&&b.getAttribute('data-id')}
+function paint(row){
+ var id=idOf(row);if(!id||!st.has(id))return;var s=st.get(id),body=row.querySelector('.msg-body'),bub=row.querySelector('.bubble');if(!body||!bub)return;
+ var el=row.querySelector('.sx-tr'),fresh=false;
+ if(!el){el=document.createElement('div');el.className='sx-tr';bub.insertAdjacentElement('afterend',el);fresh=true}
+ var inner=s.status==='load'?'<div class="sx-tr-load"><i></i><i></i></div>':s.status==='err'?'<div class="sx-tr-err">'+esc(s.err)+'</div>':s.same?'<div style="opacity:.7">すでに'+esc(lname(s.tl))+'です</div>':'<div>'+esc(s.text).replace(/\n/g,'<br>')+'</div>';
+ el.innerHTML='<div class="sx-tr-in"><div class="sx-tr-card"><div class="sx-tr-head"><b>🌐 '+esc(lname(s.tl))+'</b><span>'+(s.via?esc(s.via):'')+'</span><span class="sp"></span><button type="button" data-sx="lang">言語</button><button type="button" data-sx="key">AI</button><button type="button" data-sx="close">✕</button></div>'+inner+'</div></div>';
+ if(fresh)requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('on')})});else el.classList.add('on');
+}
+async function run(row,id,tl){
+ var te=row.querySelector('.msg-text');if(!te)return;var text=te.innerText.trim();if(!text)return;
+ tl=tl||lang();st.set(id,{status:'load',tl:tl});paint(row);
+ var k=tl+'\u0001'+(localStorage.getItem('sx-ai-key')?'c':'f')+'\u0001'+text;
+ try{var r=cache[k]||(cache[k]=await translate(text,tl));st.set(id,{status:'ok',tl:tl,text:r.text,same:r.same,via:r.via})}
+ catch(e){delete cache[k];st.set(id,{status:'err',tl:tl,err:'翻訳に失敗しました：'+(e&&e.message||e)})}
+ var r2=document.querySelector('.msg-row [data-id="'+id+'"]');r2=r2&&r2.closest('.msg-row');if(r2)paint(r2);
+}
+msgs.addEventListener('click',function(e){
+ var tb=e.target.closest('.msg-tr-btn');
+ if(tb){e.stopPropagation();var row=tb.closest('.msg-row'),id=tb.getAttribute('data-id');if(st.has(id)&&st.get(id).status!=='err'){var ex=row.querySelector('.sx-tr');if(ex){ex.classList.remove('on');setTimeout(function(){ex.remove();st.delete(id)},500);return}}run(row,id);return}
+ var b=e.target.closest('.sx-tr-head button');if(!b)return;e.stopPropagation();
+ var row2=b.closest('.msg-row'),id2=idOf(row2),k=b.getAttribute('data-sx');
+ if(k==='close'){var el=b.closest('.sx-tr');el.classList.remove('on');setTimeout(function(){el.remove();st.delete(id2)},500)}
+ else if(k==='lang'){var i=0;for(;i<LANGS.length;i++)if(LANGS[i][0]===st.get(id2).tl)break;var nl=LANGS[(i+1)%LANGS.length][0];localStorage.setItem('sx-tr-lang',nl);run(row2,id2,nl)}
+ else if(k==='key'){var v=prompt('Anthropic APIキー（任意）\n入れるとClaudeで翻訳します。空欄で無料の翻訳サービスを使います。\n※キーはこの端末にだけ保存されます。',localStorage.getItem('sx-ai-key')||'');if(v!==null){v=v.trim();if(v)localStorage.setItem('sx-ai-key',v);else localStorage.removeItem('sx-ai-key');run(row2,id2,st.get(id2).tl)}}
+},true);
+new MutationObserver(function(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;msgs.querySelectorAll('.msg-row').forEach(function(r){if(!r.querySelector('.sx-tr')){var id=idOf(r);if(id&&st.has(id))paint(r)}})})}).observe(msgs,{childList:true,subtree:true});
+})();
+
+}try{ if(document.readyState==="complete") run(); else window.addEventListener("load",function(){ try{ run(); }catch(e){ console.error("[SIGNAL translate]",e); } }); }catch(e){ console.error("[SIGNAL translate]",e); }})();</script>
 </body>
 </html>
