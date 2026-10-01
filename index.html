@@ -4236,6 +4236,22 @@ html.sx-searching #search-results{ max-height:calc(var(--uiplus-vv-height,100dvh
 .sxi-sm{ height:34px; }
 @keyframes sxiRing{ 0%{ box-shadow:inset 0 0 0 1px #2c2c2e,0 0 0 0 #ffffff33; } 100%{ box-shadow:inset 0 0 0 1px #2c2c2e,0 0 0 18px transparent; } }
 </style>
+<style id="sx-island7">
+/* ===== SIGNAL v18: tidier expanded island (camera band 46px, evenly spaced controls, inset search field) ===== */
+.sxi-bg{ padding:46px 20px 16px !important; }
+.sxi-bg .sxi-row{ gap:14px; }
+.sxi-t1{ font-size:17px; letter-spacing:-.01em; }
+.sxi-bg .sxi-art{ border-radius:12px; }
+.sxi-ctl{ justify-content:space-between; padding:0 4px; margin-top:4px; gap:0; }
+.sxi-btn{ width:44px; height:44px; opacity:.92; }
+.sxi-btn.b-expand,.sxi-btn.b-stop{ opacity:.6; }
+.sxi-btn.b-pp{ width:56px; height:56px; background:#fff; opacity:1; }
+.sxi-btn.b-pp svg{ fill:#000; width:26px; height:26px; }
+.sxi-search{ height:92px; padding:0 !important; display:flex; align-items:flex-end; }
+.sxi-field{ flex:1; min-width:0; display:flex; align-items:center; gap:10px; height:46px; margin:0 8px 8px; padding:0 8px 0 14px; background:#1c1c1e; border-radius:23px; }
+#sxi-q{ font-size:17px; }
+.sxi-x{ width:30px; height:30px; }
+</style>
 </head>
 <body>
 
@@ -13907,15 +13923,15 @@ var IC={
 function bars(p){return'<div class="sxi-bars'+(p?'':' p')+'"><i></i><i></i><i></i><i></i></div>'}
 function art(u,z){return u?'<img class="sxi-art" style="width:'+z+'px;height:'+z+'px" src="'+esc(u)+'" alt="" onerror="this.style.visibility=\'hidden\'">':'<div class="sxi-art" style="width:'+z+'px;height:'+z+'px"></div>'}
 function av(t,z){return'<div class="sxi-av" style="width:'+z+'px;height:'+z+'px;font-size:'+Math.round(z*.46)+'px">'+esc(String(t||'S').trim().charAt(0)||'S')+'</div>'}
-function btn(a,i){return'<button type="button" class="sxi-btn" data-a="'+a+'">'+i+'</button>'}
+function btn(a,i){return'<button type="button" class="sxi-btn b-'+a+'" data-a="'+a+'">'+i+'</button>'}
 function chip(a,t){return'<span class="sxi-chip" data-a="'+a+'" role="button" tabindex="0">'+esc(t)+'</span>'}
 function pc(d){return d.len?Math.min(100,d.pos/d.len*100):0}
 var ST={
  idle:{w:125,h:34,s:function(){return''}},
- msg:{w:224,h:34,W:372,H:172,
+ msg:{w:224,h:34,W:372,H:164,
   s:function(d){return'<div class="sxi-sm">'+av(d.t,24)+IC.chat+'</div>'},
   b:function(d){return'<div class="sxi-bg"><div class="sxi-row">'+av(d.t,44)+'<div class="sxi-grow"><div class="sxi-t1 sxi-ell">'+esc(d.t)+'</div><div class="sxi-t2 sxi-clamp">'+esc(d.b)+'</div></div></div><div class="sxi-chips">'+chip('open','開く')+chip('close','閉じる')+'</div></div>'}},
- music:{w:224,h:34,W:372,H:214,
+ music:{w:224,h:34,W:372,H:228,
   s:function(d){return'<div class="sxi-sm">'+art(d.art,24)+bars(d.playing)+'</div>'},
   b:function(d){return'<div class="sxi-bg" style="padding:16px 20px 8px">'+(d.art?'<img class="sxi-glow" src="'+esc(d.art)+'" alt="">':'')+'<div class="sxi-row">'+art(d.art,60)+'<div class="sxi-grow"><div class="sxi-t1 sxi-ell">'+esc(d.title)+'</div><div class="sxi-t2 sxi-ell">'+esc(d.artist)+'</div></div>'+bars(d.playing)+'</div><div class="sxi-seek" data-a="seek"><div class="sxi-track"><b id="sxi-pg" style="width:'+pc(d)+'%"></b></div></div><div class="sxi-tl"><span id="sxi-ps">'+fmt(d.pos)+'</span><span id="sxi-pr">'+(d.len?'-'+fmt(d.len-d.pos):'')+'</span></div><div class="sxi-ctl">'+btn('expand',IC.out)+btn('back',IC.back)+btn('pp',d.playing?IC.pause:IC.play)+btn('fwd',IC.fwd)+btn('stop',IC.stop)+'</div></div>'}},
  typing:{w:224,h:34,
@@ -13924,7 +13940,7 @@ var ST={
   s:function(d){return'<div class="sxi-sm"><span style="font-size:15px">'+d.icon+'</span><span class="sxi-badge">'+esc((d.text.match(/\d+/)||['!'])[0])+'</span></div>'},
   b:function(d){return'<div class="sxi-bg"><div class="sxi-row"><div class="sxi-av" style="width:44px;height:44px;font-size:22px">'+d.icon+'</div><div class="sxi-grow"><div class="sxi-t1">'+esc(d.text)+'</div></div></div><div class="sxi-chips">'+chip('go','確認')+chip('close','閉じる')+'</div></div>'}}
 };
-ST.search={w:372,h:92,s:function(){return'<div class="sxi-search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffffb0" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="sxi-q" type="text" placeholder="キーワード" autocomplete="off"><button type="button" class="sxi-x" data-a="sclose"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'}};
+ST.search={w:372,h:92,s:function(){return'<div class="sxi-search"><div class="sxi-field"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffffb0" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="sxi-q" type="text" placeholder="キーワード" autocomplete="off"><button type="button" class="sxi-x" data-a="sclose"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>'}};
 function searchOn(){var w=$('#search-wrap');return !!(w&&w.classList.contains('open'))}
 var sigS='';
 function st(d){return d.title+'\u0001'+d.artist+'\u0001'+d.art}
@@ -13942,7 +13958,7 @@ function avoidClock(w,h){
 }
 function render(fade){
  var s=ST[cur.k],b=isBig(),mw=innerWidth-20,w=Math.min(b?s.W:s.w,mw),h=b?s.H:s.h;
- isl.style.width=w+'px';isl.style.height=h+'px';isl.style.borderRadius=(b?40:h/2)+'px';
+ isl.style.width=w+'px';isl.style.height=h+'px';isl.style.borderRadius=(b?38:cur.k==='search'?32:h/2)+'px';
  isl.classList.toggle('sx-big',b);isl.setAttribute('data-k',cur.k);if(lastK!==cur.k){lastK=cur.k;morph()}isl.tabIndex=cur.k==='idle'?-1:0;avoidClock(w,h);
  var html=b?s.b(cur.d):s.s(cur.d);clearTimeout(ft);
  if(fade===false||reduce()){c.innerHTML=html;c.classList.remove('out','in');return}
